@@ -4,6 +4,7 @@ All notable changes per phase. Newest on top.
 
 ## Prices on the landing page (2026-10-29)
 
+- **Business website on big screens**: the page now uses the full width — the website (cover, about, team, photos, hours) on the left, the booking card on the right, staying in view while scrolling and through every booking step. Phones are unchanged.
 - **Prices section**: Starter 39 ₾ / month (1 specialist, 900 SMS), Standard 89 ₾ (2–15 specialists, 1,500 SMS, "most popular"), Premium priced individually. A switch for 1 / 6 / 12 / 18 months shows the discounted price (−10 / −20 / −30 %), the old price crossed out and the total. A card turns green under the mouse; every "Choose plan" opens the free sign-up. Prices and limits stay editable in /admin/plans; the old "Clinic" placeholder plan is no longer offered.
 - **Pilot plan and tracker**: docs/pilot-test-plan.md and docs/pilot/bookeria-pilot-tracker.xlsx.
 

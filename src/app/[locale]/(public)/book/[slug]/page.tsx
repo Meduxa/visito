@@ -31,7 +31,7 @@ export default async function PublicBookingPage({ params }: PageProps<"/[locale]
   void _id;
 
   return (
-    <div data-site-theme={visible.theme} className="flex flex-col gap-4">
+    <div data-site-theme={visible.theme} data-wide className="flex flex-col gap-4">
       <BookingFlow business={visible} header={<BusinessHeader business={visible} />} />
     </div>
   );

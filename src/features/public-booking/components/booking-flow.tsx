@@ -151,12 +151,11 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
 
   if (!business.services.length) {
     return (
-      <>
-        {header}
+      <Columns site={header} showSite>
         <Card className="p-6 text-center text-sm text-muted-foreground">
           <p>{tb("noServices")}</p>
         </Card>
-      </>
+      </Columns>
     );
   }
 
@@ -182,8 +181,7 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
       URL.revokeObjectURL(a.href);
     };
     return (
-      <>
-        {header}
+      <Columns site={header} showSite>
         <Card className="items-center gap-4 p-6 text-center">
           <span className="flex size-12 items-center justify-center rounded-full bg-success-soft text-success-ink">
             <Check aria-hidden />
@@ -221,16 +219,14 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
             {tb("bookAnother")}
           </Button>
         </Card>
-      </>
+      </Columns>
     );
   }
 
   return (
-    <>
-      {step === "services" ? (
-        header
-      ) : (
-        <p className="px-1 text-sm font-medium text-muted-foreground">{business.name}</p>
+    <Columns site={header} showSite={step === "services"}>
+      {step !== "services" && (
+        <p className="px-1 text-sm font-medium text-muted-foreground lg:hidden">{business.name}</p>
       )}
       <Card id="book" className="scroll-mt-4 gap-4 p-4 md:p-6">
         <div className="flex items-center gap-2">
@@ -537,7 +533,21 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
           </div>
         )}
       </Card>
-    </>
+    </Columns>
+  );
+}
+
+// Wide screens: the business's website on the left, the booking card on the right,
+// kept in view while the visitor scrolls. Phones: one column, and after the first
+// step only the booking card, so each step starts at the top.
+function Columns({ site, showSite, children }: { site: ReactNode; showSite?: boolean; children: ReactNode }) {
+  return (
+    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start lg:gap-6">
+      <div className={cn("min-w-0", !showSite && "hidden lg:block")}>{site}</div>
+      <div className="flex flex-col gap-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:p-1">
+        {children}
+      </div>
+    </div>
   );
 }
 

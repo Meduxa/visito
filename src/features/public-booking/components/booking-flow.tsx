@@ -151,11 +151,12 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
 
   if (!business.services.length) {
     return (
-      <Columns site={header} showSite>
+      <>
+        {header}
         <Card className="p-6 text-center text-sm text-muted-foreground">
           <p>{tb("noServices")}</p>
         </Card>
-      </Columns>
+      </>
     );
   }
 
@@ -181,7 +182,8 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
       URL.revokeObjectURL(a.href);
     };
     return (
-      <Columns site={header} showSite>
+      <>
+        {header}
         <Card className="items-center gap-4 p-6 text-center">
           <span className="flex size-12 items-center justify-center rounded-full bg-success-soft text-success-ink">
             <Check aria-hidden />
@@ -219,14 +221,16 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
             {tb("bookAnother")}
           </Button>
         </Card>
-      </Columns>
+      </>
     );
   }
 
   return (
-    <Columns site={header} showSite={step === "services"}>
-      {step !== "services" && (
-        <p className="px-1 text-sm font-medium text-muted-foreground lg:hidden">{business.name}</p>
+    <>
+      {step === "services" ? (
+        header
+      ) : (
+        <p className="px-1 text-sm font-medium text-muted-foreground">{business.name}</p>
       )}
       <Card id="book" className="scroll-mt-4 gap-4 p-4 md:p-6">
         <div className="flex items-center gap-2">
@@ -272,7 +276,7 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
           (common.length === 0 ? (
             <p className="text-sm text-muted-foreground">{tb("noCommonStaff")}</p>
           ) : (
-            <div role="radiogroup" aria-label={tb("steps.staff")} className="flex flex-col gap-2">
+            <div role="radiogroup" aria-label={tb("steps.staff")} className="grid gap-2 lg:grid-cols-2">
               {[{ id: "any", name: tb("anyone"), position: tb("anyoneHint"), photoUrl: null }, ...common].map(
                 (p) => (
                   <button
@@ -341,7 +345,7 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
 
         {step === "details" && (
           <form
-            className="flex flex-col gap-4"
+            className="flex flex-col gap-4 lg:max-w-2xl"
             onSubmit={(e) => {
               e.preventDefault();
               submitDetails();
@@ -533,21 +537,7 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
           </div>
         )}
       </Card>
-    </Columns>
-  );
-}
-
-// Wide screens: the business's website on the left, the booking card on the right,
-// kept in view while the visitor scrolls. Phones: one column, and after the first
-// step only the booking card, so each step starts at the top.
-function Columns({ site, showSite, children }: { site: ReactNode; showSite?: boolean; children: ReactNode }) {
-  return (
-    <div className="flex flex-col gap-4 lg:grid lg:grid-cols-[minmax(0,1fr)_26rem] lg:items-start lg:gap-6">
-      <div className={cn("min-w-0", !showSite && "hidden lg:block")}>{site}</div>
-      <div className="flex flex-col gap-4 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:p-1">
-        {children}
-      </div>
-    </div>
+    </>
   );
 }
 
@@ -631,7 +621,7 @@ function ServicesStep({
       <div className="flex flex-col gap-4">
         {tabs}
         <p className="text-sm text-muted-foreground">{tb("chooseSpecialist")}</p>
-        <ul className="flex flex-col gap-2">
+        <ul className="grid gap-2 lg:grid-cols-2">
           {business.staff.map((p) => (
             <li key={p.id}>
               <button
@@ -672,8 +662,8 @@ function ServicesStep({
       )}
       <p className="text-sm text-muted-foreground">{tb("chooseServices")}</p>
       {groups.map((g) => (
-        <section key={g.id} className="flex flex-col gap-2">
-          {g.name && <h3 className="text-sm font-medium text-muted-foreground">{g.name}</h3>}
+        <section key={g.id} className="grid gap-2 lg:grid-cols-2">
+          {g.name && <h3 className="text-sm font-medium text-muted-foreground lg:col-span-2">{g.name}</h3>}
           {g.items.map((s) => {
             const on = picked.includes(s.key);
             return (

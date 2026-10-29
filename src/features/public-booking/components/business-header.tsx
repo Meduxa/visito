@@ -22,9 +22,13 @@ export async function BusinessHeader({ business }: { business: PublicBusinessVie
       <Card className="gap-0 overflow-hidden p-0">
         {business.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- our own storage
-          <img src={business.coverUrl} alt="" className="aspect-[16/7] w-full object-cover" />
+          <img
+            src={business.coverUrl}
+            alt=""
+            className="aspect-[16/7] w-full object-cover lg:aspect-[16/5]"
+          />
         ) : (
-          <div className="aspect-[16/5] w-full bg-accent" aria-hidden />
+          <div className="aspect-[16/5] w-full bg-accent lg:aspect-[16/4]" aria-hidden />
         )}
         <div className="flex flex-col gap-4 p-4 md:p-6">
           <div className="-mt-12 flex items-end gap-3 md:-mt-14">
@@ -77,7 +81,11 @@ export async function BusinessHeader({ business }: { business: PublicBusinessVie
               </Button>
             )}
           </div>
-          {business.about && <p className="text-sm leading-relaxed whitespace-pre-line">{business.about}</p>}
+          {business.about && (
+            <p className="max-w-prose text-sm leading-relaxed whitespace-pre-line md:text-base">
+              {business.about}
+            </p>
+          )}
           {social.length > 0 && (
             <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
               {social.map((s) => (
@@ -127,10 +135,10 @@ export async function BusinessHeader({ business }: { business: PublicBusinessVie
           <ul
             tabIndex={0}
             aria-label={t("publicBooking.teamTitle")}
-            className="flex gap-3 overflow-x-auto rounded-lg pb-1 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+            className="flex gap-3 overflow-x-auto rounded-lg pb-1 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none sm:grid sm:grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] sm:overflow-visible"
           >
             {business.staff.map((s) => (
-              <li key={s.id} className="flex w-24 shrink-0 flex-col items-center gap-1 text-center">
+              <li key={s.id} className="flex w-24 shrink-0 flex-col items-center gap-1 text-center sm:w-auto">
                 {s.photoUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element -- small avatars from storage
                   <img src={s.photoUrl} alt="" className="size-16 rounded-full object-cover" />

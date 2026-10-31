@@ -140,9 +140,14 @@ export async function LandingPage({
             <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {FEATURES.map(({ key, icon: Icon }) => (
                 <li key={key}>
-                  <Card className="h-full gap-3 p-5">
-                    <span className="flex size-10 items-center justify-center rounded-lg bg-accent text-accent-foreground">
-                      <Icon className="size-5" aria-hidden />
+                  {/* under the mouse the icon turns solid green and pops a little (no movement
+                      for people who switched animations off) */}
+                  <Card className="group h-full gap-3 p-5 transition-shadow duration-200 hover:shadow-md">
+                    <span className="flex size-10 items-center justify-center rounded-lg bg-accent text-accent-foreground transition-[background-color,color,transform] duration-300 ease-out group-hover:bg-primary group-hover:text-primary-foreground motion-safe:group-hover:scale-110 motion-safe:group-hover:-rotate-6">
+                      <Icon
+                        className="size-5 transition-transform duration-300 ease-out motion-safe:group-hover:scale-110"
+                        aria-hidden
+                      />
                     </span>
                     <h3 className="font-semibold">{t(`features.${key}.title`)}</h3>
                     <p className="text-sm text-muted-foreground">{t(`features.${key}.text`)}</p>

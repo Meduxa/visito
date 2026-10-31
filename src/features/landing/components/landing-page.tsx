@@ -174,8 +174,9 @@ export async function LandingPage({
           <ol className="flex flex-col gap-3">
             {([1, 2, 3] as const).map((n) => (
               <li key={n}>
-                <Card className="flex-row items-start gap-4 p-5">
-                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground">
+                {/* under the mouse the number swaps colours (light circle, green digit) */}
+                <Card className="group flex-row items-start gap-4 p-5 transition-shadow duration-200 hover:shadow-md">
+                  <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-primary-foreground ring-primary transition-[background-color,color,box-shadow,scale] duration-300 ease-out group-hover:bg-accent group-hover:text-accent-foreground group-hover:ring-2 motion-safe:group-hover:scale-110">
                     {n}
                   </span>
                   <div className="flex flex-col gap-1">

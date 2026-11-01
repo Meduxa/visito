@@ -1,10 +1,15 @@
 import "server-only";
 import { serverEnv } from "@/lib/server-env";
 import { fakeSmsProvider } from "./providers/fake";
+import { senderGeProvider } from "./providers/senderge";
 import type { SmsProvider } from "./types";
 
 export function getSmsProvider(): SmsProvider {
-  switch (serverEnv().SMS_PROVIDER) {
+  const env = serverEnv();
+  switch (env.SMS_PROVIDER) {
+    case "senderge":
+      if (!env.SMS_API_KEY) throw new Error("SMS_API_KEY is required for sender.ge");
+      return senderGeProvider(env.SMS_API_KEY);
     case "fake":
       // a fake provider in production would silently swallow SMS codes
       if (process.env.NODE_ENV === "production" && process.env.ALLOW_FAKE_SMS !== "1") {
@@ -16,4 +21,4 @@ export function getSmsProvider(): SmsProvider {
   }
 }
 
-export type { SmsProvider, SmsSendInput } from "./types";
+export type { SmsDeliveryStatus, SmsProvider, SmsSendInput } from "./types";

@@ -92,7 +92,8 @@ After the push, GitHub runs the automatic checks (typecheck, lint, unit tests) o
    | `SUPABASE_SECRET_KEY` | from step 2 — tick **Contains secret values** |
    | `CRON_SECRET` | a new random value (below) — secret |
    | `EMAIL_PROVIDER` | `fake` (until step 8) |
-   | `SMS_PROVIDER` | `fake` (until an SMS company is chosen — SMS are then logged as "not sent") |
+   | `SMS_PROVIDER` | `senderge` once the sender.ge key works (decision 018); `fake` until then — SMS are then logged as "not sent" |
+   | `SMS_API_KEY` | sender.ge API key — **mark as secret** |
    | `NEXT_PUBLIC_SENTRY_DSN` | from step 3 (or leave out) |
 
    A random `CRON_SECRET` — run this in PowerShell and paste the result into Netlify:
@@ -161,6 +162,6 @@ daily, but check it during quiet test weeks.
   `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY` (secret), `EMAIL_FROM=Bookeria <no-reply@your-domain>`.
   Supabase → **Authentication → Emails → SMTP settings** → use Resend's SMTP (host
   `smtp.resend.com`, port 465, user `resend`, password = the API key) so sign-up emails arrive.
-- **SMS company** (decision 008), **Cloudflare Turnstile** on the booking page, **lawyer's texts**
+- **SMS company**: sender.ge (decision 018) — register the sender name "Bookeria", top up the balance, then set `SMS_PROVIDER=senderge` and `SMS_API_KEY` on Netlify, **Cloudflare Turnstile** on the booking page, **lawyer's texts**
   for the legal pages, **plan prices** in `/admin/plans`, **Supabase Pro**.
 - Go through `docs/security-review.md` → "Before go-live".

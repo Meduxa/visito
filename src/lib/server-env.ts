@@ -6,7 +6,8 @@ const serverSchema = z.object({
   EMAIL_PROVIDER: z.enum(["fake", "resend"]).default("fake"),
   EMAIL_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().optional(), // e.g. "Bookeria <no-reply@bookeria.ge>" — a domain verified in Resend
-  SMS_PROVIDER: z.enum(["fake"]).default("fake"),
+  SMS_PROVIDER: z.enum(["fake", "senderge"]).default("fake"),
+  SMS_API_KEY: z.string().optional(),
 });
 
 let cached: z.infer<typeof serverSchema> | undefined;
@@ -19,6 +20,7 @@ export function serverEnv() {
     EMAIL_API_KEY: process.env.EMAIL_API_KEY || undefined,
     EMAIL_FROM: process.env.EMAIL_FROM || undefined,
     SMS_PROVIDER: process.env.SMS_PROVIDER || undefined,
+    SMS_API_KEY: process.env.SMS_API_KEY || undefined,
   });
   return cached;
 }

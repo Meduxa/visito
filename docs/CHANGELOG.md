@@ -2,6 +2,10 @@
 
 All notable changes per phase. Newest on top.
 
+## SMS company: sender.ge (2026-11-01)
+
+- **sender.ge connected in the code** (switched on with two settings, decision 018): reminders, codes and confirmations go as informational SMS, promotions as promotional; delivery is checked with sender.ge for a day after sending; the platform admin's SMS page shows Bookeria's sender.ge balance. Until the key is set, the fake SMS stays in use.
+
 ## Prices on the landing page (2026-10-29)
 
 - **Hero pictures take turns**: the landing page shows the calendar and the reports, changing every 5 seconds or by clicking "Calendar" / "Reports" (pauses under the mouse; no auto-change when animations are off); the phone picture is now სალონი ორქიდეა. Screenshots retaken, reports added to npm.cmd run landing:shots.

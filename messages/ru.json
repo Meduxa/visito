@@ -1313,6 +1313,11 @@
       "failed": "Не отправлены",
       "queued": "Ожидают",
       "skipped": "Пропущены"
+    },
+    "smsProvider": {
+      "none": "SMS-компания не подключена — SMS не отправляются (тестовый режим).",
+      "balance": "SMS-компания: {provider} · баланс {amount}",
+      "unknown": "SMS-компания: {provider} · баланс недоступен"
     }
   },
   "photos": {

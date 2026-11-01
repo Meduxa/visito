@@ -77,7 +77,7 @@ Split into 3a and 3b with a report in between (Levan, 2026-10-26). Staff may cre
 - [x] Business photo gallery — done in Phase 6a
 
 ## Phase 5 — SMS (≈ 1 week) — SPEC 4.9 ✅ Done 2026-10-26 (without a real SMS company — Levan chooses later)
-- [x] SMS adapter interface + fake provider for tests — [ ] first real provider: when Levan picks the company (decision 008)
+- [x] SMS adapter interface + fake provider for tests — [x] first real provider: sender.ge (decision 018, 2026-11-01) — [ ] sender name "Bookeria" registered, test on a real phone
 - [x] Templates (ka/en/ru) with variables, character & segment counter, live preview
 - [x] Sender name settings and status (approval set by the server only)
 - [x] Scheduled reminders job (idempotent), quiet hours — 2 h on by default, 24 h optional (Levan, 2026-10-26)
@@ -106,7 +106,7 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [x] Netlify config, scheduled jobs, CI on GitHub, encrypted nightly backup workflow (decision 012)
 - [x] GitHub repo (Meduxa/bookeria, private) — code pushed, CI green (2026-10-26)
 - [ ] Production: Supabase production project, Sentry, Netlify — **deferred until the pilot** (Levan, 2026-10-26: the free plan allows only 2 active projects and both are in use; plan: Supabase Pro at pilot time, which also brings backups). Follow `docs/go-live.md` from step 2 then.
-- [ ] Later: domain + Resend (needed for real sign-ups), SMS company, Turnstile, plan prices, Supabase Pro
+- [ ] Later: domain + Resend (needed for real sign-ups), SMS company key on Netlify (sender.ge chosen), Turnstile, plan prices, Supabase Pro
 
 ## Before the pilot
 - [x] Sign out of all devices (account menu, confirmation, audit log) — SPEC 4.14 (2026-10-28)

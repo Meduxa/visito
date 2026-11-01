@@ -1313,6 +1313,11 @@
       "failed": "Failed",
       "queued": "Waiting",
       "skipped": "Skipped"
+    },
+    "smsProvider": {
+      "none": "No SMS company connected — SMS are not sent (test mode).",
+      "balance": "SMS company: {provider} · balance {amount}",
+      "unknown": "SMS company: {provider} · balance not available"
     }
   },
   "photos": {

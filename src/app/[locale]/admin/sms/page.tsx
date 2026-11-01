@@ -1,7 +1,9 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
 import { Link } from "@/i18n/navigation";
+import { getSmsProvider } from "@/integrations/sms";
 import { fullDateTime } from "@/lib/date-format";
+import { formatMoney } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +33,15 @@ export default async function AdminSmsPage({ params, searchParams }: PageProps<"
     error_code: string | null;
   }[];
   const failed = rows.filter((r) => r.status === "failed").length;
+  // Bookeria's own account with the SMS company (top it up before it runs out)
+  const provider = (() => {
+    try {
+      return getSmsProvider();
+    } catch {
+      return null;
+    }
+  })();
+  const balance = (await provider?.getBalance?.()) ?? null;
 
   return (
     <div className="flex flex-col gap-4">
@@ -38,6 +49,16 @@ export default async function AdminSmsPage({ params, searchParams }: PageProps<"
         title={t("platform.nav.sms")}
         description={status === "all" ? t("platform.errorRate", { failed, total: rows.length }) : undefined}
       />
+      <p className="text-sm text-muted-foreground">
+        {!provider || provider.name === "fake"
+          ? t("platform.smsProvider.none")
+          : balance
+            ? t("platform.smsProvider.balance", {
+                provider: provider.name,
+                amount: formatMoney(balance.balanceMinor, `${locale}-GE`),
+              })
+            : t("platform.smsProvider.unknown", { provider: provider.name })}
+      </p>
       <nav
         className="flex flex-wrap gap-1 self-start rounded-lg bg-muted p-1"
         aria-label={t("platform.nav.sms")}

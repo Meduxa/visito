@@ -21,7 +21,13 @@ export type QueueInput = {
   createdBy?: string | null;
 };
 
-type Claimed = { id: string; tenant_id: string; to_phone: string; body: string };
+type Claimed = {
+  id: string;
+  tenant_id: string;
+  to_phone: string;
+  body: string;
+  kind: "service" | "marketing";
+};
 
 export async function queueSms(m: QueueInput): Promise<string | null> {
   const { data, error } = await createAdminClient().rpc("sms_enqueue", {
@@ -77,6 +83,7 @@ async function deliver(m: Claimed, text?: string): Promise<boolean> {
     const r = await provider.send({
       to: m.to_phone,
       text: text ?? m.body,
+      kind: m.kind,
       senderName: await senderName(m.tenant_id),
       idempotencyKey: m.id,
     });
@@ -125,4 +132,46 @@ export async function processQueue(limit = 50) {
   let sent = 0;
   for (const m of (data ?? []) as Claimed[]) if (await deliver(m)) sent++;
   return { picked: (data ?? []).length, sent };
+}
+
+/**
+ * Delivery reports for providers that are asked rather than calling back (sender.ge):
+ * messages sent in the last 24 hours and still waiting are checked; after that
+ * they stay "sent".
+ */
+export async function checkDeliveries(limit = 50) {
+  let provider: ReturnType<typeof getSmsProvider>;
+  try {
+    provider = getSmsProvider();
+  } catch {
+    return { checked: 0, delivered: 0, failed: 0 };
+  }
+  if (!provider.getStatus) return { checked: 0, delivered: 0, failed: 0 };
+  const db = createAdminClient();
+  const now = Date.now();
+  const { data } = await db
+    .from("sms_messages")
+    .select("provider_ref")
+    .eq("provider", provider.name)
+    .eq("status", "sent")
+    .not("provider_ref", "is", null)
+    .gte("sent_at", new Date(now - 24 * 3_600_000).toISOString())
+    .lte("sent_at", new Date(now - 60_000).toISOString()) // give the network a minute
+    .order("sent_at")
+    .limit(limit);
+  let delivered = 0;
+  let failed = 0;
+  for (const { provider_ref } of data ?? []) {
+    const status = await provider.getStatus(provider_ref!);
+    if (status !== "delivered" && status !== "failed") continue;
+    await db.rpc("sms_delivery", {
+      p_provider: provider.name,
+      p_ref: provider_ref!,
+      p_delivered: status === "delivered",
+      p_error: status === "failed" ? "undelivered" : undefined,
+    });
+    if (status === "delivered") delivered++;
+    else failed++;
+  }
+  return { checked: (data ?? []).length, delivered, failed };
 }

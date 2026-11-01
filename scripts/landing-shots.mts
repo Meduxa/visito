@@ -37,7 +37,9 @@ for (const locale of ["ka", "en", "ru"]) {
     .toFile(out(`calendar-${locale}`));
   // reports for the last 30 days (enough demo visits to fill the charts)
   const to = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tbilisi" });
-  const from = new Date(Date.now() - 29 * 86_400_000).toLocaleDateString("en-CA", { timeZone: "Asia/Tbilisi" });
+  const from = new Date(Date.now() - 29 * 86_400_000).toLocaleDateString("en-CA", {
+    timeZone: "Asia/Tbilisi",
+  });
   await desk.goto(`${BASE}/${locale}/reports?from=${from}&to=${to}`);
   await desk.waitForLoadState("networkidle");
   await desk.addStyleTag({ content: HIDE_DEV });

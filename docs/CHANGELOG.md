@@ -4,6 +4,8 @@ All notable changes per phase. Newest on top.
 
 ## Prices on the landing page (2026-10-29)
 
+- **Hero pictures take turns**: the landing page shows the calendar and the reports, changing every 5 seconds or by clicking "Calendar" / "Reports" (pauses under the mouse; no auto-change when animations are off); the phone picture is now სალონი ორქიდეა. Screenshots retaken, reports added to npm.cmd run landing:shots.
+- **Calendar**: the sideways-scrolling grid (many specialists) can be reached and scrolled with the keyboard.
 - **Demo salon is now "სალონი ორქიდეა"**: a realistic cover photo (orchids, blush and gold interior) and an orchid logo, made with Figma AI and kept in scripts/seed-assets so a demo reset keeps them; new description in ka/en/ru. The demo team uses made-up names and AI portraits (no real people).
 - **Feature icons react to the mouse**: on the landing page a feature's icon turns solid green and pops slightly, and the card lifts; the numbers of the three "how it works" steps swap colours the same way. No movement for people who turned animations off.
 - **Business website on big screens**: the page is wider (one column, about 1000 px instead of ~670 px), with a lower cover photo, the team in a grid across the width, services and specialists in two columns, and a comfortable line length for the description. Phones are unchanged.

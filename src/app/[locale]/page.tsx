@@ -31,5 +31,5 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const demoUrl = demo
     ? (shortUrl("demo-salon", siteDomain(), app.startsWith("https")) ?? `${app}/${locale}/book/demo-salon`)
     : null;
-  return <LandingPage locale={locale} plans={plans} demoUrl={demoUrl} />;
+  return <LandingPage plans={plans} demoUrl={demoUrl} />;
 }

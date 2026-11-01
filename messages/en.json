@@ -1508,7 +1508,13 @@
     },
     "shots": {
       "calendar": "The Bookeria calendar: a day of bookings by specialist",
-      "booking": "A salon's booking page on a phone"
+      "booking": "A salon's booking page on a phone",
+      "tabsLabel": "App screens",
+      "tabs": {
+        "calendar": "Calendar",
+        "reports": "Reports"
+      },
+      "reports": "Bookeria reports: money received, visits, no-shows and payment methods"
     },
     "features": {
       "title": "Everything a salon needs in one place",

@@ -9,7 +9,6 @@ import {
   Stethoscope,
   Users,
 } from "lucide-react";
-import Image from "next/image";
 import { getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/brand-logo";
 import { LanguageSwitcher } from "@/components/language-switcher";
@@ -18,6 +17,7 @@ import { Card } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { APP_NAME } from "@/lib/app";
 import type { LandingPlan } from "../queries";
+import { HeroShowcase } from "./hero-showcase";
 import { PricingSection } from "./pricing-section";
 
 const FEATURES = [
@@ -34,18 +34,9 @@ const FAQ = ["card", "phone", "sms", "data", "switch", "dental"] as const;
 
 // Bookeria's own front page (bookeria.ge): what it does, why it is different,
 // prices and questions — with one action everywhere: start the free trial.
-export async function LandingPage({
-  locale,
-  plans,
-  demoUrl,
-}: {
-  locale: string;
-  plans: LandingPlan[];
-  demoUrl: string | null;
-}) {
+export async function LandingPage({ plans, demoUrl }: { plans: LandingPlan[]; demoUrl: string | null }) {
   const t = await getTranslations("landing");
   const tl = await getTranslations("legal.links");
-  const shot = (name: "booking" | "calendar") => `/landing/${name}-${locale}.webp`;
   const start = (
     <Button asChild className="h-12 px-6 text-base">
       <Link href="/signup">{t("cta")}</Link>
@@ -112,23 +103,7 @@ export async function LandingPage({
               ))}
             </ul>
           </div>
-          <div className="relative mx-auto w-full max-w-xl pb-8 md:pb-0">
-            <Image
-              src={shot("calendar")}
-              alt={t("shots.calendar")}
-              width={1280}
-              height={800}
-              priority
-              className="rounded-xl border shadow-lg"
-            />
-            <Image
-              src={shot("booking")}
-              alt={t("shots.booking")}
-              width={390}
-              height={844}
-              className="absolute right-0 bottom-0 w-[30%] rounded-2xl border-4 border-card shadow-xl lg:bottom-[-12%]"
-            />
-          </div>
+          <HeroShowcase />
         </section>
 
         <section id="features" className="scroll-mt-20 bg-muted/40 py-16">

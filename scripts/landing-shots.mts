@@ -1,6 +1,6 @@
 // Takes the screenshots for the landing page from the running dev app
 // (npm.cmd run dev, demo data seeded): the salon website on a phone and the
-// calendar on a desktop, in each language. Output: public/landing/*.webp
+// calendar and reports on a desktop, in each language. Output: public/landing/*.webp
 import { chromium } from "@playwright/test";
 import sharp from "sharp";
 
@@ -35,6 +35,16 @@ for (const locale of ["ka", "en", "ru"]) {
     .resize(1280)
     .webp({ quality: 78 })
     .toFile(out(`calendar-${locale}`));
+  // reports for the last 30 days (enough demo visits to fill the charts)
+  const to = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Tbilisi" });
+  const from = new Date(Date.now() - 29 * 86_400_000).toLocaleDateString("en-CA", { timeZone: "Asia/Tbilisi" });
+  await desk.goto(`${BASE}/${locale}/reports?from=${from}&to=${to}`);
+  await desk.waitForLoadState("networkidle");
+  await desk.addStyleTag({ content: HIDE_DEV });
+  await sharp(await desk.screenshot())
+    .resize(1280)
+    .webp({ quality: 78 })
+    .toFile(out(`reports-${locale}`));
   await desk.close();
   console.log("✓", locale);
 }

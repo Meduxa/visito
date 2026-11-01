@@ -123,7 +123,13 @@ export function TimeGrid({
   };
 
   return (
-    <div className="overflow-x-auto rounded-xl border bg-card">
+    // focusable, so keyboard users can scroll sideways when there are many specialists
+    <div
+      tabIndex={0}
+      role="region"
+      aria-label={t("nav.calendar")}
+      className="overflow-x-auto rounded-xl border bg-card focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+    >
       <div className="min-w-fit">
         {/* column headers */}
         <div className="sticky top-0 z-20 flex border-b bg-card">

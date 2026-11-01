@@ -45,6 +45,14 @@ test("prices: the period switch gives the discount; choosing a plan opens sign-u
   await expect(page).toHaveURL(/\/ka\/signup$/);
 });
 
+test("hero pictures: calendar and reports by name", async ({ page }) => {
+  await page.goto("/ka");
+  await expect(page.getByRole("tab", { name: "კალენდარი" })).toHaveAttribute("aria-selected", "true");
+  await page.getByRole("tab", { name: "ანგარიშები" }).click();
+  await expect(page.getByRole("tab", { name: "ანგარიშები" })).toHaveAttribute("aria-selected", "true");
+  await expect(page.getByRole("tabpanel")).toHaveAttribute("aria-labelledby", "hero-tab-reports");
+});
+
 test("signed-in people skip the landing page", async ({ page }) => {
   await signIn(page, "salon.owner@demo.test");
   await page.goto("/ka");

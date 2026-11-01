@@ -354,6 +354,22 @@ async function seedCatalog(tenantId: string, type: "salon" | "dental", staffLogi
         .single(),
     );
     staffIds.push(row.id);
+    // salon team: portraits of made-up people (Figma AI, scripts/seed-assets/team)
+    const portrait = type === "salon" ? ["tamar", "eka", "sopo"][i] : undefined;
+    if (portrait) {
+      const { readFile } = await import("node:fs/promises");
+      const path = `${tenantId}/${row.id}-demo.jpg`;
+      check(
+        "staff photo",
+        await db.storage
+          .from("staff-photos")
+          .upload(path, await readFile(`scripts/seed-assets/team/${portrait}.jpg`), {
+            contentType: "image/jpeg",
+            upsert: true,
+          }),
+      );
+      check("staff photo path", await db.from("staff").update({ photo_path: path }).eq("id", row.id));
+    }
     // Mon–Fri 10–19 with a lunch break; first person also works Saturday
     const days = i === 0 ? [1, 2, 3, 4, 5, 6] : [1, 2, 3, 4, 5];
     check(

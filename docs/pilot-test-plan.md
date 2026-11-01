@@ -34,7 +34,7 @@ Bookeria; Part B is the testing plan, from our own tests on the demo site to the
 | # | What |
 |---|---|
 | 13 | **Support channel**: one phone / WhatsApp / Viber number + support email, and who answers when |
-| 14 | **Onboarding checklist** for a salon (services, staff, hours, website, QR code at the desk) — 30–60 min visit |
+| 14 | **Onboarding checklist** for a salon (services, staff, hours, website, QR code at the desk) — 30–60 min visit. Excel templates for services, clients and bookings: `docs/pilot/import-templates` |
 | 15 | **Short video or 1-page guide** in Georgian for staff (calendar, new booking, checkout) |
 | 16 | **Feedback form** (Google Form) + a weekly 15-min call with each pilot salon |
 

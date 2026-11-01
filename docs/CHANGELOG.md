@@ -2,6 +2,10 @@
 
 All notable changes per phase. Newest on top.
 
+## Import templates (2026-11-02)
+
+- **Excel templates for the three imports** in docs/pilot/import-templates: services, clients, bookings — Georgian column names, example rows, every cell as text (so Excel never changes times, dates or phones), and a second sheet with instructions. Checked against the app's own import rules.
+
 ## SMS company: sender.ge (2026-11-01)
 
 - **sender.ge connected in the code** (switched on with two settings, decision 018): reminders, codes and confirmations go as informational SMS, promotions as promotional; delivery is checked with sender.ge for a day after sending; the platform admin's SMS page shows Bookeria's sender.ge balance. Until the key is set, the fake SMS stays in use.

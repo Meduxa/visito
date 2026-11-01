@@ -16,8 +16,11 @@ const card =
   "group relative flex h-full flex-col gap-4 rounded-2xl border bg-card p-6 transition-colors duration-200 hover:border-primary hover:bg-primary hover:text-primary-foreground focus-within:border-primary focus-within:bg-primary focus-within:text-primary-foreground";
 const muted =
   "text-muted-foreground group-hover:text-primary-foreground/85 group-focus-within:text-primary-foreground/85";
+// The button sits on a green card while the mouse is over it, so it is white with
+// green text — also when the mouse is on the button itself (its own hover colour
+// would otherwise be green on green).
 const onGreen =
-  "group-hover:border-primary-foreground group-hover:bg-primary-foreground group-hover:text-primary group-focus-within:border-primary-foreground group-focus-within:bg-primary-foreground group-focus-within:text-primary";
+  "group-hover:border-primary-foreground group-hover:bg-primary-foreground group-hover:text-primary group-focus-within:border-primary-foreground group-focus-within:bg-primary-foreground group-focus-within:text-primary hover:border-primary-foreground hover:bg-primary-foreground/90 hover:text-primary";
 
 function Feature({ children }: { children: React.ReactNode }) {
   return (

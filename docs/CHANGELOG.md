@@ -4,6 +4,7 @@ All notable changes per phase. Newest on top.
 
 ## Prices on the landing page (2026-10-29)
 
+- **Demo salon is now "სალონი ორქიდეა"**: a realistic cover photo (orchids, blush and gold interior) and an orchid logo, made with Figma AI and kept in scripts/seed-assets so a demo reset keeps them; new description in ka/en/ru.
 - **Feature icons react to the mouse**: on the landing page a feature's icon turns solid green and pops slightly, and the card lifts; the numbers of the three "how it works" steps swap colours the same way. No movement for people who turned animations off.
 - **Business website on big screens**: the page is wider (one column, about 1000 px instead of ~670 px), with a lower cover photo, the team in a grid across the width, services and specialists in two columns, and a comfortable line length for the description. Phones are unchanged.
 - **Prices section**: Starter 39 ₾ / month (1 specialist, 900 SMS), Standard 89 ₾ (2–15 specialists, 1,500 SMS, "most popular"), Premium priced individually. A switch for 1 / 6 / 12 / 18 months shows the discounted price (−10 / −20 / −30 %), the old price crossed out and the total. A card turns green under the mouse; every "Choose plan" opens the free sign-up. Prices and limits stay editable in /admin/plans; the old "Clinic" placeholder plan is no longer offered.

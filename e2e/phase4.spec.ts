@@ -32,7 +32,7 @@ async function lastSms(e164: string, contains: string) {
 
 async function pickServiceAndTime(page: Page) {
   await page.goto("/ka/book/demo-salon");
-  await expect(page.getByRole("heading", { level: 1, name: "სალონი ნინო" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "სალონი ორქიდეა" })).toBeVisible();
   await page.waitForLoadState("networkidle");
   await page.getByText("კლასიკური მანიკური").click();
   await page.getByRole("button", { name: "გაგრძელება" }).click();

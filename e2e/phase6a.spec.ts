@@ -120,7 +120,7 @@ test("platform admin: businesses, SMS top-up, plans; nobody else sees /admin", a
   const admin = await as(browser, "platform.admin@demo.test", /\/ka\/(onboarding|dashboard)/);
   await admin.goto("/ka/admin");
   await expect(admin.getByRole("heading", { name: "ბიზნესები" })).toBeVisible();
-  await admin.getByRole("link", { name: "სალონი ნინო" }).click();
+  await admin.getByRole("link", { name: "სალონი ორქიდეა" }).click();
   const heading = admin.getByRole("heading", { name: /^დარჩენილი SMS: \d+$/ });
   const before = Number((await heading.textContent())!.match(/\d+/)![0]);
   await admin.getByLabel("SMS-ის დამატება").fill("10");

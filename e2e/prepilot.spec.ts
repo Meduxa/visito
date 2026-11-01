@@ -44,7 +44,7 @@ test("sign out of all devices ends the other device's session too", async ({ bro
     }
 
     await phone
-      .getByRole("button", { name: /სალონი ნინო/ })
+      .getByRole("button", { name: /სალონი ორქიდეა/ })
       .first()
       .click();
     await phone.getByRole("menuitem", { name: "ყველა მოწყობილობიდან გასვლა" }).click();
@@ -273,7 +273,7 @@ test("every website colour theme passes the contrast check", async ({ page }, in
 test("short address opens the business website and booking works there", async ({ page }, info) => {
   const port = new URL(info.project.use.baseURL!).port;
   await page.goto(`http://demo-salon.localhost:${port}/`);
-  await expect(page.getByRole("heading", { level: 1, name: "სალონი ნინო" })).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "სალონი ორქიდეა" })).toBeVisible();
   await page.locator("#book").getByRole("checkbox").first().check();
   await page.getByRole("button", { name: "გაგრძელება" }).click();
   await page.getByRole("radio").first().click(); // anyone

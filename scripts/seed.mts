@@ -38,7 +38,7 @@ type Role = "owner" | "admin" | "staff";
 const tenants = [
   {
     slug: "demo-salon",
-    name: "სალონი ნინო",
+    name: "სალონი ორქიდეა",
     type: "salon",
     people: [
       { email: "salon.owner@demo.test", name: "ნინო ბერიძე", role: "owner" },
@@ -527,9 +527,13 @@ seed().then(
 async function seedWebsite(tenantId: string, type: "salon" | "dental") {
   const sharp = (await import("sharp")).default;
   const [a, b] = type === "salon" ? ["#f4c6cf", "#b5476a"] : ["#c7def4", "#2f6fa8"];
-  const cover = await sharp(
-    Buffer.from(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700">
+  const { readFile } = await import("node:fs/promises");
+  const cover =
+    type === "salon"
+      ? await readFile("scripts/seed-assets/salon-cover.jpg")
+      : await sharp(
+          Buffer.from(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="700">
         <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
           <stop offset="0" stop-color="${a}"/><stop offset="1" stop-color="${b}"/></linearGradient></defs>
         <rect width="1600" height="700" fill="url(#g)"/>
@@ -537,21 +541,24 @@ async function seedWebsite(tenantId: string, type: "salon" | "dental") {
         <circle cx="300" cy="620" r="340" fill="#fff" opacity="0.12"/>
         <circle cx="820" cy="330" r="120" fill="#fff" opacity="0.1"/>
       </svg>`,
-    ),
-  )
-    .jpeg({ quality: 82 })
-    .toBuffer();
-  const logo = await sharp(
-    Buffer.from(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
+          ),
+        )
+          .jpeg({ quality: 82 })
+          .toBuffer();
+  const logo =
+    type === "salon"
+      ? await readFile("scripts/seed-assets/salon-logo.jpg")
+      : await sharp(
+          Buffer.from(
+            `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400">
         <rect width="400" height="400" fill="${b}"/>
         <circle cx="200" cy="200" r="110" fill="none" stroke="#fff" stroke-width="26"/>
         <circle cx="200" cy="200" r="34" fill="#fff"/>
       </svg>`,
-    ),
-  )
-    .png()
-    .toBuffer();
+          ),
+        )
+          .png()
+          .toBuffer();
   const up = async (name: string, body: Buffer, contentType: string) => {
     const path = `${tenantId}/${name}`;
     check(
@@ -563,9 +570,9 @@ async function seedWebsite(tenantId: string, type: "salon" | "dental") {
   const about =
     type === "salon"
       ? {
-          ka: "სილამაზის სალონი ვაკეში — თმა, ფრჩხილები და მაკიაჟი. გელით ყოველდღე, 10:00-დან 20:00-მდე.",
-          en: "A beauty salon in Vake — hair, nails and make-up. Open every day, 10:00 to 20:00.",
-          ru: "Салон красоты в Ваке — волосы, ногти и макияж. Ждём вас каждый день с 10:00 до 20:00.",
+          ka: "სალონი ორქიდეა ვაკეში — თმის მოვლა, მანიკური, პედიკური და მაკიაჟი მშვიდ, ნათელ სივრცეში. გელით ყოველდღე, 10:00-დან 20:00-მდე.",
+          en: "Salon Orchid in Vake — hair, nails and make-up in a calm, light-filled space. Open every day, 10:00 to 20:00.",
+          ru: "Салон «Орхидея» в Ваке — волосы, ногти и макияж в спокойном светлом пространстве. Ждём вас каждый день с 10:00 до 20:00.",
         }
       : {
           ka: "ოჯახის სტომატოლოგიური კლინიკა — პროფილაქტიკა, მკურნალობა და ჰიგიენა.",
@@ -578,9 +585,12 @@ async function seedWebsite(tenantId: string, type: "salon" | "dental") {
       .from("tenant_settings")
       .update({
         site_cover_path: await up("cover-demo.jpg", cover, "image/jpeg"),
-        site_logo_path: await up("logo-demo.png", logo, "image/png"),
+        site_logo_path:
+          type === "salon"
+            ? await up("logo-demo.jpg", logo, "image/jpeg")
+            : await up("logo-demo.png", logo, "image/png"),
         site_about: about,
-        site_instagram: type === "salon" ? "salon.nino.demo" : "dental.smile.demo",
+        site_instagram: type === "salon" ? "salon.orchid.demo" : "dental.smile.demo",
         site_theme: type === "salon" ? "rose" : "ocean",
       })
       .eq("tenant_id", tenantId),

@@ -20,6 +20,7 @@ export default defineConfig({
     url: `http://localhost:${PORT}/ka/login`,
     reuseExistingServer: false,
     timeout: 120_000,
-    env: { ALLOW_FAKE_SMS: "1", CRON_SECRET: process.env.CRON_SECRET },
+    // tests never send real SMS, even when .env.local has the sender.ge key
+    env: { SMS_PROVIDER: "fake", ALLOW_FAKE_SMS: "1", CRON_SECRET: process.env.CRON_SECRET },
   },
 });

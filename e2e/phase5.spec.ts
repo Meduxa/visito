@@ -101,6 +101,11 @@ test("manual SMS to a client; a promotion needs consent; it shows in the log", a
 
 test("promotion to VIP clients, and the unsubscribe link works", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop");
+  // promotions wait for the end of the demo salon's quiet hours (22:00–09:00 Tbilisi)
+  const hour = Number(
+    new Date().toLocaleTimeString("en-GB", { timeZone: "Asia/Tbilisi", hour: "2-digit", hourCycle: "h23" }),
+  );
+  test.skip(hour >= 22 || hour < 9, "quiet hours in Tbilisi — promotions are held until 09:00");
   await signIn(page, "salon.owner@demo.test");
   await page.goto("/ka/clients");
   await page.waitForLoadState("networkidle");

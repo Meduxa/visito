@@ -106,6 +106,16 @@ async function removePreviousDemo() {
   }
 }
 
+async function existingUserId(email: string): Promise<string | null> {
+  for (let page = 1; ; page++) {
+    const { data, error } = await db.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) throw error;
+    const u = data.users.find((x) => x.email === email);
+    if (u) return u.id;
+    if (data.users.length < 200) return null;
+  }
+}
+
 async function seed() {
   await removePreviousDemo();
 
@@ -116,8 +126,20 @@ async function seed() {
     email_confirm: true,
     user_metadata: { full_name: "Platform Admin", locale: "ka" },
   });
-  if (paError || !pa.user) throw new Error(`create ${PLATFORM_ADMIN}: ${paError?.message}`);
-  check("platform admin", await db.from("platform_admins").insert({ user_id: pa.user.id }));
+  // The account survives when someone signed up a business with it (it then owns that
+  // business and cannot be deleted): keep it, reset its password, leave the business alone.
+  const adminId = pa.user?.id ?? (paError ? await existingUserId(PLATFORM_ADMIN) : null);
+  if (!adminId) throw new Error(`create ${PLATFORM_ADMIN}: ${paError?.message}`);
+  if (!pa.user) {
+    const { error } = await db.auth.admin.updateUserById(adminId, { password: DEMO_PASSWORD });
+    if (error) throw new Error(`platform admin password: ${error.message}`);
+  }
+  check(
+    "platform admin",
+    await db
+      .from("platform_admins")
+      .upsert({ user_id: adminId }, { onConflict: "user_id", ignoreDuplicates: true }),
+  );
 
   for (const t of tenants) {
     const userIds: Record<string, string> = {};
@@ -128,8 +150,15 @@ async function seed() {
         email_confirm: true,
         user_metadata: { full_name: p.name, locale: "ka" },
       });
-      if (error || !data.user) throw new Error(`create ${p.email}: ${error?.message}`);
-      userIds[p.email] = data.user.id;
+      // an account that also owns another business (someone signed one up with it) cannot be
+      // deleted: keep it and reset its password; that other business is left alone
+      const id = data.user?.id ?? (error ? await existingUserId(p.email) : null);
+      if (!id) throw new Error(`create ${p.email}: ${error?.message}`);
+      if (!data.user) {
+        const { error: pwError } = await db.auth.admin.updateUserById(id, { password: DEMO_PASSWORD });
+        if (pwError) throw new Error(`password ${p.email}: ${pwError.message}`);
+      }
+      userIds[p.email] = id;
     }
 
     const owner = t.people.find((p) => p.role === "owner")!;

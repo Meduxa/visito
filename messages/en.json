@@ -675,7 +675,10 @@
     "walkIn": "Walk-in",
     "byStaff": "By staff",
     "byChair": "By chair",
-    "noChairs": "Add chairs or rooms in Settings to see this view."
+    "noChairs": "Add chairs or rooms in Settings to see this view.",
+    "colorBy": "Colour",
+    "colorByStaff": "Colour: specialist",
+    "colorByService": "Colour: service"
   },
   "booking": {
     "status": {

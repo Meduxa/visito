@@ -11,6 +11,7 @@ export type CalItem = {
   staffId: string;
   resourceId: string | null;
   serviceId: string | null;
+  serviceColor: string | null; // the service's own colour, if set
   name: string;
   priceMinor: number;
   priceType: string;
@@ -87,7 +88,7 @@ export async function getCalendar(
     supabase
       .from("bookings")
       .select(
-        "id, status, source, recurrence_id, starts_at, ends_at, internal_note, client_comment, total_minor, paid_minor, clients(id, first_name, last_name, phone_e164, important_note, no_show_count), booking_items(id, staff_id, resource_id, service_id, name_snapshot, price_minor_snapshot, price_type_snapshot, duration_min_snapshot, starts_at, ends_at, sort_order)",
+        "id, status, source, recurrence_id, starts_at, ends_at, internal_note, client_comment, total_minor, paid_minor, clients(id, first_name, last_name, phone_e164, important_note, no_show_count), booking_items(id, staff_id, resource_id, service_id, name_snapshot, price_minor_snapshot, price_type_snapshot, duration_min_snapshot, starts_at, ends_at, sort_order, services(color))",
       )
       .eq("tenant_id", tenantId)
       .lt("starts_at", new Date(toIso).toISOString())
@@ -173,6 +174,7 @@ export async function getCalendar(
           staffId: i.staff_id,
           resourceId: i.resource_id,
           serviceId: i.service_id,
+          serviceColor: i.services?.color ?? null,
           name: i.name_snapshot,
           priceMinor: i.price_minor_snapshot,
           priceType: i.price_type_snapshot,

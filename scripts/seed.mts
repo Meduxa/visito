@@ -35,6 +35,20 @@ const db = createClient(url, secret, { auth: { persistSession: false, autoRefres
 
 type Role = "owner" | "admin" | "staff";
 
+// one distinct colour per demo salon service (calendar "Colour: service")
+const SERVICE_COLORS: Record<string, string> = {
+  "ქალის თმის შეჭრა": "teal",
+  "კაცის თმის შეჭრა": "blue",
+  დავარცხნა: "sky",
+  "შეღებვა X პროდუქტით": "violet",
+  "აფრიკული ნაწნავები": "indigo",
+  "მანიკური გელ-ლაქით": "pink",
+  "კლასიკური მანიკური": "rose",
+  პედიკური: "orange",
+  "წარბის კორექცია": "amber",
+  "წამწამების ლამინირება": "green",
+};
+
 const tenants = [
   {
     slug: "demo-salon",
@@ -292,6 +306,7 @@ async function seedCatalog(tenantId: string, type: "salon" | "dental", staffLogi
             duration_min: minutes,
             buffer_after_min: extra?.buffer ?? 0,
             resource_type: type === "dental" ? "chair" : null,
+            color: SERVICE_COLORS[name] ?? null,
             sort_order: ci * 100 + si,
           })
           .select("id")

@@ -2,6 +2,13 @@
 
 All notable changes per phase. Newest on top.
 
+## Calendar look (2026-11-03)
+
+- **Bookings in the day and week view** have a bold coloured outline all around, a solid stripe on the left, a tinted fill and bold time + client; 30-minute visits show on one line instead of being cut; completed visits stay outlined but white; no-shows are faded and struck through; pending ones dashed.
+- **Brighter, clearly different colours** for the 10 specialist/service colours (light and dark mode).
+- **Colour by specialist or by service** — a switch in the calendar toolbar, remembered on each device; services without their own colour use the specialist's. The demo salon's services and team got distinct colours.
+- Dashed half-hour lines and a softer grid.
+
 ## Business website redesign (2026-11-03)
 
 - **Full-width cover**: the photo runs edge to edge with a flowing bottom edge (a ribbon in the business's theme colour behind a wave), logo, name, an "open now / closed · today 10:00–20:00" badge in the business's time zone, address, and Book / Call / Directions on the photo; language switcher floats over it. Phones get the same, stacked.

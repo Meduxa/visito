@@ -12,18 +12,18 @@ export const PX_PER_MIN = 1.2; // 72 px per hour
 export type GridColumn = { key: string; staffId: string; date: string; header: ReactNode };
 export type GridBlock = { booking: CalBooking; columnKey: string; start: number; end: number; color: string };
 
-// Static class names per staff colour (Tailwind must see them).
+// Static class names per colour (Tailwind must see them): outline, tint and the left stripe.
 const BLOCK: Record<string, string> = {
-  green: "border-staff-green bg-staff-green/15",
-  teal: "border-staff-teal bg-staff-teal/15",
-  sky: "border-staff-sky bg-staff-sky/15",
-  blue: "border-staff-blue bg-staff-blue/15",
-  indigo: "border-staff-indigo bg-staff-indigo/15",
-  violet: "border-staff-violet bg-staff-violet/15",
-  pink: "border-staff-pink bg-staff-pink/15",
-  rose: "border-staff-rose bg-staff-rose/15",
-  orange: "border-staff-orange bg-staff-orange/15",
-  amber: "border-staff-amber bg-staff-amber/15",
+  green: "border-staff-green bg-staff-green/15 before:bg-staff-green",
+  teal: "border-staff-teal bg-staff-teal/15 before:bg-staff-teal",
+  sky: "border-staff-sky bg-staff-sky/15 before:bg-staff-sky",
+  blue: "border-staff-blue bg-staff-blue/15 before:bg-staff-blue",
+  indigo: "border-staff-indigo bg-staff-indigo/15 before:bg-staff-indigo",
+  violet: "border-staff-violet bg-staff-violet/15 before:bg-staff-violet",
+  pink: "border-staff-pink bg-staff-pink/15 before:bg-staff-pink",
+  rose: "border-staff-rose bg-staff-rose/15 before:bg-staff-rose",
+  orange: "border-staff-orange bg-staff-orange/15 before:bg-staff-orange",
+  amber: "border-staff-amber bg-staff-amber/20 before:bg-staff-amber",
 };
 
 const useFinePointer = () =>
@@ -132,7 +132,7 @@ export function TimeGrid({
     >
       <div className="min-w-fit">
         {/* column headers */}
-        <div className="sticky top-0 z-20 flex border-b bg-card">
+        <div className="sticky top-0 z-20 flex border-b bg-card/95 backdrop-blur">
           <div className="w-14 shrink-0" />
           {columns.map((c) => (
             <div key={c.key} className="min-w-40 flex-1 border-l px-2 py-2">
@@ -165,7 +165,7 @@ export function TimeGrid({
                 ref={(el) => {
                   colRefs.current[ci] = el;
                 }}
-                className="relative min-w-40 flex-1 cursor-cell border-l bg-muted/60"
+                className="relative min-w-40 flex-1 cursor-cell border-l border-border/70 bg-muted/60"
                 style={{ height }}
                 onClick={(e) => {
                   if (e.target !== e.currentTarget && !(e.target as HTMLElement).dataset.empty) return;
@@ -194,11 +194,16 @@ export function TimeGrid({
                   />
                 ))}
                 {hours.map((m) => (
-                  <div
-                    key={m}
-                    className="pointer-events-none absolute inset-x-0 border-t border-border/70"
-                    style={{ top: (m - dayStartMin) * PX_PER_MIN }}
-                  />
+                  <div key={m} aria-hidden className="pointer-events-none">
+                    <div
+                      className="absolute inset-x-0 border-t border-border/70"
+                      style={{ top: (m - dayStartMin) * PX_PER_MIN }}
+                    />
+                    <div
+                      className="absolute inset-x-0 border-t border-dashed border-border/40"
+                      style={{ top: (m + 30 - dayStartMin) * PX_PER_MIN }}
+                    />
+                  </div>
                 ))}
                 {nowY >= 0 && nowY <= height && (
                   <div
@@ -277,11 +282,13 @@ export function TimeGrid({
                       }}
                       onPointerCancel={() => setDrag(null)}
                       className={cn(
-                        "absolute inset-x-1 z-10 overflow-hidden rounded-md border-l-4 px-2 py-1 text-left text-xs outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                        "absolute inset-x-1 z-10 overflow-hidden rounded-lg border-2 py-0.5 pr-2 pl-3 text-left text-xs shadow-sm transition-shadow outline-none select-none before:absolute before:inset-y-0 before:left-0 before:w-1 hover:shadow-md focus-visible:ring-3 focus-visible:ring-ring/50",
                         BLOCK[b.color] ?? BLOCK.green,
                         draggable && "cursor-grab touch-none active:cursor-grabbing",
                         b.booking.status === "pending" && "border-dashed",
-                        ["completed", "no_show"].includes(b.booking.status) && "bg-card", // done: no fill, still readable
+                        // done: white inside, the coloured outline stays; no-show also struck through
+                        ["completed", "no_show"].includes(b.booking.status) && "bg-card",
+                        b.booking.status === "no_show" && "opacity-70 [&_*]:line-through",
                         isDragging && drag.moved && "z-30 shadow-lg ring-2 ring-primary",
                       )}
                       style={{
@@ -290,16 +297,32 @@ export function TimeGrid({
                         transform: shiftX ? `translateX(${shiftX}px)` : undefined,
                       }}
                     >
-                      <div className="flex items-center gap-1 font-medium">
-                        <span className="tabular-nums">{startLocal}</span>
-                        <span className="truncate">{b.booking.client?.name ?? t("calendar.walkIn")}</span>
+                      {/* short visits (about 30 min): everything on one line, nothing cut in half */}
+                      <div
+                        className={cn(
+                          "flex items-center gap-1.5 text-foreground",
+                          h < 44 && "h-full min-w-0",
+                        )}
+                      >
+                        <span className="font-semibold tabular-nums">{startLocal}</span>
+                        <span className="truncate font-semibold">
+                          {b.booking.client?.name ?? t("calendar.walkIn")}
+                          {h < 44 && (
+                            <span className="font-medium text-foreground/70">
+                              {" · "}
+                              {b.booking.items.map((i) => i.name).join(", ")}
+                            </span>
+                          )}
+                        </span>
                         {b.booking.client?.importantNote && (
                           <TriangleAlert className="size-3 shrink-0 text-warning-ink" aria-hidden />
                         )}
                       </div>
-                      <div className="truncate text-muted-foreground">
-                        {b.booking.items.map((i) => i.name).join(", ")}
-                      </div>
+                      {h >= 44 && (
+                        <div className="truncate font-medium text-foreground/70">
+                          {b.booking.items.map((i) => i.name).join(", ")}
+                        </div>
+                      )}
                       {draggable && (
                         <div
                           data-resize="1"

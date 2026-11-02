@@ -38,6 +38,37 @@ const useWide = () =>
     () => true,
   );
 
+// Booking colours by specialist or by service — a per-device choice, remembered in the browser.
+type ColorBy = "staff" | "service";
+const COLOR_KEY = "bk_calendar_color";
+const colorListeners = new Set<() => void>();
+const readColorBy = (): ColorBy => {
+  try {
+    return localStorage.getItem(COLOR_KEY) === "service" ? "service" : "staff";
+  } catch {
+    return "staff";
+  }
+};
+const useColorBy = () => {
+  const value = useSyncExternalStore(
+    (cb) => {
+      colorListeners.add(cb);
+      return () => colorListeners.delete(cb);
+    },
+    readColorBy,
+    () => "staff" as ColorBy,
+  );
+  const set = (v: ColorBy) => {
+    try {
+      localStorage.setItem(COLOR_KEY, v);
+    } catch {
+      // private window: the choice lasts until the page is reloaded
+    }
+    colorListeners.forEach((cb) => cb());
+  };
+  return [value, set] as const;
+};
+
 const localDate = (iso: string, tz: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: tz });
 const localTime = (iso: string, tz: string) =>
   new Date(iso).toLocaleTimeString("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
@@ -148,6 +179,11 @@ export function CalendarScreen({
   const booking = data.bookings.find((b) => b.id === openBooking) ?? null;
   const canEdit = (b: CalBooking) => isManager || b.items.every((i) => i.staffId === ownStaffId);
   const staffColor = (id: string) => data.staff.find((s) => s.id === id)?.color ?? "green";
+  const [colorBy, setColorBy] = useColorBy();
+  // by service: the first service that has its own colour, otherwise the specialist's
+  const blockColor = (b: CalBooking, staffId: string) =>
+    (colorBy === "service" && b.items.find((i) => i.staffId === staffId && i.serviceColor)?.serviceColor) ||
+    staffColor(staffId);
   const weekStaff = weekStaffId ?? ownStaffId ?? data.staff[0]?.id ?? null;
 
   const handleMove = async (bookingId: string, col: GridColumn, start: Date, durationMin?: number) => {
@@ -187,7 +223,15 @@ export function CalendarScreen({
               (c) => c.staffId === m.staffId && c.date === localDate(new Date(m.start).toISOString(), tz),
             );
             return col && sid === b.items[0].staffId
-              ? [{ booking: b, columnKey: col.key, start: m.start, end: m.end, color: staffColor(m.staffId) }]
+              ? [
+                  {
+                    booking: b,
+                    columnKey: col.key,
+                    start: m.start,
+                    end: m.end,
+                    color: blockColor(b, m.staffId),
+                  },
+                ]
               : [];
           }
           const its = b.items.filter((i) => i.staffId === sid);
@@ -196,7 +240,7 @@ export function CalendarScreen({
           const col = columns.find(
             (c) => c.staffId === sid && c.date === localDate(new Date(start).toISOString(), tz),
           );
-          return col ? [{ booking: b, columnKey: col.key, start, end, color: staffColor(sid) }] : [];
+          return col ? [{ booking: b, columnKey: col.key, start, end, color: blockColor(b, sid) }] : [];
         }),
       );
 
@@ -282,6 +326,22 @@ export function CalendarScreen({
             </button>
           ))}
         </div>
+        {(view === "day" || view === "week") && (
+          <div role="radiogroup" aria-label={t("calendar.colorBy")} className="flex rounded-lg bg-muted p-1">
+            {(["staff", "service"] as const).map((c) => (
+              <button
+                key={c}
+                type="button"
+                role="radio"
+                aria-checked={colorBy === c}
+                onClick={() => setColorBy(c)}
+                className="min-h-9 rounded-md px-3 text-sm text-muted-foreground outline-none focus-visible:ring-3 focus-visible:ring-ring/50 aria-checked:bg-card aria-checked:font-medium aria-checked:text-foreground aria-checked:shadow-sm"
+              >
+                {t(c === "staff" ? "calendar.colorByStaff" : "calendar.colorByService")}
+              </button>
+            ))}
+          </div>
+        )}
         <Button
           variant="outline"
           className="h-11 md:h-9"

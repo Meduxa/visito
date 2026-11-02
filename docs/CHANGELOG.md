@@ -2,6 +2,11 @@
 
 All notable changes per phase. Newest on top.
 
+## Business website redesign (2026-11-03)
+
+- **Full-width cover**: the photo runs edge to edge with a flowing bottom edge (a ribbon in the business's theme colour behind a wave), logo, name, an "open now / closed · today 10:00–20:00" badge in the business's time zone, address, and Book / Call / Directions on the photo; language switcher floats over it. Phones get the same, stacked.
+- **Services fold by category**: each category has a minimalist icon picked from its name (Georgian, English, Russian — hair, nails, pedicure, lashes, laser, massage, injections, dental…; a general icon otherwise), the number of services and how many are chosen; the first category is open (all of them when there are only a few services); a search field finds a service in any category.
+
 ## Import templates (2026-11-02)
 
 - **Excel templates for the three imports** in docs/pilot/import-templates: services, clients, bookings — Georgian column names, example rows, every cell as text (so Excel never changes times, dates or phones), and a second sheet with instructions. Checked against the app's own import rules.

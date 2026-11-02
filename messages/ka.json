@@ -954,7 +954,15 @@
     "bySpecialist": "სპეციალისტით",
     "chooseSpecialist": "ვისთან გსურთ ჩაწერა?",
     "withSpecialist": "{name}",
-    "change": "შეცვლა"
+    "change": "შეცვლა",
+    "searchServices": "სერვისის ძებნა…",
+    "noMatch": "ასეთი სერვისი ვერ მოიძებნა.",
+    "otherServices": "სხვა სერვისები",
+    "chosenCount": "{count} არჩეული",
+    "openNow": "ღიაა",
+    "closedNow": "დაკეტილია",
+    "todayHours": "დღეს {hours}",
+    "closedToday": "დღეს დაკეტილია"
   },
   "manageBooking": {
     "title": "თქვენი ჯავშანი",

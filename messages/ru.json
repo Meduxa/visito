@@ -954,7 +954,15 @@
     "bySpecialist": "По специалисту",
     "chooseSpecialist": "К кому хотите записаться?",
     "withSpecialist": "Мастер: {name}",
-    "change": "Изменить"
+    "change": "Изменить",
+    "searchServices": "Поиск услуги…",
+    "noMatch": "Такой услуги не найдено.",
+    "otherServices": "Другие услуги",
+    "chosenCount": "выбрано: {count}",
+    "openNow": "Открыто",
+    "closedNow": "Закрыто",
+    "todayHours": "сегодня {hours}",
+    "closedToday": "сегодня выходной"
   },
   "manageBooking": {
     "title": "Ваша запись",

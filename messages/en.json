@@ -954,7 +954,15 @@
     "bySpecialist": "By specialist",
     "chooseSpecialist": "Who would you like to book with?",
     "withSpecialist": "With {name}",
-    "change": "Change"
+    "change": "Change",
+    "searchServices": "Search services…",
+    "noMatch": "No service matches.",
+    "otherServices": "Other services",
+    "chosenCount": "{count} chosen",
+    "openNow": "Open now",
+    "closedNow": "Closed now",
+    "todayHours": "today {hours}",
+    "closedToday": "closed today"
   },
   "manageBooking": {
     "title": "Your booking",

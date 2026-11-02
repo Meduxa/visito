@@ -34,6 +34,13 @@ async function pickServiceAndTime(page: Page) {
   await page.goto("/ka/book/demo-salon");
   await expect(page.getByRole("heading", { level: 1, name: "სალონი ორქიდეა" })).toBeVisible();
   await page.waitForLoadState("networkidle");
+  // categories are folded (the first one is open): search finds a service in any of them
+  await page.getByRole("searchbox", { name: "სერვისის ძებნა…" }).fill("პედიკ");
+  await expect(page.getByText("პედიკური", { exact: true })).toBeVisible();
+  await expect(page.getByText("კლასიკური მანიკური")).toHaveCount(0);
+  await page.getByRole("searchbox", { name: "სერვისის ძებნა…" }).fill("");
+  // open the nails category and pick a service there
+  await page.getByRole("button", { name: /ფრჩხილები/ }).click();
   await page.getByText("კლასიკური მანიკური").click();
   await page.getByRole("button", { name: "გაგრძელება" }).click();
   await page.getByRole("radio", { name: /ნებისმიერი თავისუფალი/ }).click();

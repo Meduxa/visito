@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, Check, ChevronLeft, UserRound } from "lucide-react";
+import { CalendarPlus, Check, ChevronDown, ChevronLeft, Search, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { FieldError } from "@/components/field-error";
@@ -19,6 +19,7 @@ import { useFormat } from "@/lib/use-format";
 import { cn } from "@/lib/utils";
 import { bookOnline, findPublicSlots, sendCode, verifyCode, type BookedSummary } from "../actions";
 import type { PublicBusinessView, PublicService } from "../queries";
+import { CategoryIcon } from "./category-icon";
 
 type Step = "services" | "staff" | "time" | "details" | "verify" | "done";
 type Slot = { start: string; staffId: string; staffName: string };
@@ -153,9 +154,11 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
     return (
       <>
         {header}
-        <Card className="p-6 text-center text-sm text-muted-foreground">
-          <p>{tb("noServices")}</p>
-        </Card>
+        <Column>
+          <Card className="p-6 text-center text-sm text-muted-foreground">
+            <p>{tb("noServices")}</p>
+          </Card>
+        </Column>
       </>
     );
   }
@@ -184,101 +187,107 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
     return (
       <>
         {header}
-        <Card className="items-center gap-4 p-6 text-center">
-          <span className="flex size-12 items-center justify-center rounded-full bg-success-soft text-success-ink">
-            <Check aria-hidden />
-          </span>
-          <h2 ref={heading} tabIndex={-1} className="text-xl font-semibold outline-none">
-            {booked.status === "pending" ? tb("pendingTitle") : tb("successTitle")}
-          </h2>
-          <p className="font-medium">{fullDateTime(t, booked.start, tz)}</p>
-          <p className="text-sm text-muted-foreground">
-            {chosen.map((s) => s.name).join(", ")} · {booked.staffName}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            {booked.status === "pending"
-              ? tb("pendingBody", { business: business.name })
-              : tb("successBody", { phone: form.phone })}
-          </p>
-          <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-            <Button className="h-11 md:h-9" onClick={ics}>
-              <CalendarPlus aria-hidden />
-              {tb("addToCalendar")}
+        <Column>
+          <Card className="items-center gap-4 p-6 text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-success-soft text-success-ink">
+              <Check aria-hidden />
+            </span>
+            <h2 ref={heading} tabIndex={-1} className="text-xl font-semibold outline-none">
+              {booked.status === "pending" ? tb("pendingTitle") : tb("successTitle")}
+            </h2>
+            <p className="font-medium">{fullDateTime(t, booked.start, tz)}</p>
+            <p className="text-sm text-muted-foreground">
+              {chosen.map((s) => s.name).join(", ")} · {booked.staffName}
+            </p>
+            <p className="text-sm text-muted-foreground">
+              {booked.status === "pending"
+                ? tb("pendingBody", { business: business.name })
+                : tb("successBody", { phone: form.phone })}
+            </p>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <Button className="h-11 md:h-9" onClick={ics}>
+                <CalendarPlus aria-hidden />
+                {tb("addToCalendar")}
+              </Button>
+              <Button variant="outline" asChild className="h-11 md:h-9">
+                <Link href={`/m/${booked.token}`}>{tb("manage")}</Link>
+              </Button>
+            </div>
+            <Button
+              variant="link"
+              onClick={() => {
+                setPicked([]);
+                setSlot(null);
+                setBooked(null);
+                go("services");
+              }}
+            >
+              {tb("bookAnother")}
             </Button>
-            <Button variant="outline" asChild className="h-11 md:h-9">
-              <Link href={`/m/${booked.token}`}>{tb("manage")}</Link>
-            </Button>
-          </div>
-          <Button
-            variant="link"
-            onClick={() => {
-              setPicked([]);
-              setSlot(null);
-              setBooked(null);
-              go("services");
-            }}
-          >
-            {tb("bookAnother")}
-          </Button>
-        </Card>
+          </Card>
+        </Column>
       </>
     );
   }
 
   return (
     <>
-      {step === "services" ? (
-        header
-      ) : (
-        <p className="px-1 text-sm font-medium text-muted-foreground">{business.name}</p>
-      )}
-      <Card id="book" className="scroll-mt-4 gap-4 p-4 md:p-6">
-        <div className="flex items-center gap-2">
-          {prev && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-11 md:size-9"
-              aria-label={tb("back")}
-              onClick={() => go(prev)}
-            >
-              <ChevronLeft aria-hidden />
-            </Button>
-          )}
-          <div className="flex flex-col">
-            <span className="text-xs text-muted-foreground">{tb("stepOf", { n, total: steps.length })}</span>
-            <h2 ref={heading} tabIndex={-1} className="text-lg font-semibold outline-none">
-              {tb(`steps.${step as "services"}`)}
-            </h2>
-          </div>
-        </div>
-
-        {step === "services" && (
-          <ServicesStep
-            business={business}
-            picked={picked}
-            toggle={(k) =>
-              setPicked((p) => (p.includes(k) ? p.filter((x) => x !== k) : p.length < 5 ? [...p, k] : p))
-            }
-            byStaff={byStaff}
-            setByStaff={(id) => {
-              setByStaff(id);
-              // keep only what the chosen person does
-              if (id)
-                setPicked((p) =>
-                  p.filter((k) => business.services.find((s) => s.key === k)?.staffIds.includes(id)),
-                );
-            }}
-          />
+      {step === "services" && header}
+      <Column>
+        {step !== "services" && (
+          <p className="px-1 pt-4 text-sm font-medium text-muted-foreground">{business.name}</p>
         )}
+        <Card id="book" className="scroll-mt-4 gap-4 p-4 md:p-6">
+          <div className="flex items-center gap-2">
+            {prev && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-11 md:size-9"
+                aria-label={tb("back")}
+                onClick={() => go(prev)}
+              >
+                <ChevronLeft aria-hidden />
+              </Button>
+            )}
+            <div className="flex flex-col">
+              <span className="text-xs text-muted-foreground">
+                {tb("stepOf", { n, total: steps.length })}
+              </span>
+              <h2 ref={heading} tabIndex={-1} className="text-lg font-semibold outline-none">
+                {tb(`steps.${step as "services"}`)}
+              </h2>
+            </div>
+          </div>
 
-        {step === "staff" &&
-          (common.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{tb("noCommonStaff")}</p>
-          ) : (
-            <div role="radiogroup" aria-label={tb("steps.staff")} className="grid gap-2 lg:grid-cols-2">
-              {[{ id: "any", name: tb("anyone"), position: tb("anyoneHint"), photoUrl: null }, ...common].map(
-                (p) => (
+          {step === "services" && (
+            <ServicesStep
+              business={business}
+              picked={picked}
+              toggle={(k) =>
+                setPicked((p) => (p.includes(k) ? p.filter((x) => x !== k) : p.length < 5 ? [...p, k] : p))
+              }
+              byStaff={byStaff}
+              setByStaff={(id) => {
+                setByStaff(id);
+                // keep only what the chosen person does
+                if (id)
+                  setPicked((p) =>
+                    p.filter((k) => business.services.find((s) => s.key === k)?.staffIds.includes(id)),
+                  );
+              }}
+            />
+          )}
+
+          {step === "staff" &&
+            (common.length === 0 ? (
+              <p className="text-sm text-muted-foreground">{tb("noCommonStaff")}</p>
+            ) : (
+              <div role="radiogroup" aria-label={tb("steps.staff")} className="grid gap-2 lg:grid-cols-2">
+                {[
+                  { id: "any", name: tb("anyone"), position: tb("anyoneHint"), photoUrl: null },
+                  ...common,
+                ].map((p) => (
                   <button
                     key={p.id}
                     type="button"
@@ -307,238 +316,247 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
                       {p.position && <span className="text-xs text-muted-foreground">{p.position}</span>}
                     </span>
                   </button>
-                ),
-              )}
-            </div>
-          ))}
-
-        {step === "time" && error && <FieldError code={error.code} />}
-        {step === "time" && (
-          <TimeStep
-            business={business}
-            today={today}
-            date={date}
-            setDate={(d) => {
-              setDate(d);
-              setSlot(null);
-            }}
-            slots={slots}
-            slot={slot}
-            choose={(s) => {
-              setSlot(s);
-              go("details");
-            }}
-          />
-        )}
-
-        {(step === "details" || step === "verify") && slot && (
-          <div className="rounded-lg bg-muted/60 p-3 text-sm">
-            <p className="font-medium">{fullDateTime(t, slot.start, tz)}</p>
-            <p className="text-muted-foreground">
-              {chosen.map((s) => s.name).join(", ")} · {slot.staffName}
-            </p>
-            <p className="text-muted-foreground">
-              {tb("total")}: {totalPrice} · {fmt.duration(totalMin)}
-            </p>
-          </div>
-        )}
-
-        {step === "details" && (
-          <form
-            className="flex flex-col gap-4 lg:max-w-2xl"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submitDetails();
-            }}
-          >
-            <div className="grid gap-4 sm:grid-cols-2">
-              <FormField id="pb-first" label={tb("firstName")}>
-                <Input
-                  id="pb-first"
-                  required
-                  maxLength={80}
-                  autoComplete="given-name"
-                  className="h-11 md:h-9"
-                  value={form.firstName}
-                  onChange={(e) => setForm({ ...form, firstName: e.target.value })}
-                />
-              </FormField>
-              <FormField id="pb-last" label={tb("lastName")}>
-                <Input
-                  id="pb-last"
-                  maxLength={80}
-                  autoComplete="family-name"
-                  className="h-11 md:h-9"
-                  value={form.lastName}
-                  onChange={(e) => setForm({ ...form, lastName: e.target.value })}
-                />
-              </FormField>
-            </div>
-            <FormField
-              id="pb-phone"
-              label={tb("phone")}
-              hint={tb("phoneHint")}
-              error={error?.field === "phone" ? error.code : undefined}
-            >
-              <Input
-                id="pb-phone"
-                required
-                type="tel"
-                inputMode="tel"
-                autoComplete="tel"
-                className="h-11 md:h-9"
-                value={form.phone}
-                onChange={(e) => {
-                  setForm({ ...form, phone: e.target.value });
-                  setPass(null); // a new number needs a new code
-                }}
-                {...describedBy("pb-phone", error?.field === "phone" ? error.code : undefined)}
-              />
-            </FormField>
-            <FormField id="pb-email" label={tb("email")}>
-              <Input
-                id="pb-email"
-                type="email"
-                autoComplete="email"
-                maxLength={200}
-                className="h-11 md:h-9"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-              />
-            </FormField>
-            <FormField id="pb-comment" label={tb("comment")}>
-              <Textarea
-                id="pb-comment"
-                rows={2}
-                maxLength={500}
-                value={form.comment}
-                onChange={(e) => setForm({ ...form, comment: e.target.value })}
-              />
-            </FormField>
-            {/* bots fill every field; people never see this one */}
-            <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
-              <label htmlFor="pb-website">Website</label>
-              <input
-                id="pb-website"
-                tabIndex={-1}
-                autoComplete="off"
-                value={form.website}
-                onChange={(e) => setForm({ ...form, website: e.target.value })}
-              />
-            </div>
-            <fieldset className="flex flex-col gap-3">
-              <legend className="sr-only">{tb("marketingHint")}</legend>
-              <ConsentBox
-                id="pb-msms"
-                checked={form.marketingSms}
-                onChange={(v) => setForm({ ...form, marketingSms: v })}
-                label={tb("marketingSms")}
-              />
-              {form.email.trim() !== "" && (
-                <ConsentBox
-                  id="pb-memail"
-                  checked={form.marketingEmail}
-                  onChange={(v) => setForm({ ...form, marketingEmail: v })}
-                  label={tb("marketingEmail")}
-                />
-              )}
-              <p className="text-xs text-muted-foreground">{tb("marketingHint")}</p>
-            </fieldset>
-            <p className="text-xs text-muted-foreground">{tb("privacy", { business: business.name })}</p>
-            {error && error.field !== "phone" && <FieldError code={error.code} />}
-            <Button
-              type="submit"
-              className="h-11 md:h-9"
-              disabled={pending || !form.firstName.trim() || !form.phone.trim()}
-            >
-              {business.otpRequired ? tb("sendCode") : tb("confirmBooking")}
-            </Button>
-          </form>
-        )}
-
-        {step === "verify" && (
-          <form
-            className="flex flex-col gap-4"
-            onSubmit={(e) => {
-              e.preventDefault();
-              submitCode();
-            }}
-          >
-            {!pass && (
-              <>
-                <p className="text-sm">{tb("codeSentTo", { phone: form.phone })}</p>
-                <FormField
-                  id="pb-code"
-                  label={tb("code")}
-                  error={error?.field === "code" ? error.code : undefined}
-                >
-                  <Input
-                    id="pb-code"
-                    inputMode="numeric"
-                    autoComplete="one-time-code"
-                    pattern="[0-9]{6}"
-                    maxLength={6}
-                    className="h-11 w-40 text-center text-lg tracking-widest md:h-10"
-                    value={code}
-                    onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                    {...describedBy("pb-code", error?.field === "code" ? error.code : undefined)}
-                  />
-                </FormField>
-              </>
-            )}
-            {error && error.field !== "code" && <FieldError code={error.code} />}
-            <Button type="submit" className="h-11 md:h-9" disabled={pending || (!pass && code.length !== 6)}>
-              {tb("confirmBooking")}
-            </Button>
-            {!pass && (
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  className="h-11 md:h-9"
-                  disabled={pending}
-                  onClick={() => {
-                    setCode("");
-                    submitDetails();
-                  }}
-                >
-                  {tb("resend")}
-                </Button>
-                <Button type="button" variant="ghost" className="h-11 md:h-9" onClick={() => go("details")}>
-                  {tb("changePhone")}
-                </Button>
+                ))}
               </div>
-            )}
-          </form>
-        )}
+            ))}
 
-        {step === "services" && (
-          <div className="sticky bottom-0 -mx-4 -mb-4 flex items-center gap-3 border-t bg-card px-4 py-3 md:-mx-6 md:-mb-6 md:px-6">
-            <span className="flex-1 text-sm">
-              {picked.length > 0 && (
-                <>
-                  {tb("selected", { count: picked.length, duration: fmt.duration(totalMin) })}
-                  <span className="block font-medium">{totalPrice}</span>
-                </>
-              )}
-            </span>
-            <Button
-              className="h-11 md:h-9"
-              disabled={picked.length === 0}
-              onClick={() => {
-                if (!byStaff) return go("staff");
-                setStaffId(byStaff);
+          {step === "time" && error && <FieldError code={error.code} />}
+          {step === "time" && (
+            <TimeStep
+              business={business}
+              today={today}
+              date={date}
+              setDate={(d) => {
+                setDate(d);
                 setSlot(null);
-                go("time");
+              }}
+              slots={slots}
+              slot={slot}
+              choose={(s) => {
+                setSlot(s);
+                go("details");
+              }}
+            />
+          )}
+
+          {(step === "details" || step === "verify") && slot && (
+            <div className="rounded-lg bg-muted/60 p-3 text-sm">
+              <p className="font-medium">{fullDateTime(t, slot.start, tz)}</p>
+              <p className="text-muted-foreground">
+                {chosen.map((s) => s.name).join(", ")} · {slot.staffName}
+              </p>
+              <p className="text-muted-foreground">
+                {tb("total")}: {totalPrice} · {fmt.duration(totalMin)}
+              </p>
+            </div>
+          )}
+
+          {step === "details" && (
+            <form
+              className="flex flex-col gap-4 lg:max-w-2xl"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitDetails();
               }}
             >
-              {tb("continue")}
-            </Button>
-          </div>
-        )}
-      </Card>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField id="pb-first" label={tb("firstName")}>
+                  <Input
+                    id="pb-first"
+                    required
+                    maxLength={80}
+                    autoComplete="given-name"
+                    className="h-11 md:h-9"
+                    value={form.firstName}
+                    onChange={(e) => setForm({ ...form, firstName: e.target.value })}
+                  />
+                </FormField>
+                <FormField id="pb-last" label={tb("lastName")}>
+                  <Input
+                    id="pb-last"
+                    maxLength={80}
+                    autoComplete="family-name"
+                    className="h-11 md:h-9"
+                    value={form.lastName}
+                    onChange={(e) => setForm({ ...form, lastName: e.target.value })}
+                  />
+                </FormField>
+              </div>
+              <FormField
+                id="pb-phone"
+                label={tb("phone")}
+                hint={tb("phoneHint")}
+                error={error?.field === "phone" ? error.code : undefined}
+              >
+                <Input
+                  id="pb-phone"
+                  required
+                  type="tel"
+                  inputMode="tel"
+                  autoComplete="tel"
+                  className="h-11 md:h-9"
+                  value={form.phone}
+                  onChange={(e) => {
+                    setForm({ ...form, phone: e.target.value });
+                    setPass(null); // a new number needs a new code
+                  }}
+                  {...describedBy("pb-phone", error?.field === "phone" ? error.code : undefined)}
+                />
+              </FormField>
+              <FormField id="pb-email" label={tb("email")}>
+                <Input
+                  id="pb-email"
+                  type="email"
+                  autoComplete="email"
+                  maxLength={200}
+                  className="h-11 md:h-9"
+                  value={form.email}
+                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                />
+              </FormField>
+              <FormField id="pb-comment" label={tb("comment")}>
+                <Textarea
+                  id="pb-comment"
+                  rows={2}
+                  maxLength={500}
+                  value={form.comment}
+                  onChange={(e) => setForm({ ...form, comment: e.target.value })}
+                />
+              </FormField>
+              {/* bots fill every field; people never see this one */}
+              <div aria-hidden className="absolute -left-[9999px] h-px w-px overflow-hidden">
+                <label htmlFor="pb-website">Website</label>
+                <input
+                  id="pb-website"
+                  tabIndex={-1}
+                  autoComplete="off"
+                  value={form.website}
+                  onChange={(e) => setForm({ ...form, website: e.target.value })}
+                />
+              </div>
+              <fieldset className="flex flex-col gap-3">
+                <legend className="sr-only">{tb("marketingHint")}</legend>
+                <ConsentBox
+                  id="pb-msms"
+                  checked={form.marketingSms}
+                  onChange={(v) => setForm({ ...form, marketingSms: v })}
+                  label={tb("marketingSms")}
+                />
+                {form.email.trim() !== "" && (
+                  <ConsentBox
+                    id="pb-memail"
+                    checked={form.marketingEmail}
+                    onChange={(v) => setForm({ ...form, marketingEmail: v })}
+                    label={tb("marketingEmail")}
+                  />
+                )}
+                <p className="text-xs text-muted-foreground">{tb("marketingHint")}</p>
+              </fieldset>
+              <p className="text-xs text-muted-foreground">{tb("privacy", { business: business.name })}</p>
+              {error && error.field !== "phone" && <FieldError code={error.code} />}
+              <Button
+                type="submit"
+                className="h-11 md:h-9"
+                disabled={pending || !form.firstName.trim() || !form.phone.trim()}
+              >
+                {business.otpRequired ? tb("sendCode") : tb("confirmBooking")}
+              </Button>
+            </form>
+          )}
+
+          {step === "verify" && (
+            <form
+              className="flex flex-col gap-4"
+              onSubmit={(e) => {
+                e.preventDefault();
+                submitCode();
+              }}
+            >
+              {!pass && (
+                <>
+                  <p className="text-sm">{tb("codeSentTo", { phone: form.phone })}</p>
+                  <FormField
+                    id="pb-code"
+                    label={tb("code")}
+                    error={error?.field === "code" ? error.code : undefined}
+                  >
+                    <Input
+                      id="pb-code"
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      pattern="[0-9]{6}"
+                      maxLength={6}
+                      className="h-11 w-40 text-center text-lg tracking-widest md:h-10"
+                      value={code}
+                      onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                      {...describedBy("pb-code", error?.field === "code" ? error.code : undefined)}
+                    />
+                  </FormField>
+                </>
+              )}
+              {error && error.field !== "code" && <FieldError code={error.code} />}
+              <Button
+                type="submit"
+                className="h-11 md:h-9"
+                disabled={pending || (!pass && code.length !== 6)}
+              >
+                {tb("confirmBooking")}
+              </Button>
+              {!pass && (
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    className="h-11 md:h-9"
+                    disabled={pending}
+                    onClick={() => {
+                      setCode("");
+                      submitDetails();
+                    }}
+                  >
+                    {tb("resend")}
+                  </Button>
+                  <Button type="button" variant="ghost" className="h-11 md:h-9" onClick={() => go("details")}>
+                    {tb("changePhone")}
+                  </Button>
+                </div>
+              )}
+            </form>
+          )}
+
+          {step === "services" && (
+            <div className="sticky bottom-0 -mx-4 -mb-4 flex items-center gap-3 border-t bg-card px-4 py-3 md:-mx-6 md:-mb-6 md:px-6">
+              <span className="flex-1 text-sm">
+                {picked.length > 0 && (
+                  <>
+                    {tb("selected", { count: picked.length, duration: fmt.duration(totalMin) })}
+                    <span className="block font-medium">{totalPrice}</span>
+                  </>
+                )}
+              </span>
+              <Button
+                className="h-11 md:h-9"
+                disabled={picked.length === 0}
+                onClick={() => {
+                  if (!byStaff) return go("staff");
+                  setStaffId(byStaff);
+                  setSlot(null);
+                  go("time");
+                }}
+              >
+                {tb("continue")}
+              </Button>
+            </div>
+          )}
+        </Card>
+      </Column>
     </>
   );
+}
+
+// the page column under the full-width website cover
+function Column({ children }: { children: ReactNode }) {
+  return <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4">{children}</div>;
 }
 
 function ConsentBox({
@@ -591,6 +609,24 @@ function ServicesStep({
       .flatMap(([, v]) => v);
     return loose.length ? [...ordered, { id: "other", name: "", items: loose }] : ordered;
   }, [business, byStaff]);
+  const total = groups.reduce((n, g) => n + g.items.length, 0);
+  // folded categories: the first one open (all of them when there are only a few services)
+  const [openIds, setOpenIds] = useState<Set<string>>(
+    () => new Set(total <= 8 ? groups.map((g) => g.id) : groups.slice(0, 1).map((g) => g.id)),
+  );
+  const [query, setQuery] = useState("");
+  const q = query.trim().toLowerCase();
+  const searching = q.length > 0;
+  const shown = searching
+    ? groups
+        .map((g) => ({
+          ...g,
+          items: g.name.toLowerCase().includes(q)
+            ? g.items
+            : g.items.filter((s) => (s.name + " " + s.description).toLowerCase().includes(q)),
+        }))
+        .filter((g) => g.items.length > 0)
+    : groups;
 
   // two ways to start: a choice, not tabs with panels
   const tabs = business.staff.length > 1 && (
@@ -661,31 +697,90 @@ function ServicesStep({
         </div>
       )}
       <p className="text-sm text-muted-foreground">{tb("chooseServices")}</p>
-      {groups.map((g) => (
-        <section key={g.id} className="grid gap-2 lg:grid-cols-2">
-          {g.name && <h3 className="text-sm font-medium text-muted-foreground lg:col-span-2">{g.name}</h3>}
-          {g.items.map((s) => {
-            const on = picked.includes(s.key);
-            return (
-              <label
-                key={s.key}
-                className={cn(
-                  "flex min-h-14 cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 hover:bg-muted/60 has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
-                  on && "border-primary bg-accent",
-                )}
+      {total > 6 && (
+        <div className="relative">
+          <Search
+            className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground"
+            aria-hidden
+          />
+          <Input
+            type="search"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder={tb("searchServices")}
+            aria-label={tb("searchServices")}
+            className="h-11 pl-9"
+          />
+        </div>
+      )}
+      {shown.length === 0 && (
+        <p className="py-6 text-center text-sm text-muted-foreground">{tb("noMatch")}</p>
+      )}
+      {shown.map((g) => {
+        const list = (
+          <div id={"cat-" + g.id} className="grid gap-2 lg:grid-cols-2">
+            {g.items.map((s) => {
+              const on = picked.includes(s.key);
+              return (
+                <label
+                  key={s.key}
+                  className={cn(
+                    "flex min-h-14 cursor-pointer items-start gap-3 rounded-lg border px-3 py-2 hover:bg-muted/60 has-focus-visible:ring-3 has-focus-visible:ring-ring/50",
+                    on && "border-primary bg-accent",
+                  )}
+                >
+                  <Checkbox checked={on} onCheckedChange={() => toggle(s.key)} className="mt-1" />
+                  <span className="flex min-w-0 flex-1 flex-col">
+                    <span className="font-medium">{s.name}</span>
+                    {s.description && <span className="text-xs text-muted-foreground">{s.description}</span>}
+                    <span className="text-xs text-muted-foreground">{fmt.duration(s.durationMin)}</span>
+                  </span>
+                  <span className="shrink-0 text-sm font-medium tabular-nums">{fmt.price(s)}</span>
+                </label>
+              );
+            })}
+          </div>
+        );
+        // one group only: nothing to fold
+        if (groups.length === 1) return <div key={g.id}>{list}</div>;
+        const open = searching || openIds.has(g.id);
+        const chosen = g.items.filter((s) => picked.includes(s.key)).length;
+        return (
+          <section key={g.id} className={cn("rounded-xl border bg-card", open && "border-primary/40")}>
+            <h3>
+              <button
+                type="button"
+                aria-expanded={open}
+                aria-controls={"cat-" + g.id}
+                disabled={searching}
+                onClick={() =>
+                  setOpenIds((ids) => {
+                    const next = new Set(ids);
+                    if (next.has(g.id)) next.delete(g.id);
+                    else next.add(g.id);
+                    return next;
+                  })
+                }
+                className="flex min-h-14 w-full items-center gap-3 rounded-xl px-3 py-2 text-left hover:bg-muted/60 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:cursor-default disabled:hover:bg-transparent"
               >
-                <Checkbox checked={on} onCheckedChange={() => toggle(s.key)} className="mt-1" />
-                <span className="flex min-w-0 flex-1 flex-col">
-                  <span className="font-medium">{s.name}</span>
-                  {s.description && <span className="text-xs text-muted-foreground">{s.description}</span>}
-                  <span className="text-xs text-muted-foreground">{fmt.duration(s.durationMin)}</span>
-                </span>
-                <span className="shrink-0 text-sm font-medium tabular-nums">{fmt.price(s)}</span>
-              </label>
-            );
-          })}
-        </section>
-      ))}
+                <CategoryIcon name={g.name} />
+                <span className="flex-1 font-medium">{g.name || tb("otherServices")}</span>
+                {chosen > 0 && (
+                  <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-semibold text-primary-foreground">
+                    {tb("chosenCount", { count: chosen })}
+                  </span>
+                )}
+                <span className="text-sm text-muted-foreground tabular-nums">{g.items.length}</span>
+                <ChevronDown
+                  className={cn("size-4 text-muted-foreground transition-transform", open && "rotate-180")}
+                  aria-hidden
+                />
+              </button>
+            </h3>
+            {open && <div className="px-3 pb-3">{list}</div>}
+          </section>
+        );
+      })}
     </div>
   );
 }

@@ -266,6 +266,9 @@ const STAFF = {
     { name: "ანა გელაშვილი", position: "უფროსი სტილისტი", type: "master", color: "violet", linkLogin: true },
     { name: "ეკა მაჭავარიანი", position: "სტილისტი", type: "master", color: "teal", linkLogin: false },
     { name: "სოფო ნოზაძე", position: "მანიკურის ოსტატი", type: "master", color: "pink", linkLogin: false },
+    { name: "გიორგი მელაძე", position: "კოლორისტი", type: "master", color: "green", linkLogin: false },
+    { name: "ლევან ქავთარაძე", position: "ბარბერი", type: "master", color: "sky", linkLogin: false },
+    { name: "ნიკა ჯავახიშვილი", position: "სტილისტი", type: "master", color: "orange", linkLogin: false },
   ],
   dental: [
     {
@@ -399,7 +402,7 @@ async function seedCatalog(tenantId: string, type: "salon" | "dental", staffLogi
     );
     staffIds.push(row.id);
     // salon team: portraits of made-up people (Figma AI, scripts/seed-assets/team)
-    const portrait = type === "salon" ? ["tamar", "eka", "sopo"][i] : undefined;
+    const portrait = type === "salon" ? ["tamar", "eka", "sopo", "giorgi", "levan", "nika"][i] : undefined;
     if (portrait) {
       const { readFile } = await import("node:fs/promises");
       const path = `${tenantId}/${row.id}-demo.jpg`;

@@ -57,14 +57,14 @@ Four stages. Each stage ends with a **go / no-go** check; we move on only when i
 
 | Stage | Where | Who | How long |
 |---|---|---|---|
-| 1. Internal test | demo site `bookeria1.netlify.app` | Levan + partner | 1 week |
+| 1. Internal test | demo site `visito.ge` | Levan + partner | 1 week |
 | 2. Production check | `visito.ge` (real setup, test business) | Levan + Claude | 2–3 days |
 | 3. Friendly pilot | `visito.ge` | 2–3 businesses you know (1–2 salons, 1 dental clinic) | 4 weeks |
 | 4. Wider pilot | `visito.ge` | 5–10 businesses | 4–6 weeks |
 
 ### How to report a problem (all stages)
 
-Use the ready-made tracker **`docs/pilot/bookeria-pilot-tracker.xlsx`** (upload it to Google Drive and open it with Google Sheets to share it). Its Problems tab has one line per problem, with these columns:
+Use the ready-made tracker **`docs/pilot/visito-pilot-tracker.xlsx`** (upload it to Google Drive and open it with Google Sheets to share it). Its Problems tab has one line per problem, with these columns:
 
 | Date | Who | Device + browser | Language | Page (copy the address) | What I did | What I expected | What happened | Screenshot | Severity |
 |---|---|---|---|---|---|---|---|---|---|
@@ -77,7 +77,7 @@ Never put real client names or phone numbers in the sheet — describe them ("cl
 
 ### Stage 1 — internal test on the demo site (1 week)
 
-Demo accounts (password `Demo-Bookeria-2026`): `salon.owner@demo.test`, `salon.admin@demo.test`,
+Demo accounts (password `Demo-Visito-2026`): `salon.owner@demo.test`, `salon.admin@demo.test`,
 staff of the salon, `dental.owner@demo.test`, `dental.doctor@demo.test`, `platform.admin@demo.test`.
 Test on **a phone (Android and iPhone if possible) and a computer**, in **Georgian, English and Russian**.
 Use made-up names and phones like `599 00 00 01`. No real SMS or emails are sent on the demo.

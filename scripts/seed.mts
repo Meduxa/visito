@@ -4,7 +4,7 @@
 //
 //   npm run db:seed
 //
-// Demo sign-ins (dev only), password for all of them: Demo-Bookeria-2026
+// Demo sign-ins (dev only), password for all of them: Demo-Visito-2026
 //   salon.owner@demo.test   salon.admin@demo.test   salon.staff@demo.test
 //   dental.owner@demo.test  dental.admin@demo.test  dental.doctor@demo.test
 //   platform.admin@demo.test  (platform admin area /admin, no business of its own)
@@ -15,7 +15,7 @@ import { createClient } from "@supabase/supabase-js";
 import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { assertDevProject } from "./dev-project.mts";
 
-const DEMO_PASSWORD = "Demo-Bookeria-2026";
+const DEMO_PASSWORD = "Demo-Visito-2026";
 const PLATFORM_ADMIN = "platform.admin@demo.test";
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

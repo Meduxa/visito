@@ -36,11 +36,11 @@ jobs:
         run: |
           tar czf backup.tgz schema.sql roles.sql data.sql
           gpg --batch --yes --pinentry-mode loopback --passphrase "$BACKUP_PASSPHRASE" \
-              --symmetric --cipher-algo AES256 -o "bookeria-$(date -u +%F).tgz.gpg" backup.tgz
+              --symmetric --cipher-algo AES256 -o "visito-$(date -u +%F).tgz.gpg" backup.tgz
           rm -f schema.sql roles.sql data.sql backup.tgz
       - if: steps.check.outputs.run == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: bookeria-backup
-          path: bookeria-*.tgz.gpg
+          name: visito-backup
+          path: visito-*.tgz.gpg
           retention-days: 30

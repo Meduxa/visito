@@ -1,7 +1,7 @@
 import { APP_NAME } from "@/lib/app";
 import { cn } from "@/lib/utils";
 
-// Levan's logo (design/brand/bookeria-logo.svg, 2026-10-28): a minimalist calendar
+// Levan's logo (design/brand/visito-logo.svg, 2026-10-28): a minimalist calendar
 // mark with a check ("booked") and the wordmark "Visito" (renamed 2026-11-06; new mark still to be chosen) in Sora ExtraBold, outlined so no
 // font has to load. Colours come from brand tokens, so the wordmark stays readable
 // in dark mode.

@@ -119,7 +119,7 @@ Read this file at the start of every session. The full product specification is 
 
 On Levan's laptop PowerShell scripts are blocked, so always write `npm.cmd` / `npx.cmd` (not `npm` / `npx`). Run from the project folder.
 
-There is no local Docker database (no admin rights, see `docs/decisions/002`). Development uses the Supabase Cloud project **bookeria-dev** (Frankfurt, demo data only), linked with `supabase link`. Secrets live in `.env.local` (copy of `.env.example`).
+There is no local Docker database (no admin rights, see `docs/decisions/002`). Development uses the Supabase Cloud project **visito-dev** (Frankfurt, demo data only), linked with `supabase link`. Secrets live in `.env.local` (copy of `.env.example`).
 
 ```
 npm.cmd run dev              # start the app → http://localhost:3000 (opens in Georgian)
@@ -127,10 +127,10 @@ npm.cmd run typecheck        # generate route types + TypeScript check
 npm.cmd run lint             # ESLint
 npm.cmd run format           # Prettier (format:check to only check)
 npm.cmd run test             # unit tests (Vitest, no network)
-npm.cmd run test:rls         # tenant-isolation tests against bookeria-dev (needs .env.local)
+npm.cmd run test:rls         # tenant-isolation tests against visito-dev (needs .env.local)
 npm.cmd run test:e2e         # Playwright on a production build (port 3100), phone 375px + desktop 1440px (needs seeded dev DB) — decision 010
 npm.cmd run test:e2e:dev     # the same tests against the running dev server (quicker to start, slower and less stable)
-npm.cmd run db:push          # apply new migrations in supabase/migrations to bookeria-dev
+npm.cmd run db:push          # apply new migrations in supabase/migrations to visito-dev
 npm.cmd run db:types         # regenerate src/lib/supabase/database.types.ts from the DB
 npm.cmd run db:seed          # reset + load demo salon & dental clinic (dev project only — refuses any other)
 npm.cmd run jobs             # SMS every minute + daily job (trials, deletions, monthly SMS) while the dev server runs

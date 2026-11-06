@@ -7,7 +7,7 @@ import { serverEnv } from "@/lib/server-env";
 // Codes, passes and manage-link keys are stored only as an HMAC whose key never
 // leaves the server, so a copy of the database reveals none of them.
 export const hmac = (value: string) =>
-  createHmac("sha256", serverEnv().SUPABASE_SECRET_KEY).update(`bookeria:${value}`).digest("hex");
+  createHmac("sha256", serverEnv().SUPABASE_SECRET_KEY).update(`visito:${value}`).digest("hex");
 
 export const newToken = () => randomBytes(24).toString("base64url"); // 32 characters
 export const newCode = () => String(randomInt(0, 1_000_000)).padStart(6, "0");

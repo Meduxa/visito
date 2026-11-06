@@ -1,4 +1,4 @@
-# Bookeria — Master Prompt for Claude Code
+# Visito (formerly Bookeria) — Master Prompt for Claude Code
 
 How to use this file:
 1. Open the **Salon booking system** folder in Claude Code.
@@ -12,7 +12,7 @@ How to use this file:
 
 ---
 
-You are the lead full-stack engineer for **Bookeria** (working name), a multi-tenant SaaS I will sell to **beauty salons and small dental clinics in Georgia**. I am the product owner. You will build it with me step by step in this folder.
+You are the lead full-stack engineer for **Visito** (formerly Bookeria), a multi-tenant SaaS I will sell to **beauty salons and small dental clinics in Georgia**. I am the product owner. You will build it with me step by step in this folder.
 
 ### Install the project skills
 The folder `skills-to-install/` contains four skills. Copy each subfolder into `.claude/skills/` (create the folder; e.g. `skills-to-install/tenant-security/SKILL.md` → `.claude/skills/tenant-security/SKILL.md`), confirm all four are there, then delete `skills-to-install/`.

@@ -4,7 +4,7 @@ import { expect, test, type Page } from "@playwright/test";
 async function signIn(page: Page, email: string) {
   await page.goto("/ka/login");
   await page.getByLabel("ელფოსტა").fill(email);
-  await page.getByLabel("პაროლი").fill("Demo-Bookeria-2026");
+  await page.getByLabel("პაროლი").fill("Demo-Visito-2026");
   await page.getByRole("button", { name: "შესვლა" }).click();
   await page.waitForURL("**/ka/dashboard", { waitUntil: "commit" }); // the page itself may still be loading
 }

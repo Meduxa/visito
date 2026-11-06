@@ -42,7 +42,7 @@ test("sign in and start a booking with the keyboard only", async ({ page }) => {
   await page.getByLabel("ელფოსტა").focus();
   await page.keyboard.type("salon.owner@demo.test");
   await page.keyboard.press("Tab");
-  await page.keyboard.type("Demo-Bookeria-2026");
+  await page.keyboard.type("Demo-Visito-2026");
   await page.keyboard.press("Enter");
   await page.waitForURL("**/ka/dashboard");
 
@@ -60,7 +60,7 @@ test("the app, signed in: every control shows focus", async ({ page }, info) => 
   test.skip(info.project.name !== "desktop");
   await page.goto("/ka/login");
   await page.getByLabel("ელფოსტა").fill("salon.owner@demo.test");
-  await page.getByLabel("პაროლი").fill("Demo-Bookeria-2026");
+  await page.getByLabel("პაროლი").fill("Demo-Visito-2026");
   await page.getByRole("button", { name: "შესვლა" }).click();
   await page.waitForURL("**/ka/dashboard");
   const found: string[] = [];

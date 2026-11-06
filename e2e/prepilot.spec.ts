@@ -7,7 +7,7 @@ import { assertDevProject } from "../scripts/dev-project.mts";
 
 config({ path: ".env.local", quiet: true });
 
-const PASSWORD = "Demo-Bookeria-2026";
+const PASSWORD = "Demo-Visito-2026";
 
 function admin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

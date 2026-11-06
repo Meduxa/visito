@@ -34,7 +34,7 @@ test("public pages", async ({ page }) => {
 test("the app, signed in as the owner", async ({ page }) => {
   await page.goto("/ka/login");
   await page.getByLabel("ელფოსტა").fill("salon.owner@demo.test");
-  await page.getByLabel("პაროლი").fill("Demo-Bookeria-2026");
+  await page.getByLabel("პაროლი").fill("Demo-Visito-2026");
   await page.getByRole("button", { name: "შესვლა" }).click();
   await page.waitForURL("**/ka/dashboard");
   const found: string[] = [];

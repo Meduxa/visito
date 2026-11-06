@@ -126,7 +126,7 @@ test("the team sees the online client and visit in the client list", async ({ pa
   const staff = await browser.newPage();
   await staff.goto("/ka/login");
   await staff.getByLabel("ელფოსტა").fill("salon.owner@demo.test");
-  await staff.getByLabel("პაროლი").fill("Demo-Bookeria-2026");
+  await staff.getByLabel("პაროლი").fill("Demo-Visito-2026");
   await staff.getByRole("button", { name: "შესვლა" }).click();
   await staff.waitForURL("**/ka/dashboard", { waitUntil: "commit" }); // the page itself may still be loading
   await staff.goto("/ka/clients");
@@ -144,7 +144,7 @@ test("owner settings: booking link, QR code and the SMS code switch", async ({ p
   test.skip(info.project.name !== "desktop");
   await page.goto("/ka/login");
   await page.getByLabel("ელფოსტა").fill("salon.owner@demo.test");
-  await page.getByLabel("პაროლი").fill("Demo-Bookeria-2026");
+  await page.getByLabel("პაროლი").fill("Demo-Visito-2026");
   await page.getByRole("button", { name: "შესვლა" }).click();
   await page.waitForURL("**/ka/dashboard", { waitUntil: "commit" }); // the page itself may still be loading
   await page.goto("/ka/settings/business");

@@ -7,7 +7,7 @@ Work one phase at a time. Claude Code ticks the boxes and updates `CHANGELOG.md`
 
 - [x] Tools checked (Node 24 LTS, Git), Git repo initialised — no Docker (no admin rights on the laptop), see decision 002
 - [x] Next.js 16 + TypeScript (strict) + Tailwind 4 + shadcn/ui
-- [x] Supabase EU cloud **dev** project `bookeria-dev` (Frankfurt) instead of local Docker; env files; typed Supabase clients (server, browser, admin)
+- [x] Supabase EU cloud **dev** project `visito-dev` (Frankfurt) instead of local Docker; env files; typed Supabase clients (server, browser, admin)
 - [x] next-intl (ka default — always, not from browser language — en, ru), temporary Noto Sans Georgian font (final font in Phase 2)
 - [x] ESLint, Prettier, Vitest, Playwright, RLS test setup (Vitest integration tests against the dev project)
 - [x] Migration: tenants, profiles, memberships, invitations, audit_log + RLS + isolation tests (32)
@@ -104,7 +104,7 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [x] Legal pages as marked drafts (ka/en/ru) — [ ] lawyer's texts
 - [x] Sentry and Resend wired, switched on by keys (decision 011)
 - [x] Netlify config, scheduled jobs, CI on GitHub, encrypted nightly backup workflow (decision 012)
-- [x] GitHub repo (Meduxa/bookeria, private) — code pushed, CI green (2026-10-26)
+- [x] GitHub repo (Meduxa/visito, private) — code pushed, CI green (2026-10-26)
 - [ ] Production: Supabase production project, Sentry, Netlify — **deferred until the pilot** (Levan, 2026-10-26: the free plan allows only 2 active projects and both are in use; plan: Supabase Pro at pilot time, which also brings backups). Follow `docs/go-live.md` from step 2 then.
 - [ ] Later: domain + Resend (needed for real sign-ups), SMS company key on Netlify (sender.ge chosen), Turnstile, plan prices, Supabase Pro
 

@@ -7,8 +7,8 @@ marked **(Claude can do this)** once you say the step before it is done.
 **Order:** 1 GitHub → 2 Supabase (production) → 3 Sentry → 4 Netlify → 5 your admin account →
 6 checks → 7 backups. Email (Resend) and the domain come together later (step 8).
 
-**Demo site (live since 2026-10-28):** https://bookeria1.netlify.app — Netlify project `bookeria1`,
-built from GitHub `main` on every push, connected to **bookeria-dev** (demo data only, never real
+**Demo site (live since 2026-10-28):** https://visito.ge — Netlify project `visito-ge`,
+built from GitHub `main` on every push, connected to **visito-dev** (demo data only, never real
 clients). Lessons from setting it up, which apply to production too:
 - Netlify sees only the GitHub repositories you allowed: GitHub → Settings → Applications → Netlify →
   Repository access → add the repository.
@@ -23,12 +23,12 @@ clients). Lessons from setting it up, which apply to production too:
 ## 1. GitHub — the code, off the laptop
 
 1. Sign in at github.com (or create a free account).
-2. **New repository** → name `bookeria` → **Private** → do *not* add a README or .gitignore → Create.
-3. Copy the address it shows, like `https://github.com/YOUR-NAME/bookeria.git`.
+2. **New repository** → name `visito` → **Private** → do *not* add a README or .gitignore → Create.
+3. Copy the address it shows, like `https://github.com/YOUR-NAME/visito.git`.
 4. Send me only that address. **(Claude can do this)**:
 
    ```
-   git remote add origin https://github.com/YOUR-NAME/bookeria.git
+   git remote add origin https://github.com/YOUR-NAME/visito.git
    git push -u origin main
    ```
 
@@ -39,12 +39,12 @@ After the push, GitHub runs the automatic checks (typecheck, lint, unit tests) o
 
 ## 2. Supabase — the production database
 
-1. supabase.com → **New project** → name `bookeria-prod` → **Region: Central EU (Frankfurt)** →
+1. supabase.com → **New project** → name `visito-prod` → **Region: Central EU (Frankfurt)** →
    a long database password → save it in your password manager → Create. Free plan for now
    (your choice, 2026-10-26 — see step 7 for backups).
 2. When it is ready: **Project Settings → API Keys**. Keep the page open; you need the
    **Project URL**, the **publishable** key and the **secret** key.
-3. On your laptop, create the file `.env.production.local` in the Bookeria folder (it is never
+3. On your laptop, create the file `.env.production.local` in the Visito folder (it is never
    uploaded — `.gitignore` excludes it) with:
 
    ```
@@ -81,7 +81,7 @@ After the push, GitHub runs the automatic checks (typecheck, lint, unit tests) o
 ## 4. Netlify — the website
 
 1. app.netlify.com → **Sign up with GitHub** → **Add new site → Import an existing project** →
-   GitHub → `bookeria`. Netlify reads `netlify.toml`; leave the build settings as they are.
+   GitHub → `visito`. Netlify reads `netlify.toml`; leave the build settings as they are.
 2. Before the first deploy, **Site configuration → Environment variables** → add:
 
    | Name | Value |
@@ -140,10 +140,10 @@ the GitHub workflow `.github/workflows/backup.yml` makes an **encrypted** nightl
    - `SUPABASE_DB_URL` = the Session pooler connection string from step 2.4 (with password)
    - `BACKUP_PASSPHRASE` = a long new passphrase — keep it in your password manager; without it
      the backups cannot be opened.
-2. **Actions → Backup → Run workflow** once; a file `bookeria-YYYY-MM-DD.tgz.gpg` appears under
+2. **Actions → Backup → Run workflow** once; a file `visito-YYYY-MM-DD.tgz.gpg` appears under
    the run's **Artifacts** (kept 30 days).
 3. **Restore test** (do it once, the spec requires it): download an artifact, then in Git Bash:
-   `gpg -d bookeria-….tgz.gpg > backup.tgz && tar xzf backup.tgz` → load `roles.sql`, `schema.sql`,
+   `gpg -d visito-….tgz.gpg > backup.tgz && tar xzf backup.tgz` → load `roles.sql`, `schema.sql`,
    `data.sql` with `psql` into a **new, empty** Supabase project and open a few clients.
    Claude can walk you through it.
 

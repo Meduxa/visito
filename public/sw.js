@@ -1,7 +1,7 @@
 // Visito service worker: makes the app installable and shows a friendly
 // page when there is no internet. It stores ONLY that offline page — never
 // pages, data or anything personal; everything else always goes to the network.
-const CACHE = "bookeria-offline-v1";
+const CACHE = "visito-offline-v1";
 const OFFLINE = "/offline.html";
 
 self.addEventListener("install", (event) => {

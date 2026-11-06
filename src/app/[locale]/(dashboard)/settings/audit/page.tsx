@@ -104,7 +104,7 @@ export default async function AuditPage({ params, searchParams }: PageProps<"/[l
               <div className="flex flex-wrap items-baseline gap-x-3">
                 <span className="font-medium">{label(r.action)}</span>
                 <span className="text-muted-foreground">
-                  {r.actor_id ? (nameOf.get(r.actor_id) ?? t("auditLog.bookeria")) : t("auditLog.system")}
+                  {r.actor_id ? (nameOf.get(r.actor_id) ?? t("auditLog.visito")) : t("auditLog.system")}
                 </span>
                 <span className="ml-auto text-xs text-muted-foreground">{fullDateTime(t, r.at)}</span>
               </div>

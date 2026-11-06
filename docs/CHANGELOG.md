@@ -7,7 +7,7 @@ All notable changes per phase. Newest on top.
 - **Bookeria is now Visito** (domain visito.ge): the name in the app, browser tab, installed app, landing page, emails, SMS test text, legal texts, admin and support screens (ka/en/ru), file names of exports and the offline page.
 - The logo keeps its calendar mark for now, with the wordmark "Visito"; the new mark comes later.
 - Short addresses are now `name.visito.ge`; `visito` can't be taken as a business address (migration `20261106090000`).
-- Internal names (dev database, Netlify site, repo, demo password) are unchanged — decision 013.
+- Internal names follow: package `visito`, demo password `Demo-Visito-2026` (demo data reloaded), backups `visito-*.tgz.gpg`, offline cache, calendar-file IDs and the key for codes/manage links (old demo links stop working — there are no real clients yet), brand file `design/brand/visito-logo.svg`, pilot tracker `visito-pilot-tracker.xlsx` and the Excel templates. Docs now use the new dashboard names: Supabase `visito-dev`, Netlify `visito-ge`, GitHub `Meduxa/visito`, folder `Desktop\Visito`.
 
 ## Calendar look (2026-11-03)
 

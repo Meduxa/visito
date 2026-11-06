@@ -7,7 +7,7 @@ test.describe.configure({ timeout: 90_000 });
 async function signIn(page: Page, email: string, landing: string | RegExp = "**/ka/dashboard") {
   await page.goto("/ka/login");
   await page.getByLabel("ელფოსტა").fill(email);
-  await page.getByLabel("პაროლი").fill("Demo-Bookeria-2026");
+  await page.getByLabel("პაროლი").fill("Demo-Visito-2026");
   await page.getByRole("button", { name: "შესვლა" }).click();
   await page.waitForURL(landing, { waitUntil: "commit" }); // the page itself may still be loading
 }

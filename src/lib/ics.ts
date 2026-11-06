@@ -25,7 +25,7 @@ export function makeIcs(e: {
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",
-    `UID:${e.uid}@bookeria`,
+    `UID:${e.uid}@visito`,
     `DTSTAMP:${stamp(new Date().toISOString())}`,
     `DTSTART:${stamp(e.start)}`,
     `DTEND:${stamp(e.end)}`,

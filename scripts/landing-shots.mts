@@ -24,7 +24,7 @@ for (const locale of ["ka", "en", "ru"]) {
   const desk = await browser.newPage({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1.5 });
   await desk.goto(`${BASE}/${locale}/login`);
   await desk.locator("#email").fill("salon.owner@demo.test");
-  await desk.locator("#password").fill("Demo-Bookeria-2026");
+  await desk.locator("#password").fill("Demo-Visito-2026");
   await desk.locator("form button[type=submit]").click();
   await desk.waitForURL(`**/${locale}/dashboard`);
   const day = new Date(Date.now() + 86_400_000).toLocaleDateString("en-CA", { timeZone: "Asia/Tbilisi" });

@@ -7,7 +7,7 @@ import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveTenant } from "@/lib/tenant";
 
-// The owner lets Bookeria support VIEW the business for 24 or 72 hours, or ends it
+// The owner lets Visito support VIEW the business for 24 or 72 hours, or ends it
 // (SPEC 4.15). Works even while the business is read-only, so support can help then.
 async function owner() {
   const locale = await getLocale();

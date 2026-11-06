@@ -32,7 +32,7 @@ const FEATURES = [
 ] as const;
 const FAQ = ["card", "phone", "sms", "data", "switch", "dental"] as const;
 
-// Bookeria's own front page (bookeria.ge): what it does, why it is different,
+// Visito's own front page (visito.ge): what it does, why it is different,
 // prices and questions — with one action everywhere: start the free trial.
 export async function LandingPage({ plans, demoUrl }: { plans: LandingPlan[]; demoUrl: string | null }) {
   const t = await getTranslations("landing");

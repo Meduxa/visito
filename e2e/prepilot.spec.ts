@@ -128,7 +128,7 @@ test("waitlist: offer a freed time by SMS", async ({ page }, info) => {
   }
 });
 
-// Support access: the owner allows it, Bookeria opens the business view-only, the owner ends it.
+// Support access: the owner allows it, Visito opens the business view-only, the owner ends it.
 test("support access: owner allows, support views (read-only), owner ends", async ({ browser }, info) => {
   test.skip(info.project.name !== "desktop"); // changes shared demo data
   const db = admin();

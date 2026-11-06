@@ -1,7 +1,7 @@
 # Pilot: what is needed and how we test
 
 For Levan and his partner (2026-10-29). Part A lists what must exist before real salons use
-Bookeria; Part B is the testing plan, from our own tests on the demo site to the first salons.
+Visito; Part B is the testing plan, from our own tests on the demo site to the first salons.
 
 ---
 
@@ -11,8 +11,8 @@ Bookeria; Part B is the testing plan, from our own tests on the demo site to the
 
 | # | What | Why | Cost (approx.) | Status |
 |---|---|---|---|---|
-| 1 | **Domain `bookeria.ge`** (+ `bukeria.ge` as a redirect, decision 013) | Real address; short salon addresses `teka.bookeria.ge` | ~30–60 ₾ / year each | to do |
-| 2 | **SMS company** (Georgian, with an API and a registered sender name "Bookeria") | Login codes, confirmations, reminders | per SMS, ~0.03–0.05 ₾ | to choose — then Claude writes its adapter (1 session) |
+| 1 | **Domain `visito.ge`** (bought 2026-11-06 at RE:HOST, DNS on Netlify) | Real address; short salon addresses `teka.visito.ge` | ~30–60 ₾ / year each | to do |
+| 2 | **SMS company** (Georgian, with an API and a registered sender name "Visito") | Login codes, confirmations, reminders | per SMS, ~0.03–0.05 ₾ | to choose — then Claude writes its adapter (1 session) |
 | 3 | **Email: Resend** (EU region) + the domain verified | Sign-up confirmation, password reset, invites; Supabase's built-in email does not reach strangers | free up to 3,000 / month | to do |
 | 4 | **Supabase production project** on **Pro** (Frankfurt) | Real client data apart from the demo; daily backups; no pausing | ~$25 / month | to do |
 | 5 | **Netlify Pro** (or stay free and watch credits) | Enough credits for regular updates; server in **Frankfurt** (speed) | ~$19–20 / month | decide |
@@ -24,7 +24,7 @@ Bookeria; Part B is the testing plan, from our own tests on the demo site to the
 | # | What | Why |
 |---|---|---|
 | 8 | **Legal form** to invoice salons (individual entrepreneur or LLC), bank account | Salons pay you; you issue invoices |
-| 9 | **Lawyer review** of Privacy policy, Terms, Data Processing Agreement (texts exist at `/legal/...`) | Georgian Law on Personal Data Protection — Bookeria is the processor, salons the controllers |
+| 9 | **Lawyer review** of Privacy policy, Terms, Data Processing Agreement (texts exist at `/legal/...`) | Georgian Law on Personal Data Protection — Visito is the processor, salons the controllers |
 | 10 | **Ask the lawyer**: anything to register/notify with the Personal Data Protection Service; health data rules for dental notes | Dental notes are special-category data |
 | 11 | **Pilot agreement** (1 page): free period, what you expect (use it daily, give feedback), what you promise (support, data export at any time) | Clear expectations both ways |
 | 12 | **Plan prices** in `/admin/plans` | Shown on the landing page once set; needed after the free period |
@@ -58,9 +58,9 @@ Four stages. Each stage ends with a **go / no-go** check; we move on only when i
 | Stage | Where | Who | How long |
 |---|---|---|---|
 | 1. Internal test | demo site `bookeria1.netlify.app` | Levan + partner | 1 week |
-| 2. Production check | `bookeria.ge` (real setup, test business) | Levan + Claude | 2–3 days |
-| 3. Friendly pilot | `bookeria.ge` | 2–3 businesses you know (1–2 salons, 1 dental clinic) | 4 weeks |
-| 4. Wider pilot | `bookeria.ge` | 5–10 businesses | 4–6 weeks |
+| 2. Production check | `visito.ge` (real setup, test business) | Levan + Claude | 2–3 days |
+| 3. Friendly pilot | `visito.ge` | 2–3 businesses you know (1–2 salons, 1 dental clinic) | 4 weeks |
+| 4. Wider pilot | `visito.ge` | 5–10 businesses | 4–6 weeks |
 
 ### How to report a problem (all stages)
 
@@ -132,7 +132,7 @@ Split the work: **partner = client + staff view**, **Levan = owner + admin view*
 | 27 | Reports: this month, by specialist, Excel download | Numbers match the bookings |
 | 28 | Export all data (Excel/JSON); delete one client | Export opens; deleted client gone, bookings anonymous |
 | 29 | Audit log | Shows who did what |
-| 30 | Allow Bookeria support for 24 h, then end it | Platform admin can look, cannot change anything |
+| 30 | Allow Visito support for 24 h, then end it | Platform admin can look, cannot change anything |
 | 31 | Sign out of all devices | Other devices signed out on next click |
 
 #### 1.5 Platform admin (Levan)
@@ -160,11 +160,11 @@ Split the work: **partner = client + staff view**, **Levan = owner + admin view*
 
 | # | Check | Expected |
 |---|---|---|
-| 1 | Open `bookeria.ge`, `www.bookeria.ge`, `bukeria.ge` | All reach the landing page over https |
+| 1 | Open `visito.ge`, `www.visito.ge` | All reach the landing page over https |
 | 2 | Sign up as a new business with your real email | Confirmation email arrives (inbox, not spam) |
 | 3 | Password reset; invite a staff member | Emails arrive within a minute |
-| 4 | Short address `yourtest.bookeria.ge` on a phone | Website opens; booking works |
-| 5 | Book with **your real phone**: SMS code, confirmation | SMS arrive within seconds, sender "Bookeria" |
+| 4 | Short address `yourtest.visito.ge` on a phone | Website opens; booking works |
+| 5 | Book with **your real phone**: SMS code, confirmation | SMS arrive within seconds, sender "Visito" |
 | 6 | Booking for tomorrow + 24 h / 2 h reminders | Reminders arrive on time (up to 5 min late) |
 | 7 | SMS balance goes down; admin top-up | Correct counts |
 | 8 | Marketing SMS unsubscribe link | Client's consent switched off |
@@ -199,7 +199,7 @@ dental clinic; they use Instagram (to test the booking link).
 
 | Measure | Target |
 |---|---|
-| Bookings entered in Bookeria (vs their real visits) | > 90 % by week 2 |
+| Bookings entered in Visito (vs their real visits) | > 90 % by week 2 |
 | Online bookings (website / Instagram) | at least some every week |
 | No-shows (compare with before, ask the owner) | lower |
 | SMS delivered | > 98 % |

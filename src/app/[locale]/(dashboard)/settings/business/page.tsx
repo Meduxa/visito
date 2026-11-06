@@ -57,7 +57,7 @@ export default async function BusinessSettingsPage({ params }: PageProps<"/[loca
   }
 
   // language-neutral link: it opens in Georgian, clients can switch
-  // the short address (name.bookeria.ge) when switched on, else the long link
+  // the short address (name.visito.ge) when switched on, else the long link
   const url =
     shortUrl(tenant.slug, siteDomain(), publicEnv.NEXT_PUBLIC_APP_URL.startsWith("https")) ??
     `${publicEnv.NEXT_PUBLIC_APP_URL}/book/${tenant.slug}`;

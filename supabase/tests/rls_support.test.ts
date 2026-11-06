@@ -35,7 +35,7 @@ afterAll(async () => {
 });
 
 describe("support access", () => {
-  it("without the owner's consent Bookeria sees nothing and cannot open the view", async () => {
+  it("without the owner's consent Visito sees nothing and cannot open the view", async () => {
     expect(await seeClients(platform, A)).toBe(0);
     expect((await platform.db.rpc("start_support_view", { p_tenant: A.id })).error?.code).toBe("42501");
   });
@@ -63,7 +63,7 @@ describe("support access", () => {
     expect((await B.owner.db.from("support_grants").select("id").eq("tenant_id", A.id)).data).toEqual([]);
   });
 
-  it("with consent: Bookeria views that business only, and the visit is logged", async () => {
+  it("with consent: Visito views that business only, and the visit is logged", async () => {
     expect((await platform.db.rpc("start_support_view", { p_tenant: A.id })).error).toBeNull();
     expect(await audit(A, "support.viewed")).toBe(1);
     expect(await seeClients(platform, A)).toBe(1);
@@ -76,7 +76,7 @@ describe("support access", () => {
     );
   });
 
-  it("with consent Bookeria still cannot change anything", async () => {
+  it("with consent Visito still cannot change anything", async () => {
     expect(
       (await platform.db.from("clients").insert({ tenant_id: A.id, first_name: "X" })).error,
     ).not.toBeNull();

@@ -1,6 +1,6 @@
 ---
 name: integrations-adapter
-description: Use when adding or changing any third-party integration in Bookeria — SMS sending, OTP codes, reminder jobs, marketing email providers, payment gateways, webhooks, API keys. Defines the adapter pattern, secret handling, idempotency, consent rules and testing with fake providers.
+description: Use when adding or changing any third-party integration in Visito — SMS sending, OTP codes, reminder jobs, marketing email providers, payment gateways, webhooks, API keys. Defines the adapter pattern, secret handling, idempotency, consent rules and testing with fake providers.
 ---
 
 # Integrations (SMS, email, payments)
@@ -100,7 +100,7 @@ Message types that are **service** (no marketing consent needed): booking confir
 - Each salon/clinic connects **its own merchant account**; money goes directly to them.
 - Never trust the browser's "payment success" redirect. Mark a payment as paid **only** after a verified webhook or a server-side status check with the provider.
 - Webhooks: verify signature, respond fast (200), process idempotently by `providerRef` + event id, log raw events (without card data) for reconciliation.
-- Bookeria never sees or stores card numbers — use the provider's hosted payment page.
+- Visito never sees or stores card numbers — use the provider's hosted payment page.
 
 ## 8. Testing
 

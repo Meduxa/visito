@@ -33,7 +33,7 @@ export default async function AdminSmsPage({ params, searchParams }: PageProps<"
     error_code: string | null;
   }[];
   const failed = rows.filter((r) => r.status === "failed").length;
-  // Bookeria's own account with the SMS company (top it up before it runs out)
+  // Visito's own account with the SMS company (top it up before it runs out)
   const provider = (() => {
     try {
       return getSmsProvider();

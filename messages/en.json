@@ -1000,7 +1000,7 @@
     "title": "SMS",
     "subtitle": "Reminders and booking messages to clients. One Georgian SMS holds 70 characters; longer texts use 2 or more.",
     "balance": "SMS left",
-    "balanceHint": "Counted in SMS parts. To top up, contact Bookeria.",
+    "balanceHint": "Counted in SMS parts. To top up, contact Visito.",
     "sentThisMonth": "Sent this month",
     "low": "Only {count} SMS left. Reminders stop when the balance reaches zero — please top up.",
     "empty": "No SMS left. Reminders and booking messages are not being sent.",
@@ -1067,7 +1067,7 @@
     "testPhone": "Your phone",
     "testSend": "Send test",
     "testSent": "Test SMS sent",
-    "testText": "{business}: test message from Bookeria."
+    "testText": "{business}: test message from Visito."
   },
   "smsLog": {
     "title": "Message log",
@@ -1131,9 +1131,9 @@
     "invalidBody": "It may be incomplete. Please contact the business."
   },
   "account": {
-    "trialEnding": "Your trial ends in {days, plural, =0 {less than a day} one {# day} other {# days}}. Contact Bookeria to choose a plan.",
-    "pastDue": "Your trial has ended or a payment is overdue. Contact Bookeria so the account is not suspended.",
-    "suspended": "The account is suspended: you can view and download your data, but not change it. Contact Bookeria.",
+    "trialEnding": "Your trial ends in {days, plural, =0 {less than a day} one {# day} other {# days}}. Contact Visito to choose a plan.",
+    "pastDue": "Your trial has ended or a payment is overdue. Contact Visito so the account is not suspended.",
+    "suspended": "The account is suspended: you can view and download your data, but not change it. Contact Visito.",
     "cancelled": "The account is cancelled: you can still view and download your data.",
     "deletion": "This business will be deleted on {date}. You can cancel this in Settings."
   },
@@ -1208,7 +1208,7 @@
     "subtitle": "Who did what and when in your business. Kept for your records and for data protection.",
     "empty": "Nothing here yet.",
     "older": "Older",
-    "bookeria": "Bookeria",
+    "bookeria": "Visito",
     "system": "System",
     "groups": {
       "all": "All",
@@ -1216,7 +1216,7 @@
       "clients": "Clients",
       "bookings": "Bookings",
       "settings": "Settings",
-      "platform": "Bookeria"
+      "platform": "Visito"
     },
     "actions": {
       "auth_signed_out_everywhere": "Signed out of all devices",
@@ -1234,8 +1234,8 @@
       "invitation_revoked": "Invitation cancelled",
       "membership_removed": "Team member removed",
       "membership_updated": "Team member's role changed",
-      "platform_sms_topup": "SMS credits added by Bookeria",
-      "platform_tenant_updated": "Plan or status changed by Bookeria",
+      "platform_sms_topup": "SMS credits added by Visito",
+      "platform_tenant_updated": "Plan or status changed by Visito",
       "service_deleted": "Service deleted",
       "services_imported": "Price list imported",
       "settings_rules_updated": "Booking rules changed",
@@ -1244,7 +1244,7 @@
       "staff_login_linked": "Staff login linked",
       "support_granted": "Support access allowed",
       "support_revoked": "Support access ended",
-      "support_viewed": "Bookeria support viewed the business",
+      "support_viewed": "Visito support viewed the business",
       "tenant_created": "Business created",
       "tenant_deletion_cancelled": "Deletion cancelled",
       "tenant_deletion_requested": "Deletion requested",
@@ -1270,7 +1270,7 @@
     "requested": "Deletion scheduled in 14 days."
   },
   "platform": {
-    "title": "Bookeria admin",
+    "title": "Visito admin",
     "nav": {
       "businesses": "Businesses",
       "plans": "Plans",
@@ -1344,7 +1344,7 @@
     "iosHint": "To install on your phone: Share → “Add to Home Screen”."
   },
   "legal": {
-    "draft": "Draft — this text will be replaced by the version prepared by our lawyer. It describes how Bookeria works today but is not yet legally binding.",
+    "draft": "Draft — this text will be replaced by the version prepared by our lawyer. It describes how Visito works today but is not yet legally binding.",
     "updated": "Last updated: {date}",
     "links": {
       "privacy": "Privacy policy",
@@ -1357,11 +1357,11 @@
       "sections": [
         {
           "h": "Who we are",
-          "p": "Bookeria is an online booking and client management service for beauty salons and dental clinics in Georgia. Operator details (company name, address, identification number) will be added here."
+          "p": "Visito is an online booking and client management service for beauty salons and dental clinics in Georgia. Operator details (company name, address, identification number) will be added here."
         },
         {
           "h": "Two roles",
-          "p": "Each salon or clinic decides what it stores about its clients and why — it is the data controller. Bookeria processes that data only on the business's behalf, as a data processor. For the accounts of business owners and their teams, Bookeria itself is the controller."
+          "p": "Each salon or clinic decides what it stores about its clients and why — it is the data controller. Visito processes that data only on the business's behalf, as a data processor. For the accounts of business owners and their teams, Visito itself is the controller."
         },
         {
           "h": "What data is stored",
@@ -1377,11 +1377,11 @@
         },
         {
           "h": "How long",
-          "p": "Data is kept while the business uses Bookeria. When a business deletes its account, everything is removed after 14 days. A business can delete a single client's personal data at any time."
+          "p": "Data is kept while the business uses Visito. When a business deletes its account, everything is removed after 14 days. A business can delete a single client's personal data at any time."
         },
         {
           "h": "Your rights",
-          "p": "You can ask the salon or clinic for a copy of your data, a correction or deletion, and you can withdraw marketing consent at any time with the link in any promotional message. Businesses can export or delete a client's data in Bookeria in one step."
+          "p": "You can ask the salon or clinic for a copy of your data, a correction or deletion, and you can withdraw marketing consent at any time with the link in any promotional message. Businesses can export or delete a client's data in Visito in one step."
         },
         {
           "h": "Security",
@@ -1398,7 +1398,7 @@
       "sections": [
         {
           "h": "The service",
-          "p": "Bookeria provides online booking, a calendar, client records, SMS reminders and reports to salons and clinics (\"businesses\")."
+          "p": "Visito provides online booking, a calendar, client records, SMS reminders and reports to salons and clinics (\"businesses\")."
         },
         {
           "h": "Trial and plans",
@@ -1431,11 +1431,11 @@
       "sections": [
         {
           "h": "Parties and roles",
-          "p": "The business (controller) instructs Bookeria (processor) to process its clients' personal data to provide the service."
+          "p": "The business (controller) instructs Visito (processor) to process its clients' personal data to provide the service."
         },
         {
           "h": "Subject and purpose",
-          "p": "Bookings, reminders, client records, payments records and reports, for as long as the business uses Bookeria."
+          "p": "Bookings, reminders, client records, payments records and reports, for as long as the business uses Visito."
         },
         {
           "h": "Categories of data",
@@ -1451,7 +1451,7 @@
         },
         {
           "h": "Personal data breaches",
-          "p": "Bookeria informs the business without undue delay after becoming aware of a breach."
+          "p": "Visito informs the business without undue delay after becoming aware of a breach."
         },
         {
           "h": "End of processing",
@@ -1461,13 +1461,13 @@
     }
   },
   "supportAccess": {
-    "title": "Bookeria support access",
-    "hint": "Let Bookeria support look at your business to help with a problem. View only — support cannot change anything, and never sees treatment notes. You can end it at any time; every visit is in your audit log.",
+    "title": "Visito support access",
+    "hint": "Let Visito support look at your business to help with a problem. View only — support cannot change anything, and never sees treatment notes. You can end it at any time; every visit is in your audit log.",
     "allow24": "Allow for 24 hours",
     "allow72": "Allow for 3 days",
     "on": "Support can view your business until {until}.",
     "end": "End support access",
-    "endConfirm": "Bookeria support will no longer be able to view your business.",
+    "endConfirm": "Visito support will no longer be able to view your business.",
     "allowed": "Support access allowed",
     "ended": "Support access ended",
     "viewing": "Support view of this business — view only, until {until}.",
@@ -1501,7 +1501,7 @@
   },
   "landing": {
     "meta": {
-      "title": "Bookeria — online booking for salons and clinics in Georgia",
+      "title": "Visito — online booking for salons and clinics in Georgia",
       "description": "Your own booking website, a calendar for the whole team, SMS reminders, client base and reports. In Georgian, English and Russian. 14 days free."
     },
     "navLabel": "Page sections",
@@ -1523,21 +1523,21 @@
       "eu": "Data stored in the EU"
     },
     "shots": {
-      "calendar": "The Bookeria calendar: a day of bookings by specialist",
+      "calendar": "The Visito calendar: a day of bookings by specialist",
       "booking": "A salon's booking page on a phone",
       "tabsLabel": "App screens",
       "tabs": {
         "calendar": "Calendar",
         "reports": "Reports"
       },
-      "reports": "Bookeria reports: money received, visits, no-shows and payment methods"
+      "reports": "Visito reports: money received, visits, no-shows and payment methods"
     },
     "features": {
       "title": "Everything a salon needs in one place",
       "subtitle": "Set it up in an evening. Works on a computer, a tablet and every phone.",
       "website": {
         "title": "Your own website",
-        "text": "A page with your photos, prices and team at yourname.bookeria.ge — perfect for your Instagram bio and a QR code at the desk."
+        "text": "A page with your photos, prices and team at yourname.visito.ge — perfect for your Instagram bio and a QR code at the desk."
       },
       "booking": {
         "title": "Online booking 24/7",
@@ -1570,7 +1570,7 @@
     },
     "yours": {
       "title": "Your clients stay yours",
-      "text": "Bookeria is not a marketplace. Your page never lists other salons, competitors' discounts or ads. Clients come to you — and their data belongs to you.",
+      "text": "Visito is not a marketplace. Your page never lists other salons, competitors' discounts or ads. Clients come to you — and their data belongs to you.",
       "noCompetitors": "No competitors on your page",
       "export": "Download or delete your data at any time",
       "law": "Stored in the EU, following Georgia's personal data law"
@@ -1634,11 +1634,11 @@
       },
       "phone": {
         "q": "Does it work on a phone?",
-        "a": "Yes. Bookeria works in any browser and can be added to the home screen of an iPhone or Android phone like an app."
+        "a": "Yes. Visito works in any browser and can be added to the home screen of an iPhone or Android phone like an app."
       },
       "sms": {
         "q": "How do the SMS reminders work?",
-        "a": "Bookeria sends reminders automatically before each visit, in your salon's language and with its name. Every plan includes SMS each month."
+        "a": "Visito sends reminders automatically before each visit, in your salon's language and with its name. Every plan includes SMS each month."
       },
       "data": {
         "q": "Is my clients' data safe?",
@@ -1654,7 +1654,7 @@
       }
     },
     "final": {
-      "title": "Try Bookeria in your salon",
+      "title": "Try Visito in your salon",
       "text": "14 days free. Set up in an evening; your clients book tomorrow."
     }
   }

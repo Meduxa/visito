@@ -1,9 +1,9 @@
 ---
 name: figma-to-ui
-description: Use when turning Levan's screenshots or Figma designs into Bookeria's design system or screens — extracting colours, fonts, spacing and components from Figma, restyling components, or building a new screen that has a Figma frame or reference screenshot. Keeps the UI consistent through design tokens.
+description: Use when turning Levan's screenshots or Figma designs into Visito's design system or screens — extracting colours, fonts, spacing and components from Figma, restyling components, or building a new screen that has a Figma frame or reference screenshot. Keeps the UI consistent through design tokens.
 ---
 
-# Figma → Bookeria UI
+# Figma → Visito UI
 
 The visual style comes from Levan's **reference screenshots** (`design/references/`) and his **Figma file**. Do not invent a different style. Take the *style* of references — never copy another product's logo, name, icons, illustrations or brand.
 

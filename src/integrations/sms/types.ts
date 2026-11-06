@@ -22,6 +22,6 @@ export interface SmsProvider {
   send(input: SmsSendInput): Promise<SmsSendResult>;
   /** Asked by the background job for messages sent but not yet confirmed. */
   getStatus?(providerRef: string): Promise<SmsDeliveryStatus>;
-  /** Bookeria's own balance with the SMS company, in tetri (shown to the platform admin). */
+  /** Visito's own balance with the SMS company, in tetri (shown to the platform admin). */
   getBalance?(): Promise<{ balanceMinor: number } | null>;
 }

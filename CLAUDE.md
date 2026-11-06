@@ -1,7 +1,7 @@
-# Bookeria — Project Rules for Claude Code
+# Visito — Project Rules for Claude Code
 
-> Name: **Bookeria** (final, Levan 2026-10-28), domain **bookeria.ge** — the name stays in ONE config constant, `APP_NAME`.
-> Bookeria is a multi-tenant SaaS for **beauty salons and small dental clinics in Georgia**: services & prices, bookings, calendar, staff schedules, client base, SMS reminders, marketing email, and (later) online payments.
+> Name: **Visito** (renamed from Visito, Levan 2026-11-06), domain **visito.ge** — the name stays in ONE config constant, `APP_NAME`.
+> Visito is a multi-tenant SaaS for **beauty salons and small dental clinics in Georgia**: services & prices, bookings, calendar, staff schedules, client base, SMS reminders, marketing email, and (later) online payments.
 
 Read this file at the start of every session. The full product specification is in `docs/SPEC.md`. The build order is in `docs/ROADMAP.md`. Never start a module without reading its section in the spec.
 
@@ -47,7 +47,7 @@ Read this file at the start of every session. The full product specification is 
 - Commit only `.env.example` (placeholder values). `.env.local` is in `.gitignore`.
 
 ### 3.3 Personal data (Georgian Law on Personal Data Protection, in force since 1 March 2024)
-- Bookeria is the **data processor**; each salon/clinic is the **controller**.
+- Visito is the **data processor**; each salon/clinic is the **controller**.
 - Collect only what is needed. Client card = name, phone, optional email, optional birthday, notes, consents.
 - **Marketing consent is separate from service messages.** Appointment reminders = service. Promotions = marketing → require recorded consent (who, when, how) and a working unsubscribe.
 - **Dental clinics:** treatment notes may contain health data (special category). Keep them in a separate table with stricter RLS (only clinic doctors/owner), audit-logged, never included in marketing exports. Do NOT build full medical/dental charting in v1.

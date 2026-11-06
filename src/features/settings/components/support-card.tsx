@@ -10,7 +10,7 @@ import { Card } from "@/components/ui/card";
 import { useRouter } from "@/i18n/navigation";
 import { allowSupport, endSupport } from "../support-actions";
 
-// Owner only: let Bookeria support look at the business (view only) for a while.
+// Owner only: let Visito support look at the business (view only) for a while.
 export function SupportCard({ until }: { until: string | null }) {
   const t = useTranslations("supportAccess");
   const te = useTranslations("errors");

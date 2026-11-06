@@ -70,7 +70,7 @@ export const config = {
   matcher: ["/((?!api|_next|_vercel|.*\\..*).*)"],
 };
 
-// A business's short address ({slug}.bookeria.ge, decision 016): its home page is
+// A business's short address ({slug}.visito.ge, decision 016): its home page is
 // the booking page, in any language (/en, /ru). Public pages (legal texts, manage
 // and unsubscribe links) work there as usual; anything else belongs to the main site.
 const PUBLIC_ON_SITE = /^\/(?:legal|m|u)(?:\/|$)/;

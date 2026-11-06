@@ -20,7 +20,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]">) {
   };
 }
 
-// bookeria.ge: visitors see what Bookeria is; signed-in people go to their work.
+// visito.ge: visitors see what Visito is; signed-in people go to their work.
 export default async function Home({ params }: PageProps<"/[locale]">) {
   const { locale } = await params;
   setRequestLocale(locale);

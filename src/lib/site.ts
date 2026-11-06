@@ -1,5 +1,5 @@
 // Short addresses: every business's website at {slug}.{site domain}
-// (decision 016). The site domain is bookeria.ge in production; empty = off.
+// (decision 016). The site domain is visito.ge in production; empty = off.
 
 // Names a business may not take as its address (the database refuses them too).
 export const RESERVED_SLUGS = new Set([
@@ -34,6 +34,7 @@ export const RESERVED_SLUGS = new Set([
   "u",
   "legal",
   "bookeria",
+  "visito",
   "billing",
   "pay",
   "payments",

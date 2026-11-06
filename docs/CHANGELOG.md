@@ -2,6 +2,13 @@
 
 All notable changes per phase. Newest on top.
 
+## Renamed to Visito (2026-11-06)
+
+- **Bookeria is now Visito** (domain visito.ge): the name in the app, browser tab, installed app, landing page, emails, SMS test text, legal texts, admin and support screens (ka/en/ru), file names of exports and the offline page.
+- The logo keeps its calendar mark for now, with the wordmark "Visito"; the new mark comes later.
+- Short addresses are now `name.visito.ge`; `visito` can't be taken as a business address (migration `20261106090000`).
+- Internal names (dev database, Netlify site, repo, demo password) are unchanged — decision 013.
+
 ## Calendar look (2026-11-03)
 
 - **Bookings in the day and week view** have a bold coloured outline all around, a solid stripe on the left, a tinted fill and bold time + client; 30-minute visits show on one line instead of being cut; completed visits stay outlined but white; no-shows are faded and struck through; pending ones dashed.

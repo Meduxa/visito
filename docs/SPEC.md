@@ -1,12 +1,12 @@
-# Bookeria — Product Specification (v1)
+# Visito — Product Specification (v1)
 
-Status: draft for build · Owner: Levan · Name: Bookeria (final, 2026-10-28) · Domain: bookeria.ge
+Status: draft for build · Owner: Levan · Name: Visito (renamed from Visito 2026-11-06) · Domain: visito.ge
 
 ---
 
 ## 1. Product in one paragraph
 
-Bookeria is a web and mobile (PWA) booking and client-management system for **beauty salons** and **small dental clinics** in Georgia. The administrator sets up services and prices, staff and their working hours, and manages all bookings in a dashboard and calendar. Masters/doctors see their own past, current and upcoming bookings. Clients book online and receive SMS confirmations and reminders. The business can send marketing emails to clients who consented, and (later) take online deposits and payments. Each business is a separate, fully isolated tenant.
+Visito is a web and mobile (PWA) booking and client-management system for **beauty salons** and **small dental clinics** in Georgia. The administrator sets up services and prices, staff and their working hours, and manages all bookings in a dashboard and calendar. Masters/doctors see their own past, current and upcoming bookings. Clients book online and receive SMS confirmations and reminders. The business can send marketing emails to clients who consented, and (later) take online deposits and payments. Each business is a separate, fully isolated tenant.
 
 ## 2. Target customers
 
@@ -25,7 +25,7 @@ The data model must support both with **business type** templates (default categ
 | **Admin** (receptionist/manager) | Front desk | Manage bookings, clients, services, staff schedules, send SMS/campaigns, see reports (configurable: hide revenue) |
 | **Staff** (master/doctor) | Service provider | See own calendar (past/current/future), own clients' contact info and history, add notes to own bookings, mark booking status, block own time (if allowed). Cannot see other staff's revenue or export data |
 | **Client** (public, no account in v1) | End customer | Book, confirm, cancel or reschedule via public page and secure links |
-| **Platform admin** (Levan) | Bookeria operator | Separate super-admin area: tenants, plans, SMS credits, support impersonation **only with logged consent** |
+| **Platform admin** (Levan) | Visito operator | Separate super-admin area: tenants, plans, SMS credits, support impersonation **only with logged consent** |
 
 Permissions are enforced in the database (RLS) — the UI only hides what the user cannot do.
 
@@ -127,7 +127,7 @@ Statuses: `pending` (online, awaiting approval) → `confirmed` → `arrived` �
 - Connect via adapter (e.g. Brevo, Mailchimp, MailerLite, Resend — decide in Phase 7).
 - **Segments**: all consented clients, by tag, by last visit (e.g. not visited 60+ days), by service category, birthday this month, by staff.
 - Campaign: subject, content (simple block editor or provider template), preview, test send, schedule, send.
-- Only clients with **marketing email consent** are included. Every email has an **unsubscribe link** that updates consent in Bookeria immediately (webhook).
+- Only clients with **marketing email consent** are included. Every email has an **unsubscribe link** that updates consent in Visito immediately (webhook).
 - Stats: sent, delivered, opened, clicked, unsubscribed (from provider webhooks).
 - **Targeted special offers** (from IDEAS.docx): the admin creates an offer (e.g. "-20% colouring for clients who haven't visited in 60 days", "free hair mask with your next manicure") → picks a precise segment (combine filters: last visit, services used, staff, tags, total spent, visit count, birthday month, no-shows excluded) → sees how many consented clients match → sends by **SMS and/or email** → optional unique offer code or booking link with the discount pre-applied → tracks results: bookings and revenue that came from the offer. Consent rules apply to every channel.
 - Sync contacts and consent to the provider; never send clients without consent to the provider.
@@ -143,7 +143,7 @@ Statuses: `pending` (online, awaiting approval) → `confirmed` → `arrived` �
 - Payment links by SMS.
 - Refunds and partial refunds.
 - Webhooks with signature verification; payment status shown on the booking.
-- Provider: **Stripe does not currently support businesses registered in Georgia** — implement Georgian gateways (Bank of Georgia, TBC, Flitt or similar) behind the same adapter interface. Each salon connects **its own merchant account**; Bookeria never holds the salon's money.
+- Provider: **Stripe does not currently support businesses registered in Georgia** — implement Georgian gateways (Bank of Georgia, TBC, Flitt or similar) behind the same adapter interface. Each salon connects **its own merchant account**; Visito never holds the salon's money.
 
 **Gift cards and memberships/packages** (e.g. "10 manicures"): v2.
 
@@ -158,7 +158,7 @@ Statuses: `pending` (online, awaiting approval) → `confirmed` → `arrived` �
   - Commission per staff
   - Booking sources (online page vs admin vs walk-in)
 
-### 4.13 Bookeria's own subscription billing (how Levan gets paid)
+### 4.13 Visito's own subscription billing (how Levan gets paid)
 - Plans (example — final prices TBD): **Start** (1–2 staff), **Pro** (up to 10 staff), **Clinic** (dental features, resources), each with included SMS per month.
 - **14-day free trial** without card; reminder SMS/email before trial ends.
 - Plan limits enforced in the app (staff count, locations).

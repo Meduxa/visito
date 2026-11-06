@@ -25,7 +25,7 @@ export async function GET(req: Request) {
   if (error || !data) return new Response(null, { status: 500 });
 
   const day = new Date().toISOString().slice(0, 10);
-  const name = `bookeria-${tenant.slug}-${day}`;
+  const name = `visito-${tenant.slug}-${day}`;
   const headers = { "Cache-Control": "private, no-store" };
   if (new URL(req.url).searchParams.get("format") !== "xlsx")
     return new Response(JSON.stringify(data, null, 2), {

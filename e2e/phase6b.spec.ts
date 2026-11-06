@@ -9,7 +9,7 @@ test("installable: manifest, icons, service worker, offline page", async ({ requ
     display: string;
     icons: { src: string; purpose: string }[];
   };
-  expect(m).toMatchObject({ name: "Bookeria", display: "standalone" });
+  expect(m).toMatchObject({ name: "Visito", display: "standalone" });
   expect(m.icons.map((i) => i.purpose)).toContain("maskable");
   for (const i of m.icons) expect((await request.get(i.src)).status()).toBe(200);
   expect((await request.get("/icons/apple-touch-icon.png")).status()).toBe(200);

@@ -1,4 +1,4 @@
-// Makes an existing Bookeria account a platform admin (or removes it).
+// Makes an existing Visito account a platform admin (or removes it).
 //   npm.cmd run platform-admin -- you@example.com
 //   npm.cmd run platform-admin -- you@example.com --remove
 // The person must have signed up in the app first.

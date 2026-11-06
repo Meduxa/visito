@@ -252,7 +252,7 @@ function TemplateEditor({
     time: t("sample.time"),
     address: t("sample.address"),
     phone: t("sample.phone"),
-    manage_link: "https://bookeria.ge/m/Xk3pQ9vRm2LbT7wZ4nYc8dHf6gJs1aEq",
+    manage_link: "https://visito.ge/m/Xk3pQ9vRm2LbT7wZ4nYc8dHf6gJs1aEq",
   };
   const preview = renderSms(body, sample);
   const seg = countSegments(preview);

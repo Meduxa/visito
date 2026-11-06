@@ -21,7 +21,7 @@ export function makeIcs(e: {
   return [
     "BEGIN:VCALENDAR",
     "VERSION:2.0",
-    "PRODID:-//Bookeria//Booking//EN",
+    "PRODID:-//Visito//Booking//EN",
     "CALSCALE:GREGORIAN",
     "METHOD:PUBLISH",
     "BEGIN:VEVENT",

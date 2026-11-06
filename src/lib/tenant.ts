@@ -30,7 +30,7 @@ export type TenantMembership = {
   status: TenantStatus;
   trialEndsAt: string;
   deletionDueAt: string | null;
-  /** Bookeria support viewing with the owner's consent — view only, until this time */
+  /** Visito support viewing with the owner's consent — view only, until this time */
   supportUntil?: string;
 };
 

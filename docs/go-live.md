@@ -155,13 +155,12 @@ daily, but check it during quiet test weeks.
 
 ## 8. Later, before inviting real salons
 
-- **Domain** (`bookeria.ge`): Netlify → Domain management; then update `NEXT_PUBLIC_APP_URL`
-- **Short salon addresses** (`teka.bookeria.ge`, decision 016): add a wildcard domain `*.bookeria.ge` to the Netlify site (Domain management; Netlify needs to manage the DNS for wildcard certificates — check the plan), then set `SITE_DOMAIN=bookeria.ge` in Netlify's environment variables and redeploy. Check: open a business's short address on a phone and book a test visit.
-  and Supabase's Site URL.
+- **Domain** (`visito.ge`, bought 2026-11-06 at RE:HOST; nameservers point to Netlify DNS, HTTPS on): set `NEXT_PUBLIC_APP_URL=https://visito.ge` on Netlify and add `https://visito.ge` to Supabase's Site URL / redirect URLs.
+- **Short salon addresses** (`teka.visito.ge`, decision 016): the Netlify free plan does not accept a wildcard alias, so add each business as a domain alias (`orchidea.visito.ge`; the certificate already covers `*.visito.ge` because Netlify DNS manages the domain) — on Pro, ask Netlify support to switch on wildcard subdomains, then set `SITE_DOMAIN=visito.ge` in Netlify's environment variables and redeploy. Check: open a business's short address on a phone and book a test visit.
 - **Email (Resend)**: resend.com → add and verify your domain (EU region) → API key → Netlify:
-  `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY` (secret), `EMAIL_FROM=Bookeria <no-reply@your-domain>`.
+  `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY` (secret), `EMAIL_FROM=Visito <no-reply@your-domain>`.
   Supabase → **Authentication → Emails → SMTP settings** → use Resend's SMTP (host
   `smtp.resend.com`, port 465, user `resend`, password = the API key) so sign-up emails arrive.
-- **SMS company**: sender.ge (decision 018) — register the sender name "Bookeria", top up the balance, then set `SMS_PROVIDER=senderge` and `SMS_API_KEY` on Netlify, **Cloudflare Turnstile** on the booking page, **lawyer's texts**
+- **SMS company**: sender.ge (decision 018) — register the sender name "Visito", top up the balance, then set `SMS_PROVIDER=senderge` and `SMS_API_KEY` on Netlify, **Cloudflare Turnstile** on the booking page, **lawyer's texts**
   for the legal pages, **plan prices** in `/admin/plans`, **Supabase Pro**.
 - Go through `docs/security-review.md` → "Before go-live".

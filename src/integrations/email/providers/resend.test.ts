@@ -8,7 +8,7 @@ describe("resend provider", () => {
     const fetch = vi.fn(async () => new Response(JSON.stringify({ id: "em_1" }), { status: 200 }));
     const r = await resendProvider({
       apiKey: "re_test",
-      from: "Bookeria <hi@x.ge>",
+      from: "Visito <hi@x.ge>",
       fetch,
     }).sendTransactional(email);
     expect(r).toEqual({ ok: true, providerRef: "em_1" });
@@ -17,7 +17,7 @@ describe("resend provider", () => {
     expect((init.headers as Record<string, string>)["Authorization"]).toBe("Bearer re_test");
     expect((init.headers as Record<string, string>)["Idempotency-Key"]).toBe("invite:1");
     expect(JSON.parse(init.body as string)).toMatchObject({
-      from: "Bookeria <hi@x.ge>",
+      from: "Visito <hi@x.ge>",
       to: ["a@example.test"],
       subject: "Hi",
     });

@@ -1,11 +1,11 @@
 ---
 name: booking-engine
-description: Use when building or changing anything about availability, time slots, creating/moving/cancelling bookings, the calendar, recurring bookings, waitlist, reminders timing or the public booking flow in Bookeria. Defines the availability algorithm, double-booking protection, time-zone handling and required tests.
+description: Use when building or changing anything about availability, time slots, creating/moving/cancelling bookings, the calendar, recurring bookings, waitlist, reminders timing or the public booking flow in Visito. Defines the availability algorithm, double-booking protection, time-zone handling and required tests.
 ---
 
 # Booking engine
 
-The calendar is the heart of Bookeria. Wrong availability or a double booking destroys trust immediately. The engine is **pure, tested logic** shared by the admin calendar, the staff view and the public booking page.
+The calendar is the heart of Visito. Wrong availability or a double booking destroys trust immediately. The engine is **pure, tested logic** shared by the admin calendar, the staff view and the public booking page.
 
 ## 1. Time rules
 

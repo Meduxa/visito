@@ -1,4 +1,4 @@
-# Bookeria — Build Roadmap
+# Visito — Build Roadmap
 
 Work one phase at a time. Claude Code ticks the boxes and updates `CHANGELOG.md` at the end of each phase. Rough durations assume a few focused hours per day.
 
@@ -77,7 +77,7 @@ Split into 3a and 3b with a report in between (Levan, 2026-10-26). Staff may cre
 - [x] Business photo gallery — done in Phase 6a
 
 ## Phase 5 — SMS (≈ 1 week) — SPEC 4.9 ✅ Done 2026-10-26 (without a real SMS company — Levan chooses later)
-- [x] SMS adapter interface + fake provider for tests — [x] first real provider: sender.ge (decision 018, 2026-11-01) — [ ] sender name "Bookeria" registered, test on a real phone
+- [x] SMS adapter interface + fake provider for tests — [x] first real provider: sender.ge (decision 018, 2026-11-01) — [ ] sender name "Visito" registered, test on a real phone
 - [x] Templates (ka/en/ru) with variables, character & segment counter, live preview
 - [x] Sender name settings and status (approval set by the server only)
 - [x] Scheduled reminders job (idempotent), quiet hours — 2 h on by default, 24 h optional (Levan, 2026-10-26)
@@ -114,16 +114,16 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [x] Support access, view only (Levan, 2026-10-28): owner allows 24 h / 3 days and can end it; enforced by the database; every visit audit-logged — SPEC 4.15, decision 014
 - [x] Keyboard-only check: every control on the booking page, dashboard, calendar, clients and settings shows focus; sign-in and booking work without a mouse (e2e `keyboard.spec.ts`, 2026-10-28)
 - [ ] Cloudflare Turnstile on the booking page (when Levan has the key); a screen-reader pass by a person (e.g. NVDA)
-- [x] Short salon addresses `name.bookeria.ge` (code done 2026-10-28, decision 016; on this laptop: `demo-salon.localhost:3000`); old `/book/...` links keep working; reserved names refused — [ ] at go-live: register bookeria.ge, wildcard domain on Netlify, `SITE_DOMAIN=bookeria.ge` (`docs/go-live.md`)
-- [x] A small, beautiful website for every business, where clients book online (Levan, 2026-10-28): cover, logo, about (ka/en/ru), Instagram/Facebook, gallery, team, map, hours, "Book a visit" button; booking by service or by specialist; 5 colour themes picked in Settings → Your website; share preview — decision 015. Moves to the short address when bookeria.ge is registered
+- [x] Short salon addresses `name.visito.ge` (code done 2026-10-28, decision 016; on this laptop: `demo-salon.localhost:3000`); old `/book/...` links keep working; reserved names refused — [ ] at go-live: register visito.ge, wildcard domain on Netlify, `SITE_DOMAIN=visito.ge` (`docs/go-live.md`)
+- [x] A small, beautiful website for every business, where clients book online (Levan, 2026-10-28): cover, logo, about (ka/en/ru), Instagram/Facebook, gallery, team, map, hours, "Book a visit" button; booking by service or by specialist; 5 colour themes picked in Settings → Your website; share preview — decision 015. Moves to the short address when visito.ge is registered
 
 ## 🚀 Pilot with 2–3 salons + 1 dental clinic (2–4 weeks of real use, fix feedback)
 
 ## Go-to-market (from IDEAS.docx)
-- [ ] Short, friendly **video tutorial** (2–3 min, Georgian, with subtitles) showing a salon's day in Bookeria: add a service → booking from Instagram link → SMS reminder → checkout. Send it to prospects.
+- [ ] Short, friendly **video tutorial** (2–3 min, Georgian, with subtitles) showing a salon's day in Visito: add a service → booking from Instagram link → SMS reminder → checkout. Send it to prospects.
 - [ ] Short feature clips (30–60 s each) for Instagram/Facebook
 - [ ] Demo account with realistic seeded data for sales calls
-- [x] Landing page at bookeria.ge, built into the app instead of Webflow (ka/en/ru, real screenshots, features, "your clients stay yours", prices from /admin/plans, FAQ, trial sign-up) — decision 017 (2026-10-28) — [ ] add the video when it exists
+- [x] Landing page at visito.ge, built into the app instead of Webflow (ka/en/ru, real screenshots, features, "your clients stay yours", prices from /admin/plans, FAQ, trial sign-up) — decision 017 (2026-10-28) — [ ] add the video when it exists
 
 ## Phase 7 — Marketing email (≈ 1 week) — SPEC 4.10
 - [ ] Email adapter + provider, contact & consent sync

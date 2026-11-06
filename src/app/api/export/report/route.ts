@@ -30,7 +30,7 @@ export async function GET(req: Request) {
   return new Response(new Uint8Array(file), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      "Content-Disposition": `attachment; filename="bookeria-report-${from}-${to}.xlsx"`,
+      "Content-Disposition": `attachment; filename="visito-report-${from}-${to}.xlsx"`,
       "Cache-Control": "private, no-store",
     },
   });

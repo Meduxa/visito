@@ -5,7 +5,7 @@ const serverSchema = z.object({
   SUPABASE_SECRET_KEY: z.string().min(1),
   EMAIL_PROVIDER: z.enum(["fake", "resend"]).default("fake"),
   EMAIL_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().optional(), // e.g. "Bookeria <no-reply@bookeria.ge>" — a domain verified in Resend
+  EMAIL_FROM: z.string().optional(), // e.g. "Visito <no-reply@visito.ge>" — a domain verified in Resend
   SMS_PROVIDER: z.enum(["fake", "senderge"]).default("fake"),
   SMS_API_KEY: z.string().optional(),
 });

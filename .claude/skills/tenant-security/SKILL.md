@@ -1,11 +1,11 @@
 ---
 name: tenant-security
-description: Use for ANY database change in Bookeria — new table, column, migration, RLS policy, storage bucket, server action or API route that reads or writes tenant data. Enforces multi-tenant isolation with Supabase Row Level Security and proves it with tests.
+description: Use for ANY database change in Visito — new table, column, migration, RLS policy, storage bucket, server action or API route that reads or writes tenant data. Enforces multi-tenant isolation with Supabase Row Level Security and proves it with tests.
 ---
 
 # Tenant security (multi-tenant isolation)
 
-Bookeria stores many salons and clinics in one database. A leak between tenants would end the business. Follow every step, every time.
+Visito stores many salons and clinics in one database. A leak between tenants would end the business. Follow every step, every time.
 
 ## 1. Table checklist
 

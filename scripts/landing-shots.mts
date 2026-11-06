@@ -12,7 +12,7 @@ const out = (name: string) => `public/landing/${name}.webp`;
 const browser = await chromium.launch();
 for (const locale of ["ka", "en", "ru"]) {
   const phone = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
-  await phone.goto(`${BASE}/${locale}/book/demo-salon`);
+  await phone.goto(`${BASE}/${locale}/book/orchidea`);
   await phone.waitForLoadState("networkidle");
   await phone.addStyleTag({ content: HIDE_DEV });
   await sharp(await phone.screenshot())

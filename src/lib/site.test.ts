@@ -5,7 +5,7 @@ describe("short addresses", () => {
   it("finds the business from the host", () => {
     expect(slugFromHost("teka.visito.ge", "visito.ge")).toBe("teka");
     expect(slugFromHost("Salon-Nino.Visito.ge", "visito.ge")).toBe("salon-nino");
-    expect(slugFromHost("demo-salon.localhost:3000", "localhost:3000")).toBe("demo-salon");
+    expect(slugFromHost("orchidea.localhost:3000", "localhost:3000")).toBe("orchidea");
   });
   it("ignores the main site, our own names, deeper hosts and other domains", () => {
     expect(slugFromHost("visito.ge", "visito.ge")).toBeNull();

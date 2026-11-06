@@ -31,7 +31,7 @@ async function lastSms(e164: string, contains: string) {
 }
 
 async function pickServiceAndTime(page: Page) {
-  await page.goto("/ka/book/demo-salon");
+  await page.goto("/ka/book/orchidea");
   await expect(page.getByRole("heading", { level: 1, name: "სალონი ორქიდეა" })).toBeVisible();
   await page.waitForLoadState("networkidle");
   // categories are folded (the first one is open): search finds a service in any of them
@@ -102,7 +102,7 @@ test("unknown business: not found", async ({ page }) => {
 
 test("phone: booking page never scrolls sideways", async ({ page }, info) => {
   test.skip(info.project.name !== "mobile");
-  await page.goto("/ka/book/demo-salon");
+  await page.goto("/ka/book/orchidea");
   await page.waitForLoadState("networkidle");
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
@@ -150,7 +150,7 @@ test("owner settings: booking link, QR code and the SMS code switch", async ({ p
   await page.goto("/ka/settings/business");
   await expect(page.getByRole("heading", { name: "ონლაინ ჯავშნის ბმული" })).toBeVisible();
   // the short address (decision 016), switched on for these tests
-  await expect(page.getByText(/^http:\/\/demo-salon\.localhost:\d+$/)).toBeVisible();
+  await expect(page.getByText(/^http:\/\/orchidea\.localhost:\d+$/)).toBeVisible();
   await expect(page.getByRole("img", { name: "QR კოდი" }).locator("svg")).toBeVisible();
   await expect(page.getByRole("switch", { name: "ონლაინ ჯავშანი SMS კოდით" })).toBeChecked();
 });

@@ -114,7 +114,7 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [x] Support access, view only (Levan, 2026-10-28): owner allows 24 h / 3 days and can end it; enforced by the database; every visit audit-logged — SPEC 4.15, decision 014
 - [x] Keyboard-only check: every control on the booking page, dashboard, calendar, clients and settings shows focus; sign-in and booking work without a mouse (e2e `keyboard.spec.ts`, 2026-10-28)
 - [ ] Cloudflare Turnstile on the booking page (when Levan has the key); a screen-reader pass by a person (e.g. NVDA)
-- [x] Short salon addresses `name.visito.ge` (code done 2026-10-28, decision 016; on this laptop: `demo-salon.localhost:3000`); old `/book/...` links keep working; reserved names refused — [ ] at go-live: register visito.ge, wildcard domain on Netlify, `SITE_DOMAIN=visito.ge` (`docs/go-live.md`)
+- [x] Short salon addresses `name.visito.ge` (code done 2026-10-28, decision 016; on this laptop: `orchidea.localhost:3000`); old `/book/...` links keep working; reserved names refused — [ ] at go-live: register visito.ge, wildcard domain on Netlify, `SITE_DOMAIN=visito.ge` (`docs/go-live.md`)
 - [x] A small, beautiful website for every business, where clients book online (Levan, 2026-10-28): cover, logo, about (ka/en/ru), Instagram/Facebook, gallery, team, map, hours, "Book a visit" button; booking by service or by specialist; 5 colour themes picked in Settings → Your website; share preview — decision 015. Moves to the short address when visito.ge is registered
 
 ## 🚀 Pilot with 2–3 salons + 1 dental clinic (2–4 weeks of real use, fix feedback)

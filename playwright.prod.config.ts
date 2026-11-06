@@ -7,7 +7,7 @@ import base from "./playwright.config";
 // job routes need their secret (a throwaway one, only for this local server).
 process.env.CRON_SECRET ??= "e2e-local-secret";
 const PORT = 3100;
-// short salon addresses: demo-salon.localhost:3100
+// short salon addresses: orchidea.localhost:3100
 process.env.SITE_DOMAIN ??= `localhost:${PORT}`;
 
 export default defineConfig({

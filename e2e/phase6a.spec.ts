@@ -152,7 +152,7 @@ test("photos: upload, show on the booking page, remove", async ({ browser }, inf
   await expect(owner.getByRole("button", { name: /^ფოტო \d+-ის წაშლა$/ })).toHaveCount(before + 1);
 
   const visitor = await (await browser.newContext()).newPage();
-  await visitor.goto("/ka/book/demo-salon");
+  await visitor.goto("/ka/book/orchidea");
   await expect(visitor.getByRole("img", { name: `ფოტო ${before + 1}` })).toBeVisible();
 
   await owner.getByRole("button", { name: `ფოტო ${before + 1}-ის წაშლა` }).click();

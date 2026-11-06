@@ -29,7 +29,7 @@ export default async function Home({ params }: PageProps<"/[locale]">) {
   const [plans, demo] = await Promise.all([getLandingPlans(), demoSalonExists()]);
   const app = publicEnv.NEXT_PUBLIC_APP_URL;
   const demoUrl = demo
-    ? (shortUrl("demo-salon", siteDomain(), app.startsWith("https")) ?? `${app}/${locale}/book/demo-salon`)
+    ? (shortUrl("orchidea", siteDomain(), app.startsWith("https")) ?? `${app}/${locale}/book/orchidea`)
     : null;
   return <LandingPage plans={plans} demoUrl={demoUrl} />;
 }

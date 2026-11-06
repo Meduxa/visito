@@ -44,7 +44,7 @@ test("no content blocked by the security policy", async ({ page }, info) => {
     "console",
     (m) => /Content Security Policy|Refused to/i.test(m.text()) && blocked.push(m.text().slice(0, 160)),
   );
-  await noBlocked(page, "/ka/book/demo-salon", blocked);
+  await noBlocked(page, "/ka/book/orchidea", blocked);
   await page.goto("/ka/login");
   await page.getByLabel("ელფოსტა").fill("salon.owner@demo.test");
   await page.getByLabel("პაროლი").fill("Demo-Visito-2026");
@@ -64,7 +64,7 @@ test("no content blocked by the security policy", async ({ page }, info) => {
 test("legal pages are reachable from sign-up and the booking page, in every language", async ({ page }) => {
   await page.goto("/ka/signup");
   await page.getByRole("link", { name: "კონფიდენციალურობის პოლიტიკა" }).first().waitFor();
-  await page.goto("/ka/book/demo-salon");
+  await page.goto("/ka/book/orchidea");
   await page.getByRole("contentinfo").getByRole("link", { name: "მომსახურების პირობები" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "მომსახურების პირობები" })).toBeVisible();
   await expect(page.getByRole("note")).toContainText("სამუშაო ვერსია");

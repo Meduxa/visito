@@ -22,7 +22,7 @@ async function tempStaff(tag: string) {
   const email = `signout.${tag}.${Date.now()}@demo.test`;
   const { data, error } = await db.auth.admin.createUser({ email, password: PASSWORD, email_confirm: true });
   if (error || !data.user) throw error ?? new Error("no user");
-  const { data: tenant } = await db.from("tenants").select("id").eq("slug", "demo-salon").single();
+  const { data: tenant } = await db.from("tenants").select("id").eq("slug", "orchidea").single();
   const m = await db
     .from("memberships")
     .insert({ tenant_id: tenant!.id, user_id: data.user.id, role: "staff" });
@@ -64,7 +64,7 @@ test("sign out of all devices ends the other device's session too", async ({ bro
 test("waitlist: offer a freed time by SMS", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop"); // changes shared demo data
   const db = admin();
-  const { data: tenant } = await db.from("tenants").select("id, timezone").eq("slug", "demo-salon").single();
+  const { data: tenant } = await db.from("tenants").select("id, timezone").eq("slug", "orchidea").single();
   const { data: b } = await db
     .from("bookings")
     .select("id, status, starts_at, clients(id, first_name), booking_items(service_id)")
@@ -132,7 +132,7 @@ test("waitlist: offer a freed time by SMS", async ({ page }, info) => {
 test("support access: owner allows, support views (read-only), owner ends", async ({ browser }, info) => {
   test.skip(info.project.name !== "desktop"); // changes shared demo data
   const db = admin();
-  const { data: tenant } = await db.from("tenants").select("id").eq("slug", "demo-salon").single();
+  const { data: tenant } = await db.from("tenants").select("id").eq("slug", "orchidea").single();
   const signIn = async (email: string) => {
     const page = await (await browser.newContext()).newPage();
     await page.goto("/ka/login");
@@ -193,7 +193,7 @@ test("website: owner edits cover text, links and colours; the public page shows 
 }, info) => {
   test.skip(info.project.name !== "desktop"); // changes shared demo data
   const db = admin();
-  const { data: tenant } = await db.from("tenants").select("id").eq("slug", "demo-salon").single();
+  const { data: tenant } = await db.from("tenants").select("id").eq("slug", "orchidea").single();
   const { data: before } = await db
     .from("tenant_settings")
     .select("site_about, site_instagram, site_theme")
@@ -216,7 +216,7 @@ test("website: owner edits cover text, links and colours; the public page shows 
     await card.getByRole("button", { name: "შენახვა" }).click();
     await expect(page.getByText("შენახულია").first()).toBeVisible();
 
-    await page.goto("/ka/book/demo-salon");
+    await page.goto("/ka/book/orchidea");
     await expect(page.getByText(about)).toBeVisible();
     await expect(page.getByRole("link", { name: "Instagram" })).toHaveAttribute(
       "href",
@@ -234,7 +234,7 @@ test("website: owner edits cover text, links and colours; the public page shows 
 });
 
 test("booking by specialist: choose the person first, the specialist step is skipped", async ({ page }) => {
-  await page.goto("/ka/book/demo-salon");
+  await page.goto("/ka/book/orchidea");
   await page.getByRole("radio", { name: "სპეციალისტით" }).click();
   await page.getByRole("button", { name: /სოფო ნოზაძე/ }).click();
   await expect(page.getByText("ნაბიჯი 1 / 4")).toBeVisible();
@@ -272,14 +272,14 @@ test("every website colour theme passes the contrast check", async ({ page }, in
 // Short addresses: {slug}.SITE_DOMAIN shows that business's website, in any language.
 test("short address opens the business website and booking works there", async ({ page }, info) => {
   const port = new URL(info.project.use.baseURL!).port;
-  await page.goto(`http://demo-salon.localhost:${port}/`);
+  await page.goto(`http://orchidea.localhost:${port}/`);
   await expect(page.getByRole("heading", { level: 1, name: "სალონი ორქიდეა" })).toBeVisible();
   await page.locator("#book").getByRole("checkbox").first().check();
   await page.getByRole("button", { name: "გაგრძელება" }).click();
   await page.getByRole("radio").first().click(); // anyone
   await expect(page.getByRole("heading", { name: "თარიღი და დრო" })).toBeVisible();
-  await expect(page).toHaveURL(`http://demo-salon.localhost:${port}/`);
-  await page.goto(`http://demo-salon.localhost:${port}/en`);
+  await expect(page).toHaveURL(`http://orchidea.localhost:${port}/`);
+  await page.goto(`http://orchidea.localhost:${port}/en`);
   await expect(page.getByRole("link", { name: "Book a visit" })).toBeVisible();
   expect((await page.goto(`http://no-such-salon.localhost:${port}/`))?.status()).toBe(404);
 });

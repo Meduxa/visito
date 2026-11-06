@@ -51,7 +51,7 @@ const nextConfig: NextConfig = {
   // passwords and clients' personal data. Never log them.
   logging: { serverFunctions: false },
   poweredByHeader: false,
-  // short salon addresses on this laptop: demo-salon.localhost:3000
+  // short salon addresses on this laptop: orchidea.localhost:3000
   allowedDevOrigins: ["*.localhost"],
   async headers() {
     return [

@@ -34,11 +34,24 @@ test("day view: Georgian title, staff columns, booking opens by click and keyboa
   );
   await expect(page.getByText("ანა გელაშვილი").first()).toBeVisible();
 
-  const block = page.locator('[role="button"][aria-label*="–"]').first();
-  await block.click();
+  // the first visit that is still open (other tests may have completed some of this day's visits)
+  const blocks = page.locator('[role="button"][aria-label*="–"]');
   const panel = page.getByRole("dialog");
-  await expect(panel).toBeVisible();
-  await expect(panel.getByRole("button", { name: "მოვიდა" })).toBeVisible();
+  const arrived = panel.getByRole("button", { name: "მოვიდა" });
+  let block = blocks.first();
+  for (let i = 0; i < Math.min(await blocks.count(), 8); i++) {
+    block = blocks.nth(i);
+    await block.click();
+    await expect(panel).toBeVisible();
+    const open = await arrived.waitFor({ timeout: 2_000 }).then(
+      () => true,
+      () => false,
+    );
+    if (open) break;
+    await page.keyboard.press("Escape");
+    await expect(panel).toBeHidden();
+  }
+  await expect(arrived).toBeVisible();
   await page.keyboard.press("Escape");
   await expect(panel).toBeHidden();
 

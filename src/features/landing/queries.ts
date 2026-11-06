@@ -33,7 +33,7 @@ export async function demoSalonExists(): Promise<boolean> {
   const { data } = await createAdminClient()
     .from("tenants")
     .select("id")
-    .eq("slug", "demo-salon")
+    .eq("slug", "orchidea")
     .in("status", ["trial", "active", "past_due"])
     .maybeSingle();
   return !!data;

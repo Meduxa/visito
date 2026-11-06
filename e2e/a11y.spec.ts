@@ -24,7 +24,7 @@ test("public pages", async ({ page }) => {
     ...(await scan(page, "/ka")),
     ...(await scan(page, "/ka/login")),
     ...(await scan(page, "/ka/signup")),
-    ...(await scan(page, "/ka/book/demo-salon")),
+    ...(await scan(page, "/ka/book/orchidea")),
     ...(await scan(page, "/ka/m/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")),
     ...(await scan(page, "/ka/legal/privacy")),
   ];

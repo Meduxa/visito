@@ -29,7 +29,7 @@ async function tabThrough(page: Page, max = 60) {
 }
 
 test("public booking page: every control shows focus", async ({ page }) => {
-  await page.goto("/ka/book/demo-salon");
+  await page.goto("/ka/book/orchidea");
   await page.waitForLoadState("networkidle");
   const { missing, reached } = await tabThrough(page);
   expect(reached).toBeGreaterThan(10);
@@ -46,7 +46,7 @@ test("sign in and start a booking with the keyboard only", async ({ page }) => {
   await page.keyboard.press("Enter");
   await page.waitForURL("**/ka/dashboard");
 
-  await page.goto("/ka/book/demo-salon");
+  await page.goto("/ka/book/orchidea");
   const service = page.locator("#book").getByRole("checkbox").first();
   await service.focus();
   await page.keyboard.press("Space");

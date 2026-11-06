@@ -51,7 +51,7 @@ const SERVICE_COLORS: Record<string, string> = {
 
 const tenants = [
   {
-    slug: "demo-salon",
+    slug: "orchidea",
     name: "სალონი ორქიდეა",
     type: "salon",
     people: [

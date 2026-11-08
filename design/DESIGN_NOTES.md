@@ -12,7 +12,7 @@ Source: Levan's references in `design/references/` (no Figma file yet). We take 
 - Calendar (Phase 3): staff as columns with photo + position, coloured blocks per booking, red current-time line, small month calendar beside it, List/Day/Week/Month switcher (ClubReady).
 
 ## Fonts
-Inter for Latin + Cyrillic, Noto Sans Georgian for Mkhedruli (Inter has no Georgian). Both have 400–700. Georgian text is longer — no fixed widths for text.
+FiraGO for everything (decision 022): one family with Georgian Mkhedruli + Mtavruli, Latin and Cyrillic, weights 400–700, self-hosted from `src/app/fonts` and trimmed to those alphabets. (Until 2026-11-08: Inter + Noto Sans Georgian.) Georgian text is longer — no fixed widths for text.
 
 ## Tokens
 `design/tokens.json` → `src/app/globals.css` (`:root` + `.dark`) → Tailwind theme. Components use tokens only: `bg-primary`, `text-muted-foreground`, `bg-success-soft`, `bg-staff-teal`…

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Noto_Sans_Georgian } from "next/font/google";
+import localFont from "next/font/local";
 import { notFound } from "next/navigation";
 import { hasLocale, NextIntlClientProvider } from "next-intl";
 import { getTranslations, setRequestLocale } from "next-intl/server";
@@ -10,9 +10,18 @@ import { routing } from "@/i18n/routing";
 import { APP_NAME } from "@/lib/app";
 import "../globals.css";
 
-// Inter has no Georgian glyphs, so Georgian text falls through to Noto Sans Georgian.
-const latin = Inter({ variable: "--font-latin", subsets: ["latin", "cyrillic"] });
-const georgian = Noto_Sans_Georgian({ variable: "--font-georgian", subsets: ["georgian"] });
+// FiraGO (SIL OFL) covers Georgian, Latin and Cyrillic in one family (decision 022).
+// The files are self-hosted and trimmed to those alphabets; see src/app/fonts/.
+const firago = localFont({
+  variable: "--font-firago",
+  display: "swap",
+  src: [
+    { path: "../fonts/FiraGO-Regular.woff2", weight: "400", style: "normal" },
+    { path: "../fonts/FiraGO-Medium.woff2", weight: "500", style: "normal" },
+    { path: "../fonts/FiraGO-SemiBold.woff2", weight: "600", style: "normal" },
+    { path: "../fonts/FiraGO-Bold.woff2", weight: "700", style: "normal" },
+  ],
+});
 
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
@@ -37,11 +46,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<"/[
   setRequestLocale(locale);
 
   return (
-    <html
-      lang={locale}
-      className={`${latin.variable} ${georgian.variable} h-full antialiased`}
-      suppressHydrationWarning
-    >
+    <html lang={locale} className={`${firago.variable} h-full antialiased`} suppressHydrationWarning>
       <body className="flex min-h-full flex-col">
         <ThemeProvider>
           <NextIntlClientProvider>

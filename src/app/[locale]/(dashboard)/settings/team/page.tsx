@@ -9,7 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InviteForm } from "@/features/team/components/invite-form";
 import { RevokeInviteButton } from "@/features/team/components/revoke-invite-button";
 import { getTeam } from "@/features/team/queries";
+import { AccessCard } from "@/features/settings/components/settings-view";
 import { requireUser } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { canManage, getActiveTenant } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/settings/team">) {
@@ -25,6 +27,18 @@ export default async function TeamPage({ params }: PageProps<"/[locale]/settings
 
   const [t, team] = await Promise.all([getTranslations(), getTeam(tenant.tenantId)]);
   const manager = canManage(tenant.role);
+  // what staff may see, whether admins see money: set here, next to the people
+  const access = manager
+    ? (
+        await (
+          await createClient()
+        )
+          .from("tenant_settings")
+          .select("staff_sees_all_clients, staff_sees_all_bookings, admins_see_revenue")
+          .eq("tenant_id", tenant.tenantId)
+          .single()
+      ).data
+    : null;
 
   return (
     <div className="flex max-w-3xl flex-col gap-6">
@@ -94,6 +108,16 @@ export default async function TeamPage({ params }: PageProps<"/[locale]/settings
             )}
           </CardContent>
         </Card>
+      )}
+      {access && (
+        <AccessCard
+          isOwner={tenant.role === "owner"}
+          initial={{
+            staffSeesAllClients: access.staff_sees_all_clients,
+            staffSeesAllBookings: access.staff_sees_all_bookings,
+            adminsSeeRevenue: access.admins_see_revenue,
+          }}
+        />
       )}
     </div>
   );

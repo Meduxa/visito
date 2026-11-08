@@ -56,6 +56,7 @@ test("no content blocked by the security policy", async ({ page }, info) => {
     "/ka/clients",
     "/ka/staff",
     "/ka/settings/business",
+    "/ka/settings/website",
     "/ka/reports",
   ])
     await noBlocked(page, p, blocked);

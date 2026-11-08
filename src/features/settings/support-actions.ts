@@ -27,7 +27,7 @@ export async function allowSupport(hours: number): Promise<ActionResult> {
     p_hours: hours,
   });
   if (error) return fail("generic");
-  revalidatePath(`/${ctx.locale}/settings/business`);
+  revalidatePath(`/${ctx.locale}/settings`, "layout");
   return ok(undefined);
 }
 
@@ -40,6 +40,6 @@ export async function endSupport(): Promise<ActionResult> {
     p_tenant: ctx.tenant.tenantId,
   });
   if (error) return fail("generic");
-  revalidatePath(`/${ctx.locale}/settings/business`);
+  revalidatePath(`/${ctx.locale}/settings`, "layout");
   return ok(undefined);
 }

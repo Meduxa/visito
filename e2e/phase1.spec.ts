@@ -64,7 +64,7 @@ test("dental clinic: patients wording and chairs in settings", async ({ page }) 
   await signIn(page, "dental.owner@demo.test");
   await page.goto("/ka/clients");
   await expect(page.getByRole("heading", { name: "პაციენტები" })).toBeVisible();
-  await page.goto("/ka/settings/business");
+  await page.goto("/ka/settings/resources");
   await expect(page.getByText("სავარძელი 1")).toBeVisible();
 });
 
@@ -76,7 +76,11 @@ test("phone width: Phase 1 pages never scroll sideways", async ({ page }, info) 
     "/ka/services/import",
     "/ka/staff",
     "/ka/clients",
+    "/ka/settings",
     "/ka/settings/business",
+    "/ka/settings/booking",
+    "/ka/settings/notifications",
+    "/ka/settings/team",
     "/ka/more",
   ]) {
     await page.goto(path);

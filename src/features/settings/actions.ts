@@ -5,16 +5,21 @@ import { z } from "zod";
 import { weekSchema, type WeekInput } from "@/features/staff/schema";
 import { dbErrorCode, managerContext, type ManagerContext } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
+import type { Database } from "@/lib/supabase/database.types";
 import {
   businessSchema,
   closureSchema,
   resourceSchema,
-  rulesSchema,
+  accessSchema,
+  bookingRulesSchema,
+  notifySchema,
+  type AccessInput,
+  type BookingRulesInput,
   type BusinessInput,
-  type RulesInput,
+  type NotifyInput,
 } from "./schema";
 
-const done = (ctx: ManagerContext) => revalidatePath(`/${ctx.locale}/settings/business`);
+const done = (ctx: ManagerContext) => revalidatePath(`/${ctx.locale}/settings`, "layout");
 
 async function primaryLocationId(ctx: ManagerContext) {
   const { data } = await ctx.supabase
@@ -63,36 +68,80 @@ export async function saveBusiness(input: BusinessInput): Promise<ActionResult> 
   return ok(undefined);
 }
 
-export async function saveRules(input: RulesInput): Promise<ActionResult> {
-  const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
-  const parsed = rulesSchema.safeParse(input);
-  if (!parsed.success) return fail("invalidInput");
-  const v = parsed.data;
+async function updateSettings(
+  ctx: ManagerContext,
+  values: Database["public"]["Tables"]["tenant_settings"]["Update"],
+  action: string,
+): Promise<ActionResult> {
   const { error } = await ctx.supabase
     .from("tenant_settings")
-    .update({
+    .update(values)
+    .eq("tenant_id", ctx.tenant.tenantId);
+  if (error) return fail(dbErrorCode(error));
+  await ctx.supabase.rpc("log_audit", {
+    p_tenant: ctx.tenant.tenantId,
+    p_action: action,
+    p_entity: "tenant",
+    p_entity_id: ctx.tenant.tenantId,
+  });
+  done(ctx);
+  return ok(undefined);
+}
+
+export async function saveBookingRules(input: BookingRulesInput): Promise<ActionResult> {
+  const ctx = await managerContext();
+  if (!ctx) return fail("notAllowed");
+  const parsed = bookingRulesSchema.safeParse(input);
+  if (!parsed.success) return fail("invalidInput");
+  const v = parsed.data;
+  return updateSettings(
+    ctx,
+    {
       min_notice_min: v.minNoticeHours * 60,
       max_days_ahead: v.maxDaysAhead,
       cancel_window_min: v.cancelWindowHours * 60,
       slot_step_min: v.slotStepMin,
       online_requires_approval: v.onlineRequiresApproval,
       online_otp_required: v.onlineOtpRequired,
+    },
+    "settings.rules_updated",
+  );
+}
+
+export async function saveAccess(input: AccessInput): Promise<ActionResult> {
+  const ctx = await managerContext();
+  if (!ctx) return fail("notAllowed");
+  const parsed = accessSchema.safeParse(input);
+  if (!parsed.success) return fail("invalidInput");
+  const v = parsed.data;
+  return updateSettings(
+    ctx,
+    {
       staff_sees_all_clients: v.staffSeesAllClients,
       staff_sees_all_bookings: v.staffSeesAllBookings,
       // only the owner decides whether admins see money
       ...(ctx.tenant.role === "owner" ? { admins_see_revenue: v.adminsSeeRevenue } : {}),
-    })
-    .eq("tenant_id", ctx.tenant.tenantId);
-  if (error) return fail(dbErrorCode(error));
-  await ctx.supabase.rpc("log_audit", {
-    p_tenant: ctx.tenant.tenantId,
-    p_action: "settings.rules_updated",
-    p_entity: "tenant",
-    p_entity_id: ctx.tenant.tenantId,
-  });
-  done(ctx);
-  return ok(undefined);
+    },
+    "settings.access_updated",
+  );
+}
+
+export async function saveNotifications(input: NotifyInput): Promise<ActionResult> {
+  const ctx = await managerContext();
+  if (!ctx) return fail("notAllowed");
+  const parsed = notifySchema.safeParse(input);
+  if (!parsed.success) return fail("invalidInput");
+  const v = parsed.data;
+  return updateSettings(
+    ctx,
+    {
+      notify_online_managers: v.onlineManagers,
+      notify_online_staff: v.onlineStaff,
+      notify_overdue_managers: v.overdueManagers,
+      notify_overdue_staff: v.overdueStaff,
+    },
+    "settings.notifications_updated",
+  );
 }
 
 export async function saveOpeningHours(week: WeekInput): Promise<ActionResult> {

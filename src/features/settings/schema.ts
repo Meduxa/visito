@@ -24,7 +24,7 @@ export const businessSchema = z.object({
 export type BusinessInput = z.input<typeof businessSchema>;
 
 // Entered in hours/days for people; stored in minutes.
-export const rulesSchema = z.object({
+export const bookingRulesSchema = z.object({
   minNoticeHours: int(0, 168),
   maxDaysAhead: int(1, 365),
   cancelWindowHours: int(0, 168),
@@ -33,11 +33,25 @@ export const rulesSchema = z.object({
     .refine((n) => (slotSteps as readonly number[]).includes(n), "invalidInput"),
   onlineRequiresApproval: z.boolean(),
   onlineOtpRequired: z.boolean(),
+});
+export type BookingRulesInput = z.input<typeof bookingRulesSchema>;
+
+// What staff may see; whether admins see money (that one only the owner sets).
+export const accessSchema = z.object({
   staffSeesAllClients: z.boolean(),
   staffSeesAllBookings: z.boolean(),
   adminsSeeRevenue: z.boolean(),
 });
-export type RulesInput = z.input<typeof rulesSchema>;
+export type AccessInput = z.input<typeof accessSchema>;
+
+// Settings → Notifications: who is told about what (decision 021).
+export const notifySchema = z.object({
+  onlineManagers: z.boolean(),
+  onlineStaff: z.boolean(),
+  overdueManagers: z.boolean(),
+  overdueStaff: z.boolean(),
+});
+export type NotifyInput = z.input<typeof notifySchema>;
 
 export const closureSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "dateInvalid"),

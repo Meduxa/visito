@@ -34,7 +34,7 @@ const checklist = [
   { key: "services", icon: Scissors, href: "/services" },
   { key: "staff", icon: UsersRound, href: "/staff" },
   { key: "hours", icon: CalendarClock, href: "/staff" },
-  { key: "link", icon: Link2, href: "/settings/business" },
+  { key: "link", icon: Link2, href: "/settings/booking" },
   { key: "sms", icon: MessageSquare, href: "/settings/sms" },
 ] as const;
 

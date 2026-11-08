@@ -64,7 +64,7 @@ test("the app, signed in: every control shows focus", async ({ page }, info) => 
   await page.getByRole("button", { name: "შესვლა" }).click();
   await page.waitForURL("**/ka/dashboard");
   const found: string[] = [];
-  for (const path of ["/ka/dashboard", "/ka/calendar", "/ka/clients", "/ka/settings/business"]) {
+  for (const path of ["/ka/dashboard", "/ka/calendar", "/ka/clients", "/ka/settings/notifications"]) {
     await page.goto(path);
     await page.waitForLoadState("networkidle");
     const { missing } = await tabThrough(page, 45);

@@ -31,7 +31,7 @@ export async function addBusinessPhoto(path: string): Promise<ActionResult> {
     .from("business_photos")
     .insert({ tenant_id: ctx.tenant.tenantId, path, sort_order: count ?? 0 });
   if (error) return fail("generic");
-  revalidatePath(`/${ctx.locale}/settings/business`);
+  revalidatePath(`/${ctx.locale}/settings`, "layout");
   return ok(undefined);
 }
 
@@ -46,6 +46,6 @@ export async function removeBusinessPhoto(id: string): Promise<ActionResult> {
     .select("path")
     .single();
   if (data) await ctx.supabase.storage.from("business-photos").remove([data.path]);
-  revalidatePath(`/${ctx.locale}/settings/business`);
+  revalidatePath(`/${ctx.locale}/settings`, "layout");
   return ok(undefined);
 }

@@ -144,7 +144,7 @@ test("support access: owner allows, support views (read-only), owner ends", asyn
   };
   try {
     const owner = await signIn("salon.owner@demo.test");
-    await owner.goto("/ka/settings/business");
+    await owner.goto("/ka/settings/data");
     await owner.getByRole("button", { name: "ნებართვა 24 საათით" }).click();
     await expect(owner.getByText(/მხარდაჭერას შეუძლია თქვენი ბიზნესის ნახვა/)).toBeVisible();
 
@@ -206,7 +206,7 @@ test("website: owner edits cover text, links and colours; the public page shows 
     await page.getByLabel("პაროლი").fill(PASSWORD);
     await page.getByRole("button", { name: "შესვლა" }).click();
     await page.waitForURL("**/ka/dashboard", { waitUntil: "commit" });
-    await page.goto("/ka/settings/business");
+    await page.goto("/ka/settings/website");
     const card = page
       .locator("[data-slot=card]")
       .filter({ has: page.getByRole("heading", { name: "თქვენი ვებგვერდი" }) });
@@ -224,7 +224,7 @@ test("website: owner edits cover text, links and colours; the public page shows 
     );
     await expect(page.locator("[data-site-theme=ocean]")).toHaveCount(1);
     // a bad handle is refused with a message, nothing saved
-    await page.goto("/ka/settings/business");
+    await page.goto("/ka/settings/website");
     await card.getByLabel("Instagram").fill("https://evil.example/x");
     await card.getByRole("button", { name: "შენახვა" }).click();
     await expect(card.getByText(/პროფილის სახელი/)).toBeVisible();

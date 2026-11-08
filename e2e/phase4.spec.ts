@@ -147,7 +147,7 @@ test("owner settings: booking link, QR code and the SMS code switch", async ({ p
   await page.getByLabel("პაროლი").fill("Demo-Visito-2026");
   await page.getByRole("button", { name: "შესვლა" }).click();
   await page.waitForURL("**/ka/dashboard", { waitUntil: "commit" }); // the page itself may still be loading
-  await page.goto("/ka/settings/business");
+  await page.goto("/ka/settings/booking");
   await expect(page.getByRole("heading", { name: "ონლაინ ჯავშნის ბმული" })).toBeVisible();
   // the short address (decision 016), switched on for these tests
   await expect(page.getByText(/^http:\/\/orchidea\.localhost:\d+$/)).toBeVisible();

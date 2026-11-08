@@ -9,7 +9,7 @@ import { imagePath, socialHandle, websiteSchema, type WebsiteInput } from "./web
 // Owner and admin, like the other business settings; the database checks again.
 
 function refresh(locale: string) {
-  revalidatePath(`/${locale}/settings/business`);
+  revalidatePath(`/${locale}/settings`, "layout");
   revalidatePath(`/${locale}/book`, "layout");
 }
 

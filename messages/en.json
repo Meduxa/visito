@@ -455,7 +455,7 @@
   },
   "settings": {
     "title": "Business settings",
-    "subtitle": "Contact details, opening hours and booking rules.",
+    "subtitle": "Your business, booking page, messages and team.",
     "business": {
       "title": "Business details",
       "address": "Address",
@@ -511,6 +511,74 @@
       "qr": "QR code",
       "qrHint": "Print it for the front desk or the mirror — clients scan it with their phone.",
       "download": "Download QR code"
+    }
+  },
+  "settingsNav": {
+    "label": "Settings sections",
+    "back": "Settings",
+    "groups": {
+      "business": "Business",
+      "messages": "Notifications & SMS",
+      "people": "Team & data"
+    },
+    "sections": {
+      "business": {
+        "title": "Business details",
+        "hint": "Name, contacts, address, opening hours"
+      },
+      "booking": {
+        "title": "Online booking",
+        "hint": "Booking link, QR code and booking rules"
+      },
+      "website": {
+        "title": "Website",
+        "hint": "About, social links, colours, cover and photos"
+      },
+      "closures": {
+        "title": "Closed days",
+        "hint": "Holidays and days the business is closed"
+      },
+      "resources": {
+        "title": "Rooms & chairs",
+        "hint": "Chairs, rooms and equipment for bookings"
+      },
+      "notifications": {
+        "title": "Notifications",
+        "hint": "Who is told about new online bookings and visits without a status"
+      },
+      "sms": {
+        "title": "SMS & reminders",
+        "hint": "Reminders, SMS texts, balance and log"
+      },
+      "team": {
+        "title": "Team & access",
+        "hint": "Team members, invitations, what staff can see"
+      },
+      "data": {
+        "title": "Data & security",
+        "hint": "Support access, export, action log, deleting the business"
+      }
+    },
+    "access": {
+      "title": "Access",
+      "hint": "What specialists can see; whether admins see revenue."
+    },
+    "notify": {
+      "online": {
+        "title": "New online booking",
+        "hint": "When a client books on your booking page or website."
+      },
+      "overdue": {
+        "title": "Booking needs a status",
+        "hint": "The visit is over, but nobody marked it completed, no-show or cancelled."
+      },
+      "who": {
+        "managers": "Owner and admins",
+        "managersHint": "Everyone who manages the business.",
+        "staff": "The specialist",
+        "staffHint": "Only about their own clients. Needs a login linked to their profile."
+      },
+      "where": "Notifications appear under the bell next to the logo. Text messages to clients are set in SMS & reminders."
     }
   },
   "clients": {
@@ -631,6 +699,20 @@
       "10": "October",
       "11": "November",
       "12": "December"
+    },
+    "monthsShort": {
+      "1": "Jan",
+      "2": "Feb",
+      "3": "Mar",
+      "4": "Apr",
+      "5": "May",
+      "6": "Jun",
+      "7": "Jul",
+      "8": "Aug",
+      "9": "Sep",
+      "10": "Oct",
+      "11": "Nov",
+      "12": "Dec"
     },
     "monthTitle": {
       "1": "January",
@@ -1145,7 +1227,9 @@
       "thisMonth": "This month",
       "lastMonth": "Last month",
       "last30": "Last 30 days",
-      "thisYear": "This year"
+      "thisYear": "This year",
+      "today": "Today",
+      "thisWeek": "This week"
     },
     "from": "From",
     "to": "To",
@@ -1201,7 +1285,54 @@
       "money": "Money",
       "staff": "Specialists",
       "services": "Services"
-    }
+    },
+    "compare": "Compare with",
+    "compareModes": {
+      "off": "No comparison",
+      "previous": "Previous period",
+      "year": "Same period last year"
+    },
+    "compareVs": {
+      "previous": "vs previous period",
+      "year": "vs last year"
+    },
+    "points": "{value} pp",
+    "sections": "Report sections",
+    "tabs": {
+      "overview": "Overview",
+      "revenue": "Revenue",
+      "payments": "Payments",
+      "services": "Services",
+      "clients": "Clients",
+      "staff": "Specialists"
+    },
+    "view": {
+      "label": "Show as",
+      "chart": "Chart",
+      "table": "Table",
+      "measure": "Measure",
+      "now": "This period",
+      "before": "Compared",
+      "change": "Change"
+    },
+    "metrics": {
+      "revenue": "Revenue",
+      "bookings": "Bookings",
+      "count": "Count"
+    },
+    "overTime": "Revenue and bookings",
+    "overTimeBookings": "Bookings",
+    "byDayShort": "by day",
+    "byMonth": "by month",
+    "byMethodOverTime": "Money received by payment method",
+    "categories": "By category",
+    "completedHint": "completed visits in this period",
+    "byStaff": "By specialist",
+    "top10": "top 10",
+    "allServices": "All services",
+    "clientsSeen": "Clients",
+    "bookedHoursShort": "Booked hours",
+    "month": "Month"
   },
   "auditLog": {
     "title": "Audit log",
@@ -1238,6 +1369,8 @@
       "platform_tenant_updated": "Plan or status changed by Visito",
       "service_deleted": "Service deleted",
       "services_imported": "Price list imported",
+      "settings_access_updated": "Staff access changed",
+      "settings_notifications_updated": "Notification settings changed",
       "settings_rules_updated": "Booking rules changed",
       "settings_updated": "Business details changed",
       "staff_deleted": "Staff member deleted",
@@ -1474,7 +1607,7 @@
     "leave": "Leave",
     "adminTitle": "Support view",
     "adminOn": "The owner allows a view-only support visit until {until}.",
-    "adminOff": "The owner has not allowed support access. Ask them to switch it on in Settings → Business.",
+    "adminOff": "The owner has not allowed support access. Ask them to switch it on in Settings → Data & security.",
     "open": "Open (view only)"
   },
   "website": {
@@ -1657,5 +1790,18 @@
       "title": "Try Visito in your salon",
       "text": "14 days free. Set up in an evening; your clients book tomorrow."
     }
+  },
+  "notifications": {
+    "title": "Notifications",
+    "unread": "{count, plural, one {# unread} other {# unread}}",
+    "markAllRead": "Mark all as read",
+    "close": "Close",
+    "empty": "No new notifications",
+    "emptyHint": "Online bookings and visits that still need a status will appear here.",
+    "error": "Couldn't load notifications",
+    "onlineBooking": "New online booking",
+    "needsAction": "Booking needs a status",
+    "noClient": "No client",
+    "when": "{date}, {time}"
   }
 }

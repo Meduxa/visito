@@ -6,6 +6,7 @@ import { BottomNav, SidebarNav } from "@/components/app-shell/nav";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { BrandLogo } from "@/components/brand-logo";
 import { InstallApp } from "@/components/pwa";
+import { NotificationBell } from "@/features/notifications/components/notification-bell";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth";
@@ -34,12 +35,15 @@ export default async function DashboardLayout({ children, params }: LayoutProps<
   return (
     <div className="flex flex-1">
       <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r bg-sidebar p-3 md:flex">
-        <Link
-          href="/dashboard"
-          className="self-start rounded-lg px-3 pt-2 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-        >
-          <BrandLogo className="h-9" />
-        </Link>
+        <div className="flex items-center justify-between gap-2 pt-2 pr-1">
+          <Link
+            href="/dashboard"
+            className="rounded-lg px-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+          >
+            <BrandLogo className="h-9" />
+          </Link>
+          <NotificationBell />
+        </div>
         <SidebarNav type={active.type} canManage={canManage(active.role)} hasProfile={!!ownStaffId} />
         <div className="mt-auto flex flex-col gap-1 border-t pt-3">
           <InstallApp />
@@ -57,6 +61,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps<
           >
             <BrandLogo variant="mark" className="h-8" />
           </Link>
+          <NotificationBell />
           <div className="min-w-0 flex-1">{menu}</div>
           <LanguageSwitcher />
         </header>

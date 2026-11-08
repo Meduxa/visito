@@ -116,6 +116,12 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [ ] Cloudflare Turnstile on the booking page (when Levan has the key); a screen-reader pass by a person (e.g. NVDA)
 - [x] Short salon addresses `name.visito.ge` (code done 2026-10-28, decision 016; on this laptop: `orchidea.localhost:3000`); old `/book/...` links keep working; reserved names refused — [ ] at go-live: register visito.ge, wildcard domain on Netlify, `SITE_DOMAIN=visito.ge` (`docs/go-live.md`)
 - [x] A small, beautiful website for every business, where clients book online (Levan, 2026-10-28): cover, logo, about (ka/en/ru), Instagram/Facebook, gallery, team, map, hours, "Book a visit" button; booking by service or by specialist; 5 colour themes picked in Settings → Your website; share preview — decision 015. Moves to the short address when visito.ge is registered
+- [x] In-app notifications (Levan, 2026-11-07): bell next to the logo with unread count — new online bookings, and visits whose time is over but still have no status (they clear once a status is set); owner/admin see all, staff their own; mark read / mark all; opens the booking in the calendar — decision 019. Later: client cancelled/moved via the manage link, push
+- [x] Reports in sections, step 1 (Levan, 2026-11-07, after looking at a competitor): tabs Overview / Revenue / Payments / Services / Clients / Specialists; every chart switches to a table, and between revenue and bookings; compare with the previous period or the same period last year (change on every number card, faded bars, change column); presets Today and This week; real bar charts (shadcn chart = Recharts) — decision 020
+- [ ] Reports step 2: busy-hours heatmap, revenue by weekday, new vs returning over time, visit frequency, top clients table, CSV per card
+- [ ] Reports step 3 (later): expenses module, then profit & loss
+- [x] Settings in sections (Levan, 2026-11-07, after looking at a competitor): Settings home with every section; menu beside each section on desktop, "← Settings" on phones; Business details / Online booking / Website / Closed days / Rooms & chairs (dental) / Notifications / SMS & reminders / Team & access / Data & security (owner); one "Settings" item in the main menu — decision 021
+- [x] Settings → Notifications: owner & admins and/or the specialist, separately for new online bookings and for visits that need a status (migration `20261107120000`, RLS tests) — decision 021. Later: booking sound, push
 
 ## 🚀 Pilot with 2–3 salons + 1 dental clinic (2–4 weeks of real use, fix feedback)
 

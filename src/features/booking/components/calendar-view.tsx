@@ -79,6 +79,7 @@ export function CalendarScreen({
   today,
   viewParam,
   weekStaffId,
+  openBookingId = null,
   tenantId,
   catalog,
   isManager,
@@ -92,6 +93,7 @@ export function CalendarScreen({
   today: string;
   viewParam: CalendarView | null;
   weekStaffId: string | null;
+  openBookingId?: string | null;
   tenantId: string;
   catalog: CatalogEntry[];
   isManager: boolean;
@@ -106,7 +108,13 @@ export function CalendarScreen({
   const pathname = usePathname();
   const wide = useWide();
   const view: CalendarView = viewParam ?? (wide ? "day" : "list");
-  const [openBooking, setOpenBooking] = useState<string | null>(null);
+  const [openBooking, setOpenBooking] = useState<string | null>(openBookingId);
+  // a link with ?booking=<id> (e.g. from a notification) opens that booking
+  const [seenOpenParam, setSeenOpenParam] = useState(openBookingId);
+  if (seenOpenParam !== openBookingId) {
+    setSeenOpenParam(openBookingId);
+    if (openBookingId) setOpenBooking(openBookingId);
+  }
   const [creating, setCreating] = useState<{
     date: string;
     time: string | null;
@@ -596,7 +604,16 @@ export function CalendarScreen({
         isDental={isDental}
         onClose={() => {
           setOpenBooking(null);
-          router.refresh();
+          if (openBookingId) {
+            // drop ?booking= so the same link opens the panel again next time
+            const p = new URLSearchParams({
+              date,
+              ...(viewParam && { view: viewParam }),
+              ...(weekStaffId && { staff: weekStaffId }),
+              ...(dayBy === "chair" && { by: "chair" }),
+            });
+            router.replace(`${pathname}?${p}`);
+          } else router.refresh();
         }}
         onCancelled={async (id) => {
           const matches = await waitlistMatches(id);

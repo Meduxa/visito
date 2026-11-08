@@ -2,6 +2,37 @@
 
 All notable changes per phase. Newest on top.
 
+## New font: FiraGO (2026-11-08)
+
+- The whole app, the salon websites and the booking pages use **FiraGO**, one font for Georgian, English and Russian (before: Inter + Noto Sans Georgian). Mixed Georgian/Latin text now matches.
+- Served from our own site (no Google Fonts request), trimmed to the alphabets we use: about 77 KB per weight. Decision 022; license in `src/app/fonts/FiraGO-OFL.txt`.
+
+## Settings in sections (2026-11-07)
+
+- **Settings home** lists every section with a line about what is inside, in three groups: Business, Notifications & SMS, Team & data. On a computer each section has the menu on the left; on a phone the section opens on its own with "← Settings" at the top.
+- **Sections:** Business details (name, contacts, address, opening hours) · Online booking (link, QR code, booking rules) · Website (about, links, colours, cover, photos) · Closed days · Rooms & chairs (dental only) · **Notifications** (new) · SMS & reminders (the former SMS page) · Team & access (team, invitations, and now what staff see and whether admins see revenue) · Data & security (owner: support access, export, action log, sign out everywhere, delete business).
+- **Settings → Notifications:** for "new online booking" and for "booking needs a status", choose whether the owner & admins and/or the specialist get it under the bell. All on by default. The specialist is told only about their own clients.
+- The main menu has one **Settings** item for owner and admin (Team and SMS moved inside); staff keep their Team link. Old links (`/settings/business`, `/settings/sms`, `/settings/team`) still work. The dashboard's "booking link" step now opens Online booking; the deletion banner opens Data & security.
+- Database: migration `20261107120000_notification_settings.sql` (four switches on `tenant_settings`; the notification visibility function respects them) — decision 021. Tests: 4 new cases in `rls_notifications.test.ts`, `e2e/settings.spec.ts`; other e2e tests point at the new sections.
+
+## Reports in sections (2026-11-07)
+
+- **Tabs** on the Reports page: Overview, Revenue, Payments, Services, Clients, Specialists. Revenue and Payments are hidden from people who may not see money. The tab, period, specialist and comparison are in the address, so a link opens the same view.
+- **Chart or table** — every chart card has a chart/table switch; cards with several measures also switch between them (revenue / bookings, revenue / count, service value / occupancy / booked hours).
+- **Real bar charts** over time: by day for periods up to two months, by month for longer ones (shadcn chart on Recharts, colours from the design tokens). Payments are stacked by method (cash, card, transfer…).
+- **Compare with** the previous period or the same period last year: every number card shows the change (green when it went the good way; rates in percentage points), charts show the earlier period as faded bars, tables get "this period / compared / change" columns.
+- New presets **Today** and **This week**; Payments tab has a card per method with its tips; Services tab lists all services (table first).
+- Decision 020. Tests: `params.test.ts`, new cases in `compute.test.ts`, `e2e/reports.spec.ts`; `phase6a.spec.ts` opens the Specialists tab.
+
+## In-app notifications (2026-11-07)
+
+- **Bell next to the Visito logo** (sidebar on desktop, top bar on phones) with a red unread count. It opens a "Notifications" panel (full width on phones), newest first, refreshed every minute and whenever it opens.
+- **New online booking** — whenever a client books on the business's booking page or website: client, service(s), specialist, date and time (in the business's time zone).
+- **Booking needs a status** — a visit that has ended but is still "pending"/"confirmed" (nobody marked it arrived, completed, no-show or cancelled), last 30 days. It disappears by itself once a status is set.
+- Clicking a notification marks it read and opens that booking in the calendar (`/calendar?booking=…`); "Mark all as read". Read state is per person.
+- Owner and admin see everything; staff only notifications for their own specialist profile. No notes or health data in notifications.
+- Database: migration `20261107090000_notifications.sql` (tables `notifications`, `notification_reads`, RLS, feed functions; the online-booking function now also writes the notification) — decision 019. Tests: `rls_notifications.test.ts`, `e2e/notifications.spec.ts`.
+
 ## Renamed to Visito (2026-11-06)
 
 - **Bookeria is now Visito** (domain visito.ge): the name in the app, browser tab, installed app, landing page, emails, SMS test text, legal texts, admin and support screens (ka/en/ru), file names of exports and the offline page.

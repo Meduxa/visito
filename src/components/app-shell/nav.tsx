@@ -7,7 +7,6 @@ import {
   ChartColumn,
   LayoutDashboard,
   Menu,
-  MessageSquare,
   Scissors,
   Settings,
   Stethoscope,
@@ -48,13 +47,10 @@ function groups(type: BusinessType, canManage: boolean, hasProfile: boolean) {
     {
       key: "settings",
       items: [
-        { href: "/settings/team", key: "team", icon: UsersRound },
-        ...(canManage
-          ? [
-              { href: "/settings/business", key: "settings", icon: Settings },
-              { href: "/settings/sms", key: "sms", icon: MessageSquare },
-            ]
-          : []),
+        // managers: every section (team, SMS…) lives under Settings (decision 021)
+        canManage
+          ? { href: "/settings", key: "settings", icon: Settings }
+          : { href: "/settings/team", key: "team", icon: UsersRound },
       ],
     },
   ] as const;
@@ -158,13 +154,9 @@ export function MoreNavList({ canManage }: { canManage: boolean }) {
           { href: "/reports", key: "reports", icon: ChartColumn },
         ]
       : []),
-    { href: "/settings/team", key: "team", icon: UsersRound },
-    ...(canManage
-      ? [
-          { href: "/settings/business", key: "settings", icon: Settings },
-          { href: "/settings/sms", key: "sms", icon: MessageSquare },
-        ]
-      : []),
+    canManage
+      ? { href: "/settings", key: "settings", icon: Settings }
+      : { href: "/settings/team", key: "team", icon: UsersRound },
   ] as const;
   return (
     <ul className="flex flex-col divide-y rounded-xl border bg-card">

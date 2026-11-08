@@ -32,7 +32,7 @@ export async function AccountBanner({ tenant }: { tenant: TenantMembership }) {
 
   if (tenant.deletionDueAt && tenant.role === "owner") {
     text = t("account.deletion", { date: fullDate(t, ymdIn(tenant.deletionDueAt)) });
-    href = "/settings/business";
+    href = "/settings/data";
   } else if (isReadOnly(tenant)) {
     text = t(`account.${tenant.status as "suspended"}`);
   } else if (tenant.status === "past_due" && manager) {

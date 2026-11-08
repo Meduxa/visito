@@ -878,6 +878,84 @@ export type Database = {
           },
         ]
       }
+      notification_reads: {
+        Row: {
+          booking_id: string
+          kind: string
+          read_at: string
+          tenant_id: string
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          kind: string
+          read_at?: string
+          tenant_id: string
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          kind?: string
+          read_at?: string
+          tenant_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_reads_booking_id_tenant_id_fkey"
+            columns: ["booking_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "notification_reads_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          booking_id: string
+          created_at: string
+          id: string
+          kind: string
+          tenant_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          id?: string
+          kind: string
+          tenant_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          id?: string
+          kind?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_booking_id_tenant_id_fkey"
+            columns: ["booking_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "notifications_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       otp_codes: {
         Row: {
           attempts: number
@@ -1861,6 +1939,10 @@ export type Database = {
           email: string | null
           max_days_ahead: number
           min_notice_min: number
+          notify_online_managers: boolean
+          notify_online_staff: boolean
+          notify_overdue_managers: boolean
+          notify_overdue_staff: boolean
           online_otp_required: boolean
           online_requires_approval: boolean
           phone: string | null
@@ -1893,6 +1975,10 @@ export type Database = {
           email?: string | null
           max_days_ahead?: number
           min_notice_min?: number
+          notify_online_managers?: boolean
+          notify_online_staff?: boolean
+          notify_overdue_managers?: boolean
+          notify_overdue_staff?: boolean
           online_otp_required?: boolean
           online_requires_approval?: boolean
           phone?: string | null
@@ -1925,6 +2011,10 @@ export type Database = {
           email?: string | null
           max_days_ahead?: number
           min_notice_min?: number
+          notify_online_managers?: boolean
+          notify_online_staff?: boolean
+          notify_overdue_managers?: boolean
+          notify_overdue_staff?: boolean
           online_otp_required?: boolean
           online_requires_approval?: boolean
           phone?: string | null
@@ -2399,6 +2489,10 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_notifications_read: {
+        Args: { p_items?: Json; p_tenant: string }
+        Returns: number
+      }
       may_book_for: {
         Args: { p_staff: string[]; p_tenant: string }
         Returns: boolean
@@ -2411,6 +2505,36 @@ export type Database = {
         Args: { p_booking: string; p_items: Json }
         Returns: undefined
       }
+      my_notifications: {
+        Args: { p_limit?: number; p_tenant: string }
+        Returns: {
+          at: string
+          booking_id: string
+          client_name: string
+          is_read: boolean
+          kind: string
+          services: string
+          staff: string
+          starts_at: string
+          status: string
+        }[]
+      }
+      my_notifications_unread: { Args: { p_tenant: string }; Returns: number }
+      notification_feed: {
+        Args: { p_tenant: string }
+        Returns: {
+          at: string
+          booking_id: string
+          is_read: boolean
+          kind: string
+        }[]
+      }
+      notification_visible:
+        | { Args: { p_booking: string; p_tenant: string }; Returns: boolean }
+        | {
+            Args: { p_booking: string; p_kind: string; p_tenant: string }
+            Returns: boolean
+          }
       otp_issue: {
         Args: {
           p_code_hash: string

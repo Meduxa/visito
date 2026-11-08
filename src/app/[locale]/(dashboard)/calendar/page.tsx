@@ -35,6 +35,9 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
   const date = typeof sp.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : today;
   const view = (VIEWS as readonly string[]).includes(sp.view as string) ? (sp.view as CalendarView) : null;
   const weekStaffId = typeof sp.staff === "string" && /^[0-9a-f-]{36}$/.test(sp.staff) ? sp.staff : null;
+  // ?booking=<id> opens that booking's panel (links from notifications)
+  const openBookingId =
+    typeof sp.booking === "string" && /^[0-9a-f-]{36}$/.test(sp.booking) ? sp.booking : null;
   const isManager = canManage(tenant.role);
 
   // Without an explicit view the client picks day (desktop) or list (phone): load both ranges.
@@ -76,6 +79,7 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
       today={today}
       viewParam={view}
       weekStaffId={weekStaffId}
+      openBookingId={openBookingId}
       tenantId={tenant.tenantId}
       catalog={catalog}
       isManager={isManager}

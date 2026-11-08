@@ -56,7 +56,17 @@ describe("computeReport", () => {
       { date: "2026-10-02", minor: 5000 },
       { date: "2026-10-05", minor: 4000 },
     ]);
-    expect(r.money.byMethod[0]).toEqual({ method: "card", minor: 6000 });
+    expect(r.money.byMethod[0]).toEqual({ method: "card", minor: 6000, tipsMinor: 0 });
+    expect(r.money.byMethod[1]).toEqual({ method: "cash", minor: 3000, tipsMinor: 500 });
+    // a month is charted by day, every day present
+    expect(r.bucket).toBe("day");
+    expect(r.series).toHaveLength(31);
+    expect(r.series[1]).toEqual({
+      key: "2026-10-02",
+      receivedMinor: 5000,
+      bookings: 0,
+      byMethod: { cash: 3000, card: 2000 },
+    });
   });
 
   it("rates, sources, service value and commission from completed visits only", () => {
@@ -80,6 +90,29 @@ describe("computeReport", () => {
     expect(ana.occupancyPct).toBe(20);
     expect(r.occupancyPct).toBe(12.5); // (120 + 30) / 1200
     expect(r.topServices[0]).toMatchObject({ name: "cut", count: 1 });
+    // bookings over time: cancelled ones do not count
+    expect(r.series.find((x) => x.key === "2026-10-05")!.bookings).toBe(0);
+    expect(r.series.find((x) => x.key === "2026-10-04")!.bookings).toBe(1);
+    expect(r.money.byCategory).toEqual([{ name: "Hair", minor: 8000, count: 2 }]);
+  });
+
+  it("longer periods are charted by month", () => {
+    const r = computeReport({
+      ...base,
+      from: "2026-01-15",
+      to: "2026-11-07",
+      bookings: [
+        booking("1", "completed", "c1", "2026-03-02"),
+        booking("2", "confirmed", "c2", "2026-03-30"),
+      ],
+      payments: [{ date: "2026-11-01", method: "card", amountMinor: 700, tipMinor: 0, bookingId: "1" }],
+    });
+    expect(r.bucket).toBe("month");
+    expect(r.series.map((x) => x.key)).toEqual(
+      ["01", "02", "03", "04", "05", "06", "07", "08", "09", "10", "11"].map((m) => `2026-${m}`),
+    );
+    expect(r.series[2].bookings).toBe(2);
+    expect(r.series[10].receivedMinor).toBe(700);
   });
 
   it("new vs returning clients and retention windows that had time to pass", () => {

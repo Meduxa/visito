@@ -30,7 +30,13 @@ test("dashboard numbers, reports with a staff filter, Excel download", async ({ 
   await page.getByLabel("სპეციალისტი").selectOption({ label: "ანა გელაშვილი" });
   await page.getByRole("button", { name: "ჩვენება" }).click();
   await expect(page).toHaveURL(/staff=/);
-  const rows = page.getByRole("table").getByRole("row");
+  // the specialists' table lives on its own tab; the filter stays
+  await page
+    .getByRole("navigation", { name: "ანგარიშის განყოფილებები" })
+    .getByRole("link", { name: "სპეციალისტები" })
+    .click();
+  await expect(page).toHaveURL(/tab=staff.*|staff=.*tab=staff/);
+  const rows = page.getByTestId("staff-table").getByRole("row");
   await expect(rows).toHaveCount(2); // header + Ana
   await expect(rows.nth(1)).toContainText("ანა გელაშვილი");
 
@@ -44,7 +50,7 @@ test("an admin without revenue access sees no money", async ({ browser }, info) 
   test.skip(info.project.name !== "desktop");
   const owner = await as(browser, "dental.owner@demo.test");
   const toggle = async (on: boolean) => {
-    await owner.goto("/ka/settings/business");
+    await owner.goto("/ka/settings/team");
     await owner.waitForLoadState("networkidle");
     const sw = owner.getByRole("switch", { name: "ადმინისტრატორები ხედავენ შემოსავალს" });
     if ((await sw.getAttribute("aria-checked")) !== String(on)) await sw.click();
@@ -73,8 +79,8 @@ test("an admin without revenue access sees no money", async ({ browser }, info) 
 test("owner: audit log, full export; others cannot export", async ({ browser }, info) => {
   test.skip(info.project.name !== "desktop");
   const owner = await as(browser, "salon.owner@demo.test");
-  await owner.goto("/ka/settings/business");
-  await owner.getByRole("link", { name: "ქმედებების ჟურნალი" }).click();
+  await owner.goto("/ka/settings/data");
+  await owner.getByRole("main").getByRole("link", { name: "ქმედებების ჟურნალი" }).click();
   await expect(owner.getByRole("heading", { name: "ქმედებების ჟურნალი" })).toBeVisible();
   // entries are there (newest first; other tests keep adding some, so no particular one)
   await expect(owner.getByRole("main").getByRole("listitem").first()).toBeVisible();
@@ -97,7 +103,7 @@ test("owner: audit log, full export; others cannot export", async ({ browser }, 
 test("owner schedules deletion (banner everywhere) and cancels it", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop");
   await signIn(page, "dental.owner@demo.test");
-  await page.goto("/ka/settings/business");
+  await page.goto("/ka/settings/data");
   await page.getByRole("button", { name: "ბიზნესის წაშლა…" }).click();
   const dialog = page.getByRole("dialog");
   await dialog.getByLabel("ბიზნესის სახელი").fill("არასწორი");
@@ -107,7 +113,7 @@ test("owner schedules deletion (banner everywhere) and cancels it", async ({ pag
   await expect(page.getByText(/ბიზნესი წაიშლება .* გაუქმება შეგიძლიათ პარამეტრებში/)).toBeVisible();
   await page.goto("/ka/calendar");
   await expect(page.getByText(/ბიზნესი წაიშლება/).first()).toBeVisible();
-  await page.goto("/ka/settings/business");
+  await page.goto("/ka/settings/data");
   await page.getByRole("button", { name: "ბიზნესის დატოვება" }).click();
   await expect(page.getByText("ბიზნესი არ წაიშლება.")).toBeVisible();
   await page.goto("/ka/dashboard");
@@ -138,7 +144,7 @@ test("platform admin: businesses, SMS top-up, plans; nobody else sees /admin", a
 test("photos: upload, show on the booking page, remove", async ({ browser }, info) => {
   test.skip(info.project.name !== "desktop");
   const owner = await as(browser, "salon.owner@demo.test");
-  await owner.goto("/ka/settings/business");
+  await owner.goto("/ka/settings/website");
   await owner.waitForLoadState("networkidle");
   const before = await owner.getByRole("button", { name: /^ფოტო \d+-ის წაშლა$/ }).count();
   // a 1×1 PNG

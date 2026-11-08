@@ -45,6 +45,22 @@ const days = (a: string, b: string) =>
   (Date.parse(`${b}T12:00:00Z`) - Date.parse(`${a}T12:00:00Z`)) / 86_400_000;
 const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 1000) / 10 : null);
 
+/** Charts over time use days for up to ~2 months, months for longer periods. */
+export type Bucket = "day" | "month";
+export const bucketFor = (from: string, to: string): Bucket => (days(from, to) > 62 ? "month" : "day");
+const bucketKey = (date: string, bucket: Bucket) => (bucket === "month" ? date.slice(0, 7) : date);
+/** Every day ("2026-10-05") or month ("2026-10") of the period, in order, empty ones included. */
+export function bucketKeys(from: string, to: string, bucket: Bucket) {
+  const keys: string[] = [];
+  for (let ms = Date.parse(`${from}T12:00:00Z`); ; ms += 86_400_000) {
+    const d = new Date(ms).toISOString().slice(0, 10);
+    if (d > to) break;
+    const k = bucketKey(d, bucket);
+    if (keys.at(-1) !== k) keys.push(k);
+  }
+  return keys;
+}
+
 export function computeReport(r: ReportInput) {
   // ----- money received (payments) -----
   const byDay = new Map<string, number>();
@@ -59,13 +75,34 @@ export function computeReport(r: ReportInput) {
   }
   const paidBookings = new Set(r.payments.map((p) => p.bookingId)).size;
 
+  // ----- over time: money received (by method) and bookings that still stand -----
+  const bucket = bucketFor(r.from, r.to);
+  const series = new Map(
+    bucketKeys(r.from, r.to, bucket).map((key) => [
+      key,
+      { key, receivedMinor: 0, bookings: 0, byMethod: {} as Record<string, number> },
+    ]),
+  );
+  for (const p of r.payments) {
+    const row = series.get(bucketKey(p.date, bucket));
+    if (!row) continue;
+    row.receivedMinor += p.amountMinor;
+    row.byMethod[p.method] = (row.byMethod[p.method] ?? 0) + p.amountMinor;
+  }
+  const tipsByMethod = new Map<string, number>();
+  for (const p of r.payments) add(tipsByMethod, p.method, p.tipMinor);
+
   // ----- visits -----
   const statusCount = new Map<string, number>();
   const activeByDay = new Map<string, number>(); // bookings that still stand, per day
   const sourceCount = new Map<string, number>();
   for (const b of r.bookings) {
     add(statusCount, b.status, 1);
-    if (!CANCELLED.includes(b.status)) add(activeByDay, b.date, 1);
+    if (!CANCELLED.includes(b.status)) {
+      add(activeByDay, b.date, 1);
+      const row = series.get(bucketKey(b.date, bucket));
+      if (row) row.bookings += 1;
+    }
     add(sourceCount, b.source, 1);
   }
   const completed = r.bookings.filter((b) => b.status === "completed");
@@ -76,6 +113,7 @@ export function computeReport(r: ReportInput) {
   const staffValue = new Map<string, number>();
   const serviceAgg = new Map<string, { name: string; count: number; valueMinor: number }>();
   const categoryValue = new Map<string, number>();
+  const categoryCount = new Map<string, number>();
   for (const b of completed)
     for (const i of b.items) {
       add(staffValue, i.staffId, i.priceMinor);
@@ -84,6 +122,7 @@ export function computeReport(r: ReportInput) {
       s.valueMinor += i.priceMinor;
       serviceAgg.set(i.serviceKey, s);
       add(categoryValue, i.categoryId ?? "", i.priceMinor);
+      add(categoryCount, i.categoryId ?? "", 1);
     }
 
   // occupancy: booked minutes (not cancelled / no-show) ÷ working minutes
@@ -137,11 +176,13 @@ export function computeReport(r: ReportInput) {
         .map(([date, minor]) => ({ date, minor })),
       byMethod: [...byMethod.entries()]
         .sort((a, b) => b[1] - a[1])
-        .map(([method, minor]) => ({ method, minor })),
+        .map(([method, minor]) => ({ method, minor, tipsMinor: tipsByMethod.get(method) ?? 0 })),
       byCategory: [...categoryValue.entries()]
         .sort((a, b) => b[1] - a[1])
-        .map(([id, minor]) => ({ name: r.categories[id] ?? "", minor })),
+        .map(([id, minor]) => ({ name: r.categories[id] ?? "", minor, count: categoryCount.get(id) ?? 0 })),
     },
+    bucket,
+    series: [...series.values()],
     bookings: {
       total: r.bookings.length,
       completed: completed.length,
@@ -156,6 +197,7 @@ export function computeReport(r: ReportInput) {
     topServices: [...serviceAgg.values()]
       .sort((a, b) => b.count - a.count || b.valueMinor - a.valueMinor)
       .slice(0, 10),
+    services: [...serviceAgg.values()].sort((a, b) => b.valueMinor - a.valueMinor || b.count - a.count),
     clients: {
       seen: inRange.size,
       new: newClients,

@@ -45,6 +45,7 @@
     "react-dom": "19.3.0",
     "react-hook-form": "^7.91.0",
     "read-excel-file": "^9.3.12",
+    "recharts": "^3.8.0",
     "server-only": "^0.0.1",
     "shadcn": "^4.22.1",
     "sonner": "^2.0.8",

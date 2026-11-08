@@ -19,6 +19,7 @@ export function StatCard({
   hint,
   href,
   tone = "brand",
+  extra,
 }: {
   icon: ReactNode;
   label: string;
@@ -26,6 +27,8 @@ export function StatCard({
   hint?: string;
   href?: string;
   tone?: keyof typeof chip;
+  /** e.g. the change against the previous period */
+  extra?: ReactNode;
 }) {
   return (
     <Card className="gap-3 p-4">
@@ -51,6 +54,7 @@ export function StatCard({
       </div>
       <div className="text-2xl font-semibold tabular-nums">{value}</div>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      {extra}
     </Card>
   );
 }

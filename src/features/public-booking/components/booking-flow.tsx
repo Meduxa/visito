@@ -28,8 +28,17 @@ const timeIn = (iso: string, tz: string) =>
   new Date(iso).toLocaleTimeString("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
 
 // `header` is the business card (server-rendered): shown on the first and last screens only,
-// so on a phone each later step starts at the top.
-export function BookingFlow({ business, header }: { business: PublicBusinessView; header: ReactNode }) {
+// so on a phone each later step starts at the top. `embedded`: inside a frame on the
+// salon's own website, where pages of ours may not be framed, so links open a new tab.
+export function BookingFlow({
+  business,
+  header,
+  embedded = false,
+}: {
+  business: PublicBusinessView;
+  header: ReactNode;
+  embedded?: boolean;
+}) {
   const t = useTranslations();
   const tb = useTranslations("publicBooking");
   const fmt = useFormat();
@@ -210,7 +219,12 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
                 {tb("addToCalendar")}
               </Button>
               <Button variant="outline" asChild className="h-11 md:h-9">
-                <Link href={`/m/${booked.token}`}>{tb("manage")}</Link>
+                <Link
+                  href={`/m/${booked.token}`}
+                  {...(embedded ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+                >
+                  {tb("manage")}
+                </Link>
               </Button>
             </div>
             <Button
@@ -346,7 +360,8 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
                 {chosen.map((s) => s.name).join(", ")} · {slot.staffName}
               </p>
               <p className="text-muted-foreground">
-                {tb("total")}: {totalPrice} · {fmt.duration(totalMin)}
+                {business.showPrices && `${tb("total")}: ${totalPrice} · `}
+                {fmt.duration(totalMin)}
               </p>
             </div>
           )}
@@ -530,7 +545,7 @@ export function BookingFlow({ business, header }: { business: PublicBusinessView
                 {picked.length > 0 && (
                   <>
                     {tb("selected", { count: picked.length, duration: fmt.duration(totalMin) })}
-                    <span className="block font-medium">{totalPrice}</span>
+                    {business.showPrices && <span className="block font-medium">{totalPrice}</span>}
                   </>
                 )}
               </span>
@@ -735,7 +750,9 @@ function ServicesStep({
                     {s.description && <span className="text-xs text-muted-foreground">{s.description}</span>}
                     <span className="text-xs text-muted-foreground">{fmt.duration(s.durationMin)}</span>
                   </span>
-                  <span className="shrink-0 text-sm font-medium tabular-nums">{fmt.price(s)}</span>
+                  {business.showPrices && (
+                    <span className="shrink-0 text-sm font-medium tabular-nums">{fmt.price(s)}</span>
+                  )}
                 </label>
               );
             })}

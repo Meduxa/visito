@@ -22,13 +22,14 @@ export default async function AdminPlansPage({ params }: PageProps<"/[locale]/ad
             maxStaff: p.max_staff === null ? "" : String(p.max_staff),
             smsPerMonth: String(p.sms_per_month),
             active: p.active,
+            features: p.features.filter((f): f is "payroll" => f === "payroll"),
           }}
         />
       ))}
       <h2 className="pt-2 text-base font-semibold">{t("plans.new")}</h2>
       <PlanEditor
         isNew
-        plan={{ code: "", name: "", price: "", maxStaff: "", smsPerMonth: "0", active: true }}
+        plan={{ code: "", name: "", price: "", maxStaff: "", smsPerMonth: "0", active: true, features: [] }}
       />
     </div>
   );

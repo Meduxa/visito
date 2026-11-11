@@ -122,6 +122,12 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [ ] Reports step 3 (later): expenses module, then profit & loss
 - [x] Settings in sections (Levan, 2026-11-07, after looking at a competitor): Settings home with every section; menu beside each section on desktop, "← Settings" on phones; Business details / Online booking / Website / Closed days / Rooms & chairs (dental) / Notifications / SMS & reminders / Team & access / Data & security (owner); one "Settings" item in the main menu — decision 021
 - [x] Settings → Notifications: owner & admins and/or the specialist, separately for new online bookings and for visits that need a status (migration `20261107120000`, RLS tests) — decision 021. Later: booking sound, push
+- [x] Online booking extras seen at competitors (Levan, 2026-11-09): show/hide prices, upcoming-visit limit per client, embed code (iframe + button) for the salon's own website — migration `20261109090000`, RLS tests — decision 023
+- [x] Clients step 1 (Levan, 2026-11-09, after Visage + EasyWeek): list columns last/next visit, visits, spent, average; automatic groups new / regular / VIP / at risk / lost; filters (tag, upcoming, birthday this month, no-show); sorting; numbers on the client card — decision 024, plan `docs/plans/clients-section.md`
+- [x] Clients step 2 (Levan, 2026-11-11): choose columns + Excel of the current view, quick note in the list, own fields (Settings → Clients), group thresholds as a setting, "new booking" from the card — decision 026
+- [ ] Clients step 3: SMS to a group from the list, own fields on the booking page, loyalty
+- [x] Payroll step 1 (Levan, 2026-11-11), only on plans with the Payroll feature (Pro/Standard, Clinic, trial): pay schemes (salary + % with category/service rates), tips, bonuses/deductions, monthly payslip + payouts, Excel, upgrade view — decision 025, plan `docs/plans/payroll.md`
+- [ ] Payroll step 2: staff see their own payslip, other pay periods, closing a month, product commission
 
 ## 🚀 Pilot with 2–3 salons + 1 dental clinic (2–4 weeks of real use, fix feedback)
 

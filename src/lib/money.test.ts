@@ -18,6 +18,13 @@ describe("money", () => {
     expect(formatMoney(5550)).toBe("55,50 ₾");
     expect(formatMoney(5500, "en-US")).toBe("55 ₾");
     expect(formatMoney(5550, "en-US")).toBe("55.50 ₾");
+    // the same as Intl ka-GE on a full-ICU server, but without needing the browser's locale data
+    expect(formatMoney(1234550)).toBe(
+      `${new Intl.NumberFormat("ka-GE", { minimumFractionDigits: 2 }).format(12345.5)} ₾`,
+    );
+    expect(formatMoney(1234500)).toBe("12 345 ₾");
+    expect(formatMoney(123456700, "en")).toBe("1,234,567 ₾");
+    expect(formatMoney(-5550)).toBe("-55,50 ₾");
   });
 
   it("refuses fractional tetri", () => {

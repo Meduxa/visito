@@ -40,6 +40,7 @@ export type PublicBusiness = {
   phone: string | null;
   address: string | null;
   otpRequired: boolean;
+  showPrices: boolean; // false: prices are not sent to the browser at all
   maxDaysAhead: number;
   cancelWindowMin: number;
   hours: Record<number, [string, string][]>; // ISO weekday → local times
@@ -73,7 +74,7 @@ export const getPublicBusiness = cache(
       db
         .from("tenant_settings")
         .select(
-          "phone, online_otp_required, max_days_ahead, cancel_window_min, site_about, site_cover_path, site_logo_path, site_instagram, site_facebook, site_theme",
+          "phone, online_otp_required, online_show_prices, max_days_ahead, cancel_window_min, site_about, site_cover_path, site_logo_path, site_instagram, site_facebook, site_theme",
         )
         .eq("tenant_id", id)
         .single(),
@@ -153,6 +154,10 @@ export const getPublicBusiness = cache(
       (hours[h.weekday] ??= []).push([trimSeconds(h.start_time), trimSeconds(h.end_time)]);
     for (const k of Object.keys(hours)) hours[Number(k)].sort((a, b) => a[0].localeCompare(b[0]));
 
+    // hidden prices never leave the server
+    const showPrices = settings.data?.online_show_prices ?? true;
+    if (!showPrices) for (const s of list) Object.assign(s, { priceMinor: 0, priceMaxMinor: null });
+
     const url = publicEnv.NEXT_PUBLIC_SUPABASE_URL;
     return {
       tenantId: id,
@@ -163,6 +168,7 @@ export const getPublicBusiness = cache(
       phone: settings.data?.phone ?? location.data?.phone ?? null,
       address: location.data?.address ?? null,
       otpRequired: settings.data?.online_otp_required ?? true,
+      showPrices,
       maxDaysAhead: settings.data?.max_days_ahead ?? 60,
       cancelWindowMin: settings.data?.cancel_window_min ?? 0,
       hours,

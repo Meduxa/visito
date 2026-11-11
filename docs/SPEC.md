@@ -47,7 +47,7 @@ Permissions are enforced in the database (RLS) — the UI only hides what the us
 - **Time off / breaks / vacations / sick days** — blocks availability.
 - Which services each staff member performs, with optional **per-staff price and duration override** (senior stylist charges more / works faster).
 - Staff levels (Junior / Middle / Senior / Top) with price multipliers — optional convenience over per-staff overrides.
-- Commission settings per staff (percentage of service price) — used in reports (v1: calculation only, no payroll).
+- Commission settings per staff (percentage of service price) — used in reports and, on plans with Payroll, in pay (decision 025).
 
 ### 4.3 Services and prices
 - **Categories** (Hair, Nails, Brows & lashes, Cosmetology, Massage / for dental: Consultation, Hygiene, Therapy, Surgery, Orthodontics, Prosthetics...). Drag to reorder.
@@ -232,7 +232,7 @@ Key constraints:
 - Native iOS/Android apps (PWA instead)
 - Full dental charting, X-ray storage, insurance claims
 - Inventory/stock management
-- Payroll
+- Payroll beyond step 1 (decision 025): staff seeing their own payslip, non-monthly periods, product commission
 - AI features (v2 ideas: smart rebooking suggestions, no-show prediction, auto-reply to clients)
 - Integration with RS.ge fiscal receipts (investigate before selling to businesses that need it)
 

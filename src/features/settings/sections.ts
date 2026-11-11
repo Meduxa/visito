@@ -6,6 +6,7 @@ import {
   Bell,
   Building2,
   CalendarOff,
+  Contact,
   Globe,
   Link2,
   MessageSquare,
@@ -15,7 +16,16 @@ import {
 } from "lucide-react";
 
 export type SettingsSectionKey =
-  "business" | "booking" | "website" | "closures" | "resources" | "notifications" | "sms" | "team" | "data";
+  | "business"
+  | "booking"
+  | "website"
+  | "closures"
+  | "resources"
+  | "notifications"
+  | "sms"
+  | "team"
+  | "clients"
+  | "data";
 
 type Section = {
   key: SettingsSectionKey;
@@ -48,6 +58,7 @@ export const SETTINGS_GROUPS: { key: "business" | "messages" | "people"; section
     key: "people",
     sections: [
       { key: "team", href: "/settings/team", icon: UsersRound },
+      { key: "clients", href: "/settings/clients", icon: Contact },
       { key: "data", href: "/settings/data", icon: ShieldCheck, also: ["/settings/audit"], only: "owner" },
     ],
   },

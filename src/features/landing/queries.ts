@@ -7,6 +7,8 @@ export type LandingPlan = {
   priceMinor: number;
   maxStaff: number | null;
   smsPerMonth: number;
+  /** paid features of the plan (decision 025), e.g. "payroll" */
+  payroll: boolean;
 };
 
 // Plans Levan edits at /admin/plans. Shown only once they have prices: until then
@@ -14,7 +16,7 @@ export type LandingPlan = {
 export async function getLandingPlans(): Promise<LandingPlan[]> {
   const { data } = await createAdminClient()
     .from("plans")
-    .select("code, name, price_minor, max_staff, sms_per_month")
+    .select("code, name, price_minor, max_staff, sms_per_month, features")
     .eq("active", true)
     .neq("code", "trial")
     .order("sort_order");
@@ -24,6 +26,7 @@ export async function getLandingPlans(): Promise<LandingPlan[]> {
     priceMinor: p.price_minor,
     maxStaff: p.max_staff,
     smsPerMonth: p.sms_per_month,
+    payroll: p.features.includes("payroll"),
   }));
   return plans.every((p) => p.priceMinor > 0) ? plans : [];
 }

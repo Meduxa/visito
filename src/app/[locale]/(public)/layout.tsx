@@ -25,10 +25,10 @@ export default async function PublicLayout({ children, params }: LayoutProps<"/[
           <BrandLogo className="h-5" />
         </span>
         <nav aria-label={t("legal.links.privacy")} className="flex flex-wrap justify-center gap-x-4">
-          <Link href="/legal/privacy" className="underline">
+          <Link href="/legal/privacy" target="_blank" className="underline">
             {t("legal.links.privacy")}
           </Link>
-          <Link href="/legal/terms" className="underline">
+          <Link href="/legal/terms" target="_blank" className="underline">
             {t("legal.links.terms")}
           </Link>
         </nav>

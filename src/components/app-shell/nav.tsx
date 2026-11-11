@@ -13,6 +13,7 @@ import {
   UserRound,
   Users,
   UsersRound,
+  Wallet,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -40,6 +41,7 @@ function groups(type: BusinessType, canManage: boolean, hasProfile: boolean) {
           ? [
               { href: "/cash", key: "cash", icon: Banknote },
               { href: "/reports", key: "reports", icon: ChartColumn },
+              { href: "/payroll", key: "payroll", icon: Wallet },
             ]
           : []),
       ],
@@ -112,7 +114,9 @@ export function BottomNav({ type, myDayFirst }: { type: BusinessType; myDayFirst
     { href: "/services", key: "services", icon: type === "dental" ? Stethoscope : Scissors },
     { href: "/more", key: "more", icon: Menu },
   ] as const;
-  const moreActive = ["/more", "/staff", "/settings"].some((p) => isActive(p));
+  const moreActive = ["/more", "/staff", "/settings", "/cash", "/reports", "/payroll"].some((p) =>
+    isActive(p),
+  );
 
   return (
     <nav
@@ -152,6 +156,7 @@ export function MoreNavList({ canManage }: { canManage: boolean }) {
       ? [
           { href: "/cash", key: "cash", icon: Banknote },
           { href: "/reports", key: "reports", icon: ChartColumn },
+          { href: "/payroll", key: "payroll", icon: Wallet },
         ]
       : []),
     canManage

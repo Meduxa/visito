@@ -484,11 +484,23 @@ async function seedCatalog(tenantId: string, type: "salon" | "dental", staffLogi
     ),
   );
 
-  const bookings = await seedBookings(
-    tenantId,
-    staffIds,
-    inserted.map((c) => c.id),
-  );
+  const bookings =
+    (await seedBookings(
+      tenantId,
+      staffIds,
+      inserted.map((c) => c.id),
+    )) +
+    (await seedHistory(
+      tenantId,
+      staffIds,
+      inserted.map((c) => c.id),
+    ));
+  await seedPay(tenantId, staffIds);
+  if (type === "salon")
+    await seedClientFields(
+      tenantId,
+      inserted.map((c) => c.id),
+    );
   return { services: serviceIds.length, staff: staffIds.length, clients: inserted.length, bookings };
 }
 
@@ -535,7 +547,8 @@ async function seedBookings(tenantId: string, staffIds: string[], clientIds: str
             .from("bookings")
             .insert({
               tenant_id: tenantId,
-              client_id: clientIds[(n * 7) % clientIds.length],
+              // the first 20 clients only: the rest stay free to show "at risk" and "lost" (seedHistory)
+              client_id: clientIds[(n * 7) % Math.min(clientIds.length, 20)],
               starts_at: start.toISOString(),
               ends_at: end.toISOString(),
               status,
@@ -575,6 +588,207 @@ async function seedBookings(tenantId: string, staffIds: string[], clientIds: str
     }
   }
   return n;
+}
+
+// A year of earlier, completed visits, so the client groups (decision 024) and
+// the visit numbers look like a real business: some clients come every few
+// weeks (VIP, regular), some stopped coming (at risk, lost), some are new.
+// Starts 5 days ago (seedBookings covers the days around today) and never
+// puts one specialist twice in the same hour.
+async function seedHistory(tenantId: string, staffIds: string[], clientIds: string[]) {
+  const { data: services } = await db
+    .from("services")
+    .select("id, name_i18n, price_type, price_minor, duration_min, buffer_after_min")
+    .eq("tenant_id", tenantId);
+  const usable = (services ?? []).filter((s) => s.duration_min + s.buffer_after_min <= 55);
+  if (!usable.length || !staffIds.length) return 0;
+  const tz = "Asia/Tbilisi";
+  const today = formatInTimeZone(new Date(), tz, "yyyy-MM-dd");
+  // [days ago of the last visit, number of visits, days between visits]
+  type Pattern = [number, number, number];
+  const vip: Pattern = [8, 7, 21];
+  const regular: Pattern = [20, 3, 28];
+  const regular2: Pattern = [12, 2, 30];
+  const atRisk: Pattern = [100, 3, 35];
+  const lost: Pattern = [240, 2, 40];
+  const none: Pattern = [0, 0, 0]; // new: only the visits around today, if any
+  // clients already booked around today can't look inactive: they get the busy patterns
+  const { data: recent } = await db.from("bookings").select("client_id").eq("tenant_id", tenantId);
+  const busy = new Set((recent ?? []).map((r) => r.client_id));
+  const quiet = [atRisk, lost, atRisk, lost, none];
+  const active = [vip, regular, regular2, vip, regular, none];
+  let qi = 0;
+  let ai = 0;
+  const taken = new Set<string>();
+  let n = 0;
+  for (const [ci, clientId] of clientIds.entries()) {
+    const [last, count, gap] = busy.has(clientId) ? active[ai++ % active.length] : quiet[qi++ % quiet.length];
+    for (let k = 0; k < count; k++) {
+      const daysAgo = 5 + last + k * gap + (ci % 4);
+      const day = new Date(`${today}T12:00:00Z`);
+      day.setUTCDate(day.getUTCDate() - daysAgo);
+      if (day.getUTCDay() === 0) day.setUTCDate(day.getUTCDate() - 1); // closed on Sunday
+      const date = day.toISOString().slice(0, 10);
+      let si = (ci + k) % staffIds.length;
+      let hour = 10 + ((ci + k) % 8);
+      while (taken.has(`${si}|${date}|${hour}`)) {
+        hour = hour >= 18 ? 10 : hour + 1;
+        if (hour === 10) si = (si + 1) % staffIds.length;
+      }
+      taken.add(`${si}|${date}|${hour}`);
+      const svc = usable[(ci + k) % usable.length];
+      const start = fromZonedTime(`${date}T${String(hour).padStart(2, "0")}:00`, tz);
+      const end = new Date(start.getTime() + svc.duration_min * 60_000);
+      const b = must(
+        "past booking",
+        await db
+          .from("bookings")
+          .insert({
+            tenant_id: tenantId,
+            client_id: clientId,
+            starts_at: start.toISOString(),
+            ends_at: end.toISOString(),
+            status: "completed",
+            source: k % 3 === 0 ? "online" : "admin",
+            total_minor: svc.price_minor,
+            created_at: new Date(start.getTime() - 3 * 86_400_000).toISOString(),
+          })
+          .select("id")
+          .single(),
+      );
+      check(
+        "past booking item",
+        await db.from("booking_items").insert({
+          tenant_id: tenantId,
+          booking_id: b.id,
+          service_id: svc.id,
+          staff_id: staffIds[si],
+          name_snapshot: (svc.name_i18n as { ka: string }).ka,
+          price_type_snapshot: svc.price_type,
+          price_minor_snapshot: svc.price_minor,
+          duration_min_snapshot: svc.duration_min,
+          buffer_min_snapshot: svc.buffer_after_min,
+          starts_at: start.toISOString(),
+          ends_at: end.toISOString(),
+          blocked_until: new Date(end.getTime() + svc.buffer_after_min * 60_000).toISOString(),
+        }),
+      );
+      check(
+        "past history",
+        await db
+          .from("booking_status_history")
+          .insert({ tenant_id: tenantId, booking_id: b.id, to_status: "completed" }),
+      );
+      n++;
+    }
+  }
+  return n;
+}
+
+// Payroll (decision 025): pay schemes, one category rate, a bonus and a
+// deduction this month, and last month partly paid — so /payroll shows numbers.
+// Own client fields (decision 026): a few salon-style fields, filled on some cards.
+async function seedClientFields(tenantId: string, clientIds: string[]) {
+  const defs = [
+    { label: "თმის ტიპი", kind: "choice", options: ["მშრალი", "ნორმალური", "ცხიმიანი"] },
+    { label: "ფერის ფორმულა", kind: "text", options: [] },
+    { label: "ალერგია", kind: "yesno", options: [] },
+    { label: "პატჩ-ტესტი", kind: "date", options: [] },
+  ];
+  const fields = must(
+    "client fields",
+    await db
+      .from("client_fields")
+      .insert(defs.map((d, i) => ({ ...d, tenant_id: tenantId, sort_order: i })))
+      .select("id, kind"),
+  );
+  const [hair, formula, allergy, patch] = fields.map((f) => f.id);
+  const types = ["მშრალი", "ნორმალური", "ცხიმიანი"];
+  const formulas = ["7/1 + 6% 1:1", "8/0 + 3%", "6/3 + 9%", "9/1 + 6% 1:2"];
+  for (const [i, id] of clientIds.slice(0, 12).entries()) {
+    const custom: Record<string, string | boolean> = { [hair]: types[i % 3] };
+    if (i % 2 === 0) custom[formula] = formulas[i % formulas.length];
+    if (i % 5 === 0) custom[allergy] = true;
+    if (i % 4 === 0) custom[patch] = `2026-${String(1 + (i % 9)).padStart(2, "0")}-1${i % 9}`;
+    check("client custom", await db.from("clients").update({ custom }).eq("id", id));
+  }
+}
+
+async function seedPay(tenantId: string, staffIds: string[]) {
+  const pct = [40, 35, 30, 45, 30, 35];
+  const salary = [60000, 0, 40000, 0, 0, 0];
+  for (const [i, id] of staffIds.entries()) {
+    check(
+      "commission",
+      await db
+        .from("staff")
+        .update({ commission_pct: pct[i % pct.length] })
+        .eq("id", id),
+    );
+    check(
+      "staff pay",
+      await db
+        .from("staff_pay")
+        .insert({ tenant_id: tenantId, staff_id: id, salary_minor: salary[i % salary.length] }),
+    );
+  }
+  const { data: cat } = await db
+    .from("service_categories")
+    .select("id")
+    .eq("tenant_id", tenantId)
+    .order("sort_order")
+    .limit(1)
+    .maybeSingle();
+  if (cat && staffIds[0])
+    check(
+      "pay rate",
+      await db
+        .from("staff_pay_rates")
+        .insert({ tenant_id: tenantId, staff_id: staffIds[0], category_id: cat.id, pct: 50 }),
+    );
+  const month = formatInTimeZone(new Date(), "Asia/Tbilisi", "yyyy-MM");
+  const [y, m] = month.split("-").map(Number);
+  const prev = new Date(Date.UTC(y, m - 2, 1)).toISOString().slice(0, 10);
+  if (staffIds.length >= 2) {
+    check(
+      "pay adjustments",
+      await db.from("pay_adjustments").insert([
+        {
+          tenant_id: tenantId,
+          staff_id: staffIds[0],
+          month: `${month}-01`,
+          kind: "bonus",
+          amount_minor: 10000,
+          note: "გეგმის შესრულება",
+        },
+        {
+          tenant_id: tenantId,
+          staff_id: staffIds[1],
+          month: `${month}-01`,
+          kind: "deduction",
+          amount_minor: 2000,
+          note: "დაგვიანება",
+        },
+      ]),
+    );
+    check(
+      "payouts",
+      // last month: the fixed salary was paid; the % part is still owed
+      await db.from("payouts").insert(
+        staffIds
+          .map((id, i) => ({ id, salary: salary[i % salary.length] }))
+          .filter((x) => x.salary > 0)
+          .map((x, i) => ({
+            tenant_id: tenantId,
+            staff_id: x.id,
+            month: prev,
+            amount_minor: x.salary,
+            method: i === 0 ? "transfer" : "cash",
+            paid_on: `${month}-05`,
+          })),
+      ),
+    );
+  }
 }
 
 seed().then(

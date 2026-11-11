@@ -66,9 +66,14 @@ test("legal pages are reachable from sign-up and the booking page, in every lang
   await page.goto("/ka/signup");
   await page.getByRole("link", { name: "კონფიდენციალურობის პოლიტიკა" }).first().waitFor();
   await page.goto("/ka/book/orchidea");
-  await page.getByRole("contentinfo").getByRole("link", { name: "მომსახურების პირობები" }).click();
-  await expect(page.getByRole("heading", { level: 1, name: "მომსახურების პირობები" })).toBeVisible();
-  await expect(page.getByRole("note")).toContainText("სამუშაო ვერსია");
+  // opens in a new tab, so a half-finished booking (or an embedded form) is not lost
+  const [terms] = await Promise.all([
+    page.waitForEvent("popup"),
+    page.getByRole("contentinfo").getByRole("link", { name: "მომსახურების პირობები" }).click(),
+  ]);
+  await expect(terms.getByRole("heading", { level: 1, name: "მომსახურების პირობები" })).toBeVisible();
+  await expect(terms.getByRole("note")).toContainText("სამუშაო ვერსია");
+  await terms.close();
   for (const [l, title] of [
     ["en", "Data processing agreement"],
     ["ru", "Политика конфиденциальности"],

@@ -216,7 +216,10 @@ export function BookingRulesCard({ initial }: { initial: BookingRulesInput }) {
   const t = useTranslations();
   const [rules, setRules] = useState(initial);
   const save = useSave();
-  const numberField = (key: "minNoticeHours" | "maxDaysAhead" | "cancelWindowHours", max: number) => (
+  const numberField = (
+    key: "minNoticeHours" | "maxDaysAhead" | "cancelWindowHours" | "maxUpcoming",
+    max: number,
+  ) => (
     <FormField id={key} label={t(`settings.rules.${key}`)} hint={t(`settings.rules.${key}Hint`)}>
       <Input
         id={key}
@@ -257,8 +260,9 @@ export function BookingRulesCard({ initial }: { initial: BookingRulesInput }) {
             </SelectContent>
           </Select>
         </FormField>
+        {numberField("maxUpcoming", 20)}
       </div>
-      {(["onlineOtpRequired", "onlineRequiresApproval"] as const).map((k) => (
+      {(["onlineOtpRequired", "onlineRequiresApproval", "onlineShowPrices"] as const).map((k) => (
         <SwitchRow key={k} label={t(`settings.rules.${k}`)} hint={t(`settings.rules.${k}Hint`)}>
           <Switch checked={rules[k]} onCheckedChange={(v) => setRules({ ...rules, [k]: v })} />
         </SwitchRow>

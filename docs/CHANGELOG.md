@@ -2,6 +2,87 @@
 
 All notable changes per phase. Newest on top.
 
+## Clients step 2: own fields, group numbers, columns, quick note, Excel, booking from the card (2026-11-11)
+
+- **Settings → Clients** (new section):
+  - **Own fields:** up to 20 extra fields on every client card: text, number, date, choice from a list, or yes/no. Fields can be reordered, renamed and removed; removing a field erases its values.
+  - **Client groups:** VIP from N visits, at risk after N days, lost after N days. The list's groups and its hint follow these numbers.
+- **The client card** has an "Own fields" block and a **New booking** button. The button opens the calendar's booking form with the client filled in.
+- **Columns** menu on the list (desktop): show or hide columns, including own fields; it is remembered in this browser. **Show the standard columns** resets it.
+- **Quick note** at the end of every row: read or edit the client's note without opening the card.
+- **Download Excel** of exactly the current list: search, group, filters and sorting, all pages, the chosen columns. Owner/admin only, written to the audit log.
+- **Privacy:** erasing a client clears own fields; merging keeps both cards' values.
+- **Demo data:** 4 salon fields (hair type, colour formula, allergy, patch test), filled on some cards.
+- **Database:** migration `20261111120000_clients_step2.sql` (decision 026). Tests: `rls_clients_step2.test.ts`, `fields.test.ts`, `e2e/clients-step2.spec.ts`.
+
+## Payroll, only in plans that include it (2026-11-11)
+
+- **Plans get paid features.** `/admin/plans` has a **Payroll** switch per plan. It is on for Pro ("Standard"), Clinic and the trial. The landing price cards list Payroll on plans that have it.
+- **Menu → Payroll** (owner; admins who may see revenue):
+  - month by month, with totals: earned this month, paid, still to pay
+  - a row per specialist: services, % of services, salary, tips and bonuses, total, to pay
+- **Payslip panel:**
+  - salary, a line per % rate, tips, bonuses and deductions, and the total
+  - payments recorded (cash, transfer or card; with date and note), and what is still to pay
+  - add or remove a bonus, deduction or payment (removing asks first)
+- **Pay settings:**
+  - fixed salary per month and the default % (the same % as on the staff profile)
+  - a different % for a category or a service: the service's % wins, then the category's, then the default
+  - % is counted on completed services after discount
+- **Excel download** of the month: a summary sheet and a detail sheet.
+- **Plans without Payroll** show the menu item with an "upgrade" page. Data stays, locked, after a downgrade.
+- **Safety:** database rules on all 4 new tables (plan feature + revenue rights; staff never). Every change is in the audit log.
+- **Demo data:** pay schemes, a bonus and a deduction this month, and last month's salaries paid.
+- **Database:** migration `20261111090000_payroll.sql` (decision 025, plan `docs/plans/payroll.md`). Tests: `rls_payroll.test.ts`, `compute.test.ts`, `e2e/payroll.spec.ts`.
+
+## Clients: visit numbers, groups, filters (2026-11-09)
+
+- **New columns:**
+  - **Group**
+  - **Last visit**
+  - **Next visit**
+  - **Visits**
+  - **Spent** and **Average**: only for the owner, and for admins who may see revenue
+
+  On a phone each client is a card with "last · next · visits".
+- **Automatic groups** above the list, each with its count:
+  - **All**
+  - **New:** 0–1 visits
+  - **Regular:** 2–4
+  - **VIP:** 5+, last visit within 60 days
+  - **At risk:** no visit for 60–180 days
+  - **Lost:** over 180 days
+- **Filters:**
+  - tag
+  - has an upcoming visit
+  - birthday this month
+  - had a no-show
+  - **Clear filters**, when nothing matches
+- **Sort by:**
+  - newest added
+  - name
+  - last visit
+  - number of visits
+  - amount spent
+
+  The view is in the address, so a link opens the same list.
+- **The client card** starts with "At a glance": the group, then visits, spent, average bill, last and next visit, no-shows, cancellations, and "client since". "Client since" is the first booking date for imported clients.
+- **Money reads the same everywhere**, fixed for browsers without Georgian number data. Before, "32,78 ₾" could flip to "32.78 ₾" after loading and lose a click.
+- **Demo data:** a year of past visits, so every group has clients.
+- **Database:** migrations `20261109120000_client_list.sql` and `20261109130000_client_list_first_visit.sql` (decision 024; plan in `docs/plans/clients-section.md`). Tests: `rls_client_list.test.ts`, `e2e/clients.spec.ts`.
+
+## Online booking extras (2026-11-09)
+
+- **Settings → Online booking → Booking rules** has two new rules:
+  - **"Show prices on the booking page"** (on by default). When it's off, clients see services and times but no prices. The prices aren't even sent to the browser.
+  - **"Upcoming visits per client"** (0 = no limit). This is how many future visits one client may hold at once when booking online. Past the limit, the booking page says to call or to cancel a visit first. The team can still book from the calendar.
+- **New card "Booking on your own website"**, with two snippets to copy:
+  - the booking form inside the page (an iframe of the new `/{language}/embed/{address}` page: the booking steps without the website parts)
+  - a "Book online" button
+  - plus **Preview**
+- Only the embed page may be shown inside other websites. Every other page still refuses to be framed. In the embedded form, "Change or cancel" and the legal links open a new tab.
+- Database: migration `20261109090000_online_limits.sql` adds two settings and the limit check inside the online booking function (decision 023). Tests: `rls_online_limits.test.ts`, `e2e/online-extras.spec.ts`.
+
 ## New font: FiraGO (2026-11-08)
 
 - The whole app, the salon websites and the booking pages use **FiraGO**, one font for Georgian, English and Russian (before: Inter + Noto Sans Georgian). Mixed Georgian/Latin text now matches.

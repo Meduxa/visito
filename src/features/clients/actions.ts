@@ -1,9 +1,20 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { z } from "zod";
 import { dbErrorCode, managerContext } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
+import {
+  cleanCustom,
+  clientFieldSchema,
+  COLUMNS_COOKIE,
+  segmentRulesSchema,
+  type ClientField,
+  type ClientFieldInput,
+  type FieldKind,
+  type SegmentRulesInput,
+} from "./fields";
 import { clientSchema, importClientsSchema, type ClientInput } from "./schema";
 
 const uuid = z.uuid();
@@ -18,6 +29,11 @@ export async function saveClient(
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
   const { supabase, tenant } = ctx;
+  const { data: fieldRows } = await supabase
+    .from("client_fields")
+    .select("id, label, kind, options")
+    .eq("tenant_id", tenant.tenantId);
+  const fields: ClientField[] = (fieldRows ?? []).map((f) => ({ ...f, kind: f.kind as FieldKind }));
 
   const row = {
     first_name: v.firstName,
@@ -32,6 +48,8 @@ export async function saveClient(
     important_note: v.importantNote,
     preferred_staff_id: v.preferredStaffId,
     blocked_online: v.blockedOnline,
+    // only when the form sent them: a card saved before fields existed keeps its values
+    ...(v.custom !== undefined && { custom: cleanCustom(v.custom, fields) }),
   };
   const { data, error } = id
     ? await supabase
@@ -168,4 +186,143 @@ export async function importClients(
   if (error) return fail(dbErrorCode(error));
   revalidatePath(`/${ctx.locale}/clients`);
   return ok(data as { inserted: number; skipped: number });
+}
+
+// ----- Clients step 2 (decision 026) -----
+
+/** The quick note from the list: only the client's note changes. */
+export async function saveClientNote(clientId: string, notes: string): Promise<ActionResult> {
+  const ctx = await managerContext();
+  const text = z.string().trim().max(4000, "tooLong").safeParse(notes);
+  if (!ctx || !uuid.safeParse(clientId).success) return fail("notAllowed");
+  if (!text.success) return fail("tooLong");
+  const { data, error } = await ctx.supabase
+    .from("clients")
+    .update({ notes: text.data || null })
+    .eq("id", clientId)
+    .eq("tenant_id", ctx.tenant.tenantId)
+    .select("id");
+  if (error) return fail(dbErrorCode(error));
+  if (!data?.length) return fail("notFound");
+  revalidatePath(`/${ctx.locale}/clients`);
+  return ok(undefined);
+}
+
+export async function saveClientField(id: string | null, input: ClientFieldInput): Promise<ActionResult> {
+  const ctx = await managerContext();
+  if (!ctx || (id && !uuid.safeParse(id).success)) return fail("notAllowed");
+  const p = clientFieldSchema.safeParse(input);
+  if (!p.success)
+    return fail(p.error.issues[0]?.message === "optionsRequired" ? "optionsRequired" : "invalidInput");
+  const { supabase, tenant } = ctx;
+  if (id) {
+    // the kind is fixed once values may exist; only the label and choices change
+    const { data, error } = await supabase
+      .from("client_fields")
+      .update({ label: p.data.label, options: p.data.options })
+      .eq("id", id)
+      .eq("tenant_id", tenant.tenantId)
+      .eq("kind", p.data.kind)
+      .select("id");
+    if (error) return fail(dbErrorCode(error));
+    if (!data?.length) return fail("notFound");
+  } else {
+    const { count } = await supabase
+      .from("client_fields")
+      .select("id", { count: "exact", head: true })
+      .eq("tenant_id", tenant.tenantId);
+    const { error } = await supabase.from("client_fields").insert({
+      tenant_id: tenant.tenantId,
+      label: p.data.label,
+      kind: p.data.kind,
+      options: p.data.options,
+      sort_order: count ?? 0,
+    });
+    if (error) return fail(error.code === "P0006" ? "tooManyFields" : dbErrorCode(error));
+  }
+  revalidatePath(`/${ctx.locale}/settings/clients`);
+  revalidatePath(`/${ctx.locale}/clients`);
+  return ok(undefined);
+}
+
+/** Removes a field and, with it, its values on every card (the database does that). */
+export async function deleteClientField(id: string): Promise<ActionResult> {
+  const ctx = await managerContext();
+  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  const { data, error } = await ctx.supabase
+    .from("client_fields")
+    .delete()
+    .eq("id", id)
+    .eq("tenant_id", ctx.tenant.tenantId)
+    .select("id");
+  if (error) return fail(dbErrorCode(error));
+  if (!data?.length) return fail("notFound");
+  revalidatePath(`/${ctx.locale}/settings/clients`);
+  revalidatePath(`/${ctx.locale}/clients`);
+  return ok(undefined);
+}
+
+/** Moves a field one place up or down. */
+export async function moveClientField(id: string, by: -1 | 1): Promise<ActionResult> {
+  const ctx = await managerContext();
+  if (!ctx || !uuid.safeParse(id).success || ![-1, 1].includes(by)) return fail("notAllowed");
+  const { data } = await ctx.supabase
+    .from("client_fields")
+    .select("id")
+    .eq("tenant_id", ctx.tenant.tenantId)
+    .order("sort_order")
+    .order("created_at");
+  const ids = (data ?? []).map((f) => f.id);
+  const i = ids.indexOf(id);
+  const j = i + by;
+  if (i < 0 || j < 0 || j >= ids.length) return ok(undefined);
+  [ids[i], ids[j]] = [ids[j], ids[i]];
+  for (const [n, fid] of ids.entries()) {
+    const { error } = await ctx.supabase.from("client_fields").update({ sort_order: n }).eq("id", fid);
+    if (error) return fail(dbErrorCode(error));
+  }
+  revalidatePath(`/${ctx.locale}/settings/clients`);
+  revalidatePath(`/${ctx.locale}/clients`);
+  return ok(undefined);
+}
+
+export async function saveSegmentRules(input: SegmentRulesInput): Promise<ActionResult> {
+  const ctx = await managerContext();
+  if (!ctx) return fail("notAllowed");
+  const p = segmentRulesSchema.safeParse(input);
+  if (!p.success)
+    return p.error.issues.some((i) => i.message === "lostAfterAtRisk")
+      ? fail("lostAfterAtRisk", "lostDays")
+      : fail("invalidInput");
+  const { data, error } = await ctx.supabase
+    .from("tenant_settings")
+    .update({
+      segment_vip_visits: p.data.vipVisits,
+      segment_at_risk_days: p.data.atRiskDays,
+      segment_lost_days: p.data.lostDays,
+    })
+    .eq("tenant_id", ctx.tenant.tenantId)
+    .select("tenant_id");
+  if (error) return fail(dbErrorCode(error));
+  if (!data?.length) return fail("notAllowed");
+  revalidatePath(`/${ctx.locale}/settings/clients`);
+  revalidatePath(`/${ctx.locale}/clients`);
+  return ok(undefined);
+}
+
+/** Which columns the list shows — remembered in this browser (a cookie, no personal data). */
+export async function setClientColumns(columns: string[]): Promise<ActionResult> {
+  const list = z
+    .array(z.string().regex(/^(?:[a-zA-Z]{2,12}|f:[0-9a-f-]{36})$/))
+    .max(40)
+    .safeParse(columns);
+  if (!list.success) return fail("invalidInput");
+  (await cookies()).set(COLUMNS_COOKIE, list.data.join(","), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+  });
+  return ok(undefined);
 }

@@ -152,6 +152,7 @@ type Plan = {
   maxStaff: string;
   smsPerMonth: string;
   active: boolean;
+  features: "payroll"[];
 };
 
 export function PlanEditor({ plan, isNew = false }: { plan: Plan; isNew?: boolean }) {
@@ -217,6 +218,22 @@ export function PlanEditor({ plan, isNew = false }: { plan: Plan; isNew?: boolea
             className="size-4"
           />
           {t("plans.active")}
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={v.features.includes("payroll")}
+            onChange={(e) =>
+              setV({
+                ...v,
+                features: e.target.checked
+                  ? [...v.features, "payroll"]
+                  : v.features.filter((f) => f !== "payroll"),
+              })
+            }
+            className="size-4"
+          />
+          {t("plans.features.payroll")}
         </label>
         <FieldError code={error} />
         <Button

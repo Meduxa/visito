@@ -33,6 +33,8 @@ export const bookingRulesSchema = z.object({
     .refine((n) => (slotSteps as readonly number[]).includes(n), "invalidInput"),
   onlineRequiresApproval: z.boolean(),
   onlineOtpRequired: z.boolean(),
+  onlineShowPrices: z.boolean(),
+  maxUpcoming: int(0, 20),
 });
 export type BookingRulesInput = z.input<typeof bookingRulesSchema>;
 

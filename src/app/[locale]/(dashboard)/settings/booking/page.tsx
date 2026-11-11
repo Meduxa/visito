@@ -2,15 +2,17 @@ import { setRequestLocale } from "next-intl/server";
 import QRCode from "qrcode";
 import { PageHeader } from "@/components/page-header";
 import { BookingRulesCard } from "@/features/settings/components/settings-view";
+import { EmbedCard } from "@/features/settings/components/embed-card";
 import { ShareCard } from "@/features/settings/components/share-card";
-import { bookingUrl, requireSettingsAccess, sectionText } from "@/features/settings/section-page";
+import { bookingUrl, embedUrl, requireSettingsAccess, sectionText } from "@/features/settings/section-page";
 import { createClient } from "@/lib/supabase/server";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/settings/booking">) {
   return { title: (await sectionText((await params).locale, "booking")).title };
 }
 
-// Settings → Online booking: the link and QR code, and the booking rules.
+// Settings → Online booking: the link and QR code, the booking rules, and the
+// code for putting booking on the salon's own website.
 export default async function BookingSettingsPage({ params }: PageProps<"/[locale]/settings/booking">) {
   const { locale } = await params;
   setRequestLocale(locale);
@@ -19,7 +21,7 @@ export default async function BookingSettingsPage({ params }: PageProps<"/[local
   const { data: s, error } = await db
     .from("tenant_settings")
     .select(
-      "min_notice_min, max_days_ahead, cancel_window_min, slot_step_min, online_requires_approval, online_otp_required",
+      "min_notice_min, max_days_ahead, cancel_window_min, slot_step_min, online_requires_approval, online_otp_required, online_show_prices, online_max_upcoming",
     )
     .eq("tenant_id", tenant.tenantId)
     .single();
@@ -39,8 +41,11 @@ export default async function BookingSettingsPage({ params }: PageProps<"/[local
           slotStepMin: s.slot_step_min,
           onlineRequiresApproval: s.online_requires_approval,
           onlineOtpRequired: s.online_otp_required,
+          onlineShowPrices: s.online_show_prices,
+          maxUpcoming: s.online_max_upcoming,
         }}
       />
+      <EmbedCard embedUrl={embedUrl(tenant.slug, locale)} bookingUrl={url} name={tenant.name} />
     </div>
   );
 }

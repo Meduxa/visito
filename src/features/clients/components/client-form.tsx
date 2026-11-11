@@ -14,6 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { saveClient } from "../actions";
+import type { ClientField, CustomValues } from "../fields";
 import type { ClientRow } from "../queries";
 import { clientSchema, clientSources, genders, type ClientInput } from "../schema";
 
@@ -22,11 +23,14 @@ const NONE = "__none";
 export function ClientForm({
   client,
   staff,
+  fields = [],
   readOnly,
   onSaved,
 }: {
   client: ClientRow | null;
   staff: { id: string; name: string }[];
+  /** the business's own fields (decision 026) */
+  fields?: ClientField[];
   readOnly: boolean;
   onSaved: (id: string) => void;
 }) {
@@ -34,6 +38,7 @@ export function ClientForm({
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string>();
   const [tagsText, setTagsText] = useState(client?.tags.join(", ") ?? "");
+  const [custom, setCustom] = useState<CustomValues>(client?.custom ?? {});
   const form = useForm<ClientInput>({
     resolver: zodResolver(clientSchema) as never,
     defaultValues: {
@@ -63,7 +68,11 @@ export function ClientForm({
       .map((s) => s.trim())
       .filter(Boolean);
     startTransition(async () => {
-      const r = await saveClient(client?.id ?? null, { ...form.getValues(), tags });
+      const r = await saveClient(client?.id ?? null, {
+        ...form.getValues(),
+        tags,
+        ...(fields.length > 0 && { custom }),
+      });
       if (!r.ok) {
         if (r.field === "phone") return form.setError("phone", { message: r.error });
         return setFormError(r.error);
@@ -176,6 +185,30 @@ export function ClientForm({
         <Textarea id="notes" rows={3} {...form.register("notes")} />
       </FormField>
 
+      {fields.length > 0 && (
+        <fieldset className="flex flex-col gap-3">
+          <legend className="mb-1 text-sm font-medium">{t("clients.ownFields.title")}</legend>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {fields.map((f) => (
+              <OwnField
+                key={f.id}
+                field={f}
+                value={custom[f.id]}
+                readOnly={readOnly}
+                onChange={(v) =>
+                  setCustom((c) => {
+                    const next = { ...c };
+                    if (v === undefined) delete next[f.id];
+                    else next[f.id] = v;
+                    return next;
+                  })
+                }
+              />
+            ))}
+          </div>
+        </fieldset>
+      )}
+
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium">{t("clients.consent.title")}</legend>
         <p className="mb-1 text-xs text-muted-foreground">{t("clients.consent.hint")}</p>
@@ -209,5 +242,67 @@ export function ClientForm({
         </Button>
       )}
     </form>
+  );
+}
+
+function OwnField({
+  field,
+  value,
+  readOnly,
+  onChange,
+}: {
+  field: ClientField;
+  value: string | number | boolean | undefined;
+  readOnly: boolean;
+  onChange: (v: string | number | boolean | undefined) => void;
+}) {
+  const t = useTranslations("clients.ownFields");
+  const id = `own-${field.id}`;
+  if (field.kind === "yesno")
+    return (
+      <SwitchRow label={field.label}>
+        <Switch
+          id={id}
+          checked={value === true}
+          disabled={readOnly}
+          onCheckedChange={(on) => onChange(on ? true : undefined)}
+        />
+      </SwitchRow>
+    );
+  if (field.kind === "choice")
+    return (
+      <FormField id={id} label={field.label}>
+        <Select
+          value={typeof value === "string" ? value : NONE}
+          onValueChange={(v) => onChange(v === NONE ? undefined : v)}
+          disabled={readOnly}
+        >
+          <SelectTrigger id={id} className="h-11 w-full md:h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={NONE}>—</SelectItem>
+            {field.options.map((o) => (
+              <SelectItem key={o} value={o}>
+                {o}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormField>
+    );
+  return (
+    <FormField id={id} label={field.label} hint={field.kind === "text" ? t("textHint") : undefined}>
+      <Input
+        id={id}
+        type={field.kind === "date" ? "date" : "text"}
+        inputMode={field.kind === "number" ? "decimal" : undefined}
+        maxLength={field.kind === "text" ? 500 : undefined}
+        disabled={readOnly}
+        className="h-11 md:h-9"
+        value={value === undefined || typeof value === "boolean" ? "" : String(value)}
+        onChange={(e) => onChange(e.target.value === "" ? undefined : e.target.value)}
+      />
+    </FormField>
   );
 }

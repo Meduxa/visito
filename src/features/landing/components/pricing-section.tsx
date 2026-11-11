@@ -115,6 +115,7 @@ export function PricingSection({ plans }: { plans: LandingPlan[] }) {
                   <Feature>{t("features.reports")}</Feature>
                   {p.smsPerMonth > 0 && <Feature>{t("sms", { count: p.smsPerMonth })}</Feature>}
                   {i > 0 && <Feature>{t("features.marketingSms")}</Feature>}
+                  {p.payroll && <Feature>{t("features.payroll")}</Feature>}
                   <Feature>{t("features.app")}</Feature>
                 </ul>
                 <Button

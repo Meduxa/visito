@@ -103,6 +103,8 @@ export async function saveBookingRules(input: BookingRulesInput): Promise<Action
       slot_step_min: v.slotStepMin,
       online_requires_approval: v.onlineRequiresApproval,
       online_otp_required: v.onlineOtpRequired,
+      online_show_prices: v.onlineShowPrices,
+      online_max_upcoming: v.maxUpcoming,
     },
     "settings.rules_updated",
   );

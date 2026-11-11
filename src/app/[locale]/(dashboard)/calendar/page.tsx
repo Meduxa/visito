@@ -39,6 +39,19 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
   const openBookingId =
     typeof sp.booking === "string" && /^[0-9a-f-]{36}$/.test(sp.booking) ? sp.booking : null;
   const isManager = canManage(tenant.role);
+  // ?for=<client id>: "New booking" from the client card opens the booking form for that client (decision 026)
+  const forId = typeof sp.for === "string" && /^[0-9a-f-]{36}$/.test(sp.for) ? sp.for : null;
+  const bookFor = forId
+    ? ((
+        await supabase
+          .from("clients")
+          .select("id, first_name, last_name, phone_e164, important_note, no_show_count")
+          .eq("tenant_id", tenant.tenantId)
+          .eq("id", forId)
+          .is("anonymized_at", null)
+          .maybeSingle()
+      ).data ?? null)
+    : null;
 
   // Without an explicit view the client picks day (desktop) or list (phone): load both ranges.
   const [from, to] =
@@ -87,6 +100,7 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
       ownStaffId={ownStaffId ?? null}
       waitlist={waitlist}
       dayBy={sp.by === "chair" ? "chair" : "staff"}
+      bookFor={bookFor}
     />
   );
 }

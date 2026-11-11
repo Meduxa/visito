@@ -70,6 +70,7 @@ test("dental clinic: patients wording and chairs in settings", async ({ page }) 
 
 test("phone width: Phase 1 pages never scroll sideways", async ({ page }, info) => {
   test.skip(info.project.name !== "mobile");
+  test.setTimeout(60_000); // ten pages one after another; it was already close to 30 s
   await signIn(page, "salon.owner@demo.test");
   for (const path of [
     "/ka/services",

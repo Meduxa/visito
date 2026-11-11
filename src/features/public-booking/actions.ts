@@ -203,6 +203,7 @@ export async function bookOnline(input: z.input<typeof bookSchema>): Promise<Act
     if (error.code === "23P01") return fail("slotTaken");
     if (error.code === "28000") return fail("phoneNotVerified");
     if (error.code === "P0004") return fail("blockedOnline");
+    if (error.code === "P0006") return fail("tooManyUpcoming");
     if (error.code === "P0003") return fail("slotTaken");
     return fail("generic");
   }

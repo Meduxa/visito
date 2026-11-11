@@ -87,6 +87,7 @@ export function CalendarScreen({
   ownStaffId,
   waitlist,
   dayBy,
+  bookFor = null,
 }: {
   data: CalendarData;
   date: string;
@@ -101,6 +102,15 @@ export function CalendarScreen({
   ownStaffId: string | null;
   waitlist: WaitlistEntry[];
   dayBy: DayBy;
+  /** "New booking" from a client card: open the form for this client at once */
+  bookFor?: {
+    id: string;
+    first_name: string;
+    last_name: string | null;
+    phone_e164: string | null;
+    important_note: string | null;
+    no_show_count: number;
+  } | null;
 }) {
   const t = useTranslations();
   const dates = useDates();
@@ -120,7 +130,10 @@ export function CalendarScreen({
     time: string | null;
     staffId: string | null;
     fromWaitlist?: WaitlistEntry;
-  } | null>(null);
+    forClient?: NonNullable<typeof bookFor>;
+  } | null>(
+    bookFor ? { date: today, time: null, staffId: isManager ? null : ownStaffId, forClient: bookFor } : null,
+  );
   const [waitOpen, setWaitOpen] = useState(false);
   const [waitHighlight, setWaitHighlight] = useState<string[]>([]);
   // the cancelled booking whose time the highlighted clients could take
@@ -651,8 +664,11 @@ export function CalendarScreen({
         <NewBookingPanel
           open
           onClose={() => {
+            const fromCard = !!creating.forClient;
             setCreating(null);
-            router.refresh();
+            // drop ?for= so a reload does not open the form again
+            if (fromCard) router.replace(`${pathname}?${new URLSearchParams({ date })}`);
+            else router.refresh();
           }}
           initial={creating}
           staff={data.staff}
@@ -673,7 +689,9 @@ export function CalendarScreen({
                   },
                   serviceIds: [creating.fromWaitlist.serviceId],
                 }
-              : undefined
+              : creating.forClient
+                ? { client: creating.forClient, serviceIds: [] }
+                : undefined
           }
           onCreated={(id) => {
             if (creating.fromWaitlist) void setWaitlistStatus(creating.fromWaitlist.id, "booked", id);

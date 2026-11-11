@@ -86,6 +86,7 @@ const planSchema = z.object({
   maxStaff: z.union([z.literal(""), z.coerce.number<string>().int().min(1).max(1000)]),
   smsPerMonth: z.coerce.number<string>().int().min(0).max(100000),
   active: z.boolean(),
+  features: z.array(z.enum(["payroll"])).max(5),
 });
 
 export async function savePlan(input: z.input<typeof planSchema>): Promise<ActionResult> {
@@ -101,6 +102,7 @@ export async function savePlan(input: z.input<typeof planSchema>): Promise<Actio
     max_staff: p.data.maxStaff === "" ? null : p.data.maxStaff,
     sms_per_month: p.data.smsPerMonth,
     active: p.data.active,
+    features: [...new Set(p.data.features)],
     updated_at: new Date().toISOString(),
   });
   if (error) return fail("generic");

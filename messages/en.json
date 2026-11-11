@@ -56,7 +56,8 @@
     "myDay": "My day",
     "cash": "Cash",
     "sms": "SMS",
-    "reports": "Reports"
+    "reports": "Reports",
+    "payroll": "Payroll"
   },
   "auth": {
     "email": "Email",
@@ -221,6 +222,7 @@
     "tooMany": "Too many attempts. Please wait a little and try again.",
     "phoneNotVerified": "Please confirm your phone with the SMS code.",
     "blockedOnline": "Online booking isn't available for this number. Please call the business.",
+    "tooManyUpcoming": "You already have the most upcoming visits this business allows online. Please call them, or cancel a visit first.",
     "codeWrong": "Wrong code.",
     "codeExpired": "This code has expired or was tried too often. Request a new one.",
     "smsFailed": "We couldn't send the SMS. Please try again.",
@@ -236,7 +238,10 @@
     "nameMismatch": "The name does not match.",
     "tooManyPhotos": "At most 12 photos.",
     "noSupportAccess": "The owner's permission has ended or was not given.",
-    "invalidHandle": "Enter a profile name like @yoursalon or a link to the profile."
+    "invalidHandle": "Enter a profile name like @yoursalon or a link to the profile.",
+    "optionsRequired": "Add at least one choice, separated by commas.",
+    "tooManyFields": "A business can have up to 20 own fields.",
+    "lostAfterAtRisk": "“Lost” must be more days than “at risk”."
   },
   "email": {
     "invite": {
@@ -484,6 +489,10 @@
       "slotStepMinHint": "Start times offered: every 15 min, every 30 min…",
       "onlineRequiresApproval": "Approve online bookings",
       "onlineRequiresApprovalHint": "New online bookings wait for your confirmation.",
+      "onlineShowPrices": "Show prices on the booking page",
+      "onlineShowPricesHint": "Off: clients see services and times, but no prices.",
+      "maxUpcoming": "Upcoming visits per client",
+      "maxUpcomingHint": "How many future visits one client can have at once when booking online. 0 = no limit.",
       "staffSeesAllClients": "Staff see all clients",
       "staffSeesAllClientsHint": "Off: staff see only clients who chose them.",
       "staffSeesAllBookings": "Staff see all bookings",
@@ -511,6 +520,16 @@
       "qr": "QR code",
       "qrHint": "Print it for the front desk or the mirror — clients scan it with their phone.",
       "download": "Download QR code"
+    },
+    "embed": {
+      "title": "Booking on your own website",
+      "hint": "Paste this code into your website (Wix, WordPress, Tilda…) where the booking form should appear.",
+      "iframe": "Booking form inside the page",
+      "button": "Button that opens the booking page",
+      "buttonText": "Book online",
+      "copy": "Copy code",
+      "copied": "Copied",
+      "preview": "Preview"
     }
   },
   "settingsNav": {
@@ -554,6 +573,10 @@
         "title": "Team & access",
         "hint": "Team members, invitations, what staff can see"
       },
+      "clients": {
+        "title": "Clients",
+        "hint": "Own fields on the client card, numbers behind the groups"
+      },
       "data": {
         "title": "Data & security",
         "hint": "Support access, export, action log, deleting the business"
@@ -592,10 +615,15 @@
     "emptyTitle": "No clients yet",
     "emptyBody": "Clients are added when they book, or add and import them here.",
     "noMatch": "Nobody found. Check the spelling or search by phone.",
+    "mobileLine": "Last: {last} · Next: {next} · {visits, plural, one {# visit} other {# visits}}",
     "colName": "Name",
     "colPhone": "Phone",
-    "colConsent": "Marketing",
-    "colAdded": "Added",
+    "colGroup": "Group",
+    "colLastVisit": "Last visit",
+    "colNextVisit": "Next visit",
+    "colVisits": "Visits",
+    "colSpent": "Spent",
+    "colAverage": "Average",
     "sms": "SMS",
     "email": "Email",
     "blocked": "No online booking",
@@ -665,6 +693,105 @@
       "search": "Search the duplicate",
       "confirm": "Merge {other} into {name}? This cannot be undone.",
       "done": "Cards merged"
+    },
+    "segments": {
+      "label": "Client groups",
+      "all": "All",
+      "new": "New",
+      "regular": "Regular",
+      "vip": "VIP",
+      "at_risk": "At risk",
+      "lost": "Lost",
+      "hint": "Groups are automatic: New — 0–1 visits · Regular — 2–{regularMax} · VIP — {vip}+ (last visit within {atRisk} days) · At risk — no visit for {atRisk}–{lost} days · Lost — over {lost} days. The numbers are set in Settings → Clients."
+    },
+    "filters": {
+      "tag": "Tag",
+      "tagAll": "All tags",
+      "upcoming": "Has an upcoming visit",
+      "birthday": "Birthday this month",
+      "noshow": "Had a no-show",
+      "clear": "Clear filters"
+    },
+    "sort": {
+      "label": "Sort",
+      "added": "Newest added",
+      "name": "By name",
+      "last_visit": "By last visit",
+      "visits": "By number of visits",
+      "spent": "By amount spent"
+    },
+    "stats": {
+      "title": "At a glance",
+      "visits": "Visits",
+      "spent": "Spent",
+      "average": "Average bill",
+      "lastVisit": "Last visit",
+      "nextVisit": "Next visit",
+      "noShows": "No-shows",
+      "cancellations": "Cancellations",
+      "since": "Client since"
+    },
+    "exportList": "Download Excel",
+    "newBooking": "New booking",
+    "ownFields": {
+      "title": "Own fields",
+      "textHint": "Up to 500 characters",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "columns": {
+      "button": "Columns",
+      "title": "Columns in the list",
+      "reset": "Show the standard columns"
+    },
+    "quickNote": {
+      "add": "Add a note",
+      "edit": "Note",
+      "title": "Note — {name}",
+      "saved": "Note saved",
+      "cancel": "Cancel",
+      "save": "Save"
+    }
+  },
+  "clientSettings": {
+    "fields": {
+      "title": "Own fields",
+      "hint": "Extra fields on every client card, e.g. hair type, colour formula, allergy. They can also be shown as columns in the list and are included in the Excel download.",
+      "privacy": "Don't use these fields for health details beyond what the service needs; a clinic's treatment notes belong in the protected notes.",
+      "empty": "No own fields yet.",
+      "add": "Add a field",
+      "max": "Up to 20 fields.",
+      "up": "Move {label} up",
+      "down": "Move {label} down",
+      "edit": "Edit {label}",
+      "remove": "Remove {label}",
+      "removeConfirm": "Remove “{label}”? Its values are erased from every client card.",
+      "label": "Name",
+      "labelPlaceholder": "e.g. Hair type",
+      "kind": "Type",
+      "kindFixed": "The type can't be changed once the field exists.",
+      "options": "Choices",
+      "optionsHint": "Separated by commas.",
+      "optionsPlaceholder": "e.g. dry, normal, oily"
+    },
+    "kinds": {
+      "text": "Text",
+      "number": "Number",
+      "date": "Date",
+      "choice": "Choice from a list",
+      "yesno": "Yes / no"
+    },
+    "rules": {
+      "title": "Client groups",
+      "hint": "The numbers behind the automatic groups in the client list.",
+      "vipVisits": "VIP from",
+      "vipVisitsHint": "completed visits",
+      "atRiskDays": "At risk after",
+      "atRiskDaysHint": "days without a visit",
+      "lostDays": "Lost after",
+      "lostDaysHint": "days without a visit",
+      "summary": "New: 0–1 visits · VIP: {vip}+ visits · at risk: no visit for {atRisk} days · lost: no visit for {lost} days.",
+      "defaults": "Standard numbers"
     }
   },
   "clientImport": {
@@ -1047,7 +1174,8 @@
     "openNow": "Open now",
     "closedNow": "Closed now",
     "todayHours": "today {hours}",
-    "closedToday": "closed today"
+    "closedToday": "closed today",
+    "embedTitle": "Online booking"
   },
   "manageBooking": {
     "title": "Your booking",
@@ -1334,6 +1462,105 @@
     "bookedHoursShort": "Booked hours",
     "month": "Month"
   },
+  "payroll": {
+    "title": "Payroll",
+    "subtitle": "What each specialist earned this month and what is still to pay.",
+    "settingsLink": "Pay settings",
+    "settingsTitle": "Pay settings",
+    "settingsSubtitle": "A fixed monthly salary and a % of services for each specialist. A % for a category or a service replaces the default %.",
+    "month": "Month",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "thisMonth": "This month",
+    "toPay": "Earned this month",
+    "paid": "Paid",
+    "owed": "Still to pay",
+    "cols": {
+      "staff": "Specialist",
+      "services": "Services",
+      "commission": "% of services",
+      "salary": "Salary",
+      "extras": "Tips and bonuses",
+      "total": "Total",
+      "owed": "To pay",
+      "visitsCount": "Visits"
+    },
+    "inactive": "inactive",
+    "owedShort": "{amount} to pay",
+    "settled": "Paid in full",
+    "mobileLine": "{count, plural, one {# visit} other {# visits}} · % {commission} · salary {salary}",
+    "visits": "{count, plural, one {# visit} other {# visits}}",
+    "payslipFor": "Payslip for the month",
+    "earned": "Earned",
+    "salary": "Salary",
+    "noServices": "No completed visits this month",
+    "commissionLine": "{name}: {pct}%",
+    "commissionSub": "{count, plural, one {# visit} other {# visits}} for {value}",
+    "defaultRate": "Services (default %)",
+    "tips": "Tips",
+    "bonus": "Bonus",
+    "deduction": "Deduction",
+    "remove": "Remove",
+    "removeAdjustment": "Remove this bonus or deduction?",
+    "removePayout": "Remove this payment record? The amount will show as still to pay again.",
+    "removeRate": "Remove this %? The default % will apply again.",
+    "payouts": "Payments",
+    "noPayouts": "Nothing paid for this month yet.",
+    "overpaid": "Paid more than earned",
+    "recordPayout": "Record a payment",
+    "amount": "Amount, ₾",
+    "method": "How",
+    "paidOn": "Date",
+    "note": "Note",
+    "notePlaceholder": "e.g. late 3 times",
+    "methods": {
+      "cash": "Cash",
+      "transfer": "Bank transfer",
+      "card": "Card"
+    },
+    "addAdjustment": "Add a bonus or deduction",
+    "kind": "Type",
+    "add": "Add",
+    "save": "Save",
+    "empty": "No specialists yet",
+    "emptyHint": "Add your team first, then set how each person is paid.",
+    "goToStaff": "Go to Staff",
+    "hidden": "The owner has hidden revenue and pay from admins.",
+    "salaryMonthly": "Fixed salary, ₾ per month",
+    "salaryHint": "Leave empty if paid only by %.",
+    "defaultPct": "% of services",
+    "defaultPctHint": "Of completed services, after discount.",
+    "ratesTitle": "A different % for a category or service",
+    "ratesHint": "A service's own % comes first, then its category's, then the default %.",
+    "rateFor": "For",
+    "rateForPlaceholder": "Choose a category or service",
+    "categories": "Categories",
+    "services": "Services",
+    "category": "category",
+    "service": "service",
+    "pct": "%",
+    "locked": {
+      "title": "Payroll is not in your plan",
+      "plans": "Payroll is included in these plans: {plans}.",
+      "noPlans": "Payroll is part of the higher plans.",
+      "contact": "Contact Visito to switch your plan.",
+      "points": {
+        "schemes": "Fixed salary and % of services for each specialist",
+        "rates": "A different % for a category or a service",
+        "extras": "Tips from checkout, bonuses and deductions",
+        "payouts": "A monthly payslip, payments and what is still owed",
+        "excel": "Excel download for your accountant"
+      }
+    },
+    "excel": {
+      "month": "Month",
+      "total": "Total",
+      "item": "Item",
+      "base": "Services value",
+      "summary": "Payroll",
+      "detail": "Details"
+    }
+  },
   "auditLog": {
     "title": "Audit log",
     "subtitle": "Who did what and when in your business. Kept for your records and for data protection.",
@@ -1449,7 +1676,10 @@
       "sms": "SMS / month",
       "active": "Offered to new businesses",
       "new": "New plan",
-      "add": "Add plan"
+      "add": "Add plan",
+      "features": {
+        "payroll": "Includes Payroll"
+      }
     },
     "errorRate": "{failed} of the last {total} failed",
     "smsFilters": {
@@ -1744,6 +1974,7 @@
         "management": "Calendar, clients and checkout",
         "reports": "Reports and analytics",
         "marketingSms": "Promotional SMS to clients",
+        "payroll": "Payroll: salary, % of services, tips, payments",
         "app": "App on the phone (iPhone and Android)"
       },
       "premium": {

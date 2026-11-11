@@ -32,5 +32,9 @@ export function bookingUrl(slug: string) {
   );
 }
 
+/** The booking form made for a frame on the salon's own website (decision 023). */
+export const embedUrl = (slug: string, locale: string) =>
+  `${publicEnv.NEXT_PUBLIC_APP_URL}/${locale}/embed/${slug}`;
+
 export const photoUrl = (path: string) =>
   `${publicEnv.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/business-photos/${path}`;

@@ -4,12 +4,14 @@ export function formatMoney(minor: number, locale = "ka-GE", currency = "GEL"): 
   if (!Number.isInteger(minor)) throw new Error("Money must be an integer number of minor units");
   // Whole amounts without ",00" (price lists say 55 ₾, not 55,00 ₾).
   const digits = minor % 100 === 0 ? 0 : 2;
-  const number = new Intl.NumberFormat(locale, {
-    minimumFractionDigits: digits,
-    maximumFractionDigits: digits,
-  }).format(minor / 100);
-  // The symbol is added by hand: browsers without Georgian locale data would
-  // otherwise print "GEL 55" instead of "55 ₾".
+  // Written out by hand rather than with Intl: browsers without Georgian locale
+  // data print "55.50" (and "GEL 55") where the server prints "55,50" — the same
+  // amount must read the same on the server and in every browser. Same rules as
+  // Intl ka-GE / ru-RU (no-break space between thousands, decimal comma) and en.
+  const [group, decimal] = locale.startsWith("en") ? [",", "."] : [" ", ","];
+  const [int, frac] = (Math.abs(minor) / 100).toFixed(digits).split(".");
+  const number =
+    (minor < 0 ? "-" : "") + int.replace(/\B(?=(\d{3})+(?!\d))/g, group) + (frac ? decimal + frac : "");
   return currency === "GEL" ? `${number} ₾` : `${number} ${currency}`;
 }
 

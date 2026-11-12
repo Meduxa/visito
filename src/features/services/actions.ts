@@ -196,3 +196,38 @@ export async function importServices(rows: unknown): Promise<ActionResult<{ coun
   done(ctx.locale);
   return ok({ count: data });
 }
+
+// ----- Ready services by business type (decision 028) -----
+
+const t3 = z.object({
+  ka: z.string().trim().min(1).max(120),
+  en: z.string().trim().min(1).max(120),
+  ru: z.string().trim().min(1).max(120),
+});
+const templateRows = z
+  .array(
+    z.object({
+      category: t3,
+      name: t3,
+      price_minor: z.number().int().min(0).max(100_000_000),
+      price_type: z.enum(["fixed", "from"]),
+      duration_min: z.number().int().min(5).max(720),
+    }),
+  )
+  .min(1)
+  .max(100);
+
+/** Adds the chosen ready services (names in ka/en/ru); ones that already exist are skipped. */
+export async function addTemplateServices(rows: unknown): Promise<ActionResult<{ count: number }>> {
+  const ctx = await managerContext();
+  if (!ctx) return fail("notAllowed");
+  const parsed = templateRows.safeParse(rows);
+  if (!parsed.success) return fail("invalidInput");
+  const { data, error } = await ctx.supabase.rpc("add_template_services", {
+    p_tenant: ctx.tenant.tenantId,
+    p_rows: parsed.data,
+  });
+  if (error) return fail(dbErrorCode(error));
+  done(ctx.locale);
+  return ok({ count: data ?? 0 });
+}

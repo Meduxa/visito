@@ -13,7 +13,16 @@ export type QueueInput = {
   text: string; // what the phone receives
   storedText?: string; // what the log shows (SMS codes are blanked out)
   kind: "service" | "marketing";
-  type: "otp" | "confirmed" | "pending" | "reminder" | "rescheduled" | "cancelled" | "manual" | "marketing";
+  type:
+    | "otp"
+    | "confirmed"
+    | "pending"
+    | "reminder"
+    | "rescheduled"
+    | "cancelled"
+    | "manual"
+    | "marketing"
+    | "review";
   key: string;
   clientId?: string | null;
   bookingId?: string | null;

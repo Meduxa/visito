@@ -94,6 +94,9 @@ After the push, GitHub runs the automatic checks (typecheck, lint, unit tests) o
    | `EMAIL_PROVIDER` | `fake` (until step 8) |
    | `SMS_PROVIDER` | `senderge` once the sender.ge key works (decision 018); `fake` until then — SMS are then logged as "not sent" |
    | `SMS_API_KEY` | sender.ge API key — **mark as secret** |
+   | `PAYMENTS_PROVIDER` | `flitt` once Visito's own Flitt merchant is ready (decision 031); `none` until then (owners pay by transfer) |
+   | `FLITT_MERCHANT_ID` | Visito's Flitt merchant ID (not the test 1549901) |
+   | `FLITT_SECRET_KEY` | its payment key — **mark as secret** |
    | `NEXT_PUBLIC_SENTRY_DSN` | from step 3 (or leave out) |
 
    A random `CRON_SECRET` — run this in PowerShell and paste the result into Netlify:

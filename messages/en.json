@@ -47,6 +47,7 @@
     "more": "More",
     "main": "Main navigation",
     "staff": "Staff",
+    "reviews": "Reviews",
     "settings": "Settings",
     "groups": {
       "main": "Overview",
@@ -241,7 +242,13 @@
     "invalidHandle": "Enter a profile name like @yoursalon or a link to the profile.",
     "optionsRequired": "Add at least one choice, separated by commas.",
     "tooManyFields": "A business can have up to 20 own fields.",
-    "lostAfterAtRisk": "“Lost” must be more days than “at risk”."
+    "lostAfterAtRisk": "“Lost” must be more days than “at risk”.",
+    "paymentsOff": "Card payment is not switched on yet.",
+    "paymentUnavailable": "The payment page could not be opened. Try again in a minute.",
+    "alreadyDecided": "This request was already decided.",
+    "reviewExpired": "This link has expired.",
+    "reviewDone": "This visit is already rated.",
+    "chooseRating": "Choose 1–5 stars."
   },
   "email": {
     "invite": {
@@ -314,6 +321,32 @@
     "addAddon": "Add add-on",
     "saveFirst": "Save the service first, then add variants and add-ons.",
     "deleteConfirm": "Delete “{name}”? Bookings made earlier keep their price."
+  },
+  "serviceTemplates": {
+    "button": "Ready services",
+    "kind": "Business type",
+    "kinds": {
+      "hair": "Hair salon",
+      "barber": "Barbershop",
+      "nails": "Nail studio",
+      "brows": "Brows & lashes",
+      "cosmetology": "Cosmetology",
+      "massage": "Massage & spa",
+      "dental": "Dental clinic"
+    },
+    "hint": "Names come in Georgian, English and Russian. Prices are suggestions — open the service after adding to set your own.",
+    "exists": "already added",
+    "cardHint": "Add the ones you offer with one click; edit price and duration afterwards.",
+    "addOne": "Add",
+    "addOneLabel": "Add {name}",
+    "adding": "Adding…",
+    "addedOne": "Added: {name}",
+    "failed": "Could not add the service.",
+    "durationPrice": "{min} min · {price}",
+    "fromReady": "Start from a ready service (optional)",
+    "fromReadyPlaceholder": "Choose a ready service…",
+    "fromReadyHint": "Fills in the names, duration and price — change anything before saving.",
+    "fromPrice": "from {price}"
   },
   "categories": {
     "title": "Categories",
@@ -458,6 +491,32 @@
       "other": "Other"
     }
   },
+  "timeOffRequests": {
+    "mineTitle": "My time off",
+    "ask": "Ask for time off",
+    "from": "First day",
+    "to": "Last day",
+    "reason": "Reason",
+    "note": "Note",
+    "send": "Send request",
+    "cancel": "Cancel",
+    "mineEmpty": "No requests yet. The owner or an admin approves them.",
+    "status": {
+      "pending": "Waiting",
+      "approved": "Approved",
+      "declined": "Declined",
+      "cancelled": "Withdrawn"
+    },
+    "withdraw": "Withdraw",
+    "withdrawConfirm": "Withdraw this request?",
+    "inboxTitle": "Time-off requests",
+    "waiting": "{count} waiting",
+    "inboxEmpty": "Nothing to decide.",
+    "conflicts": "{count, plural, one {# booking in this period} other {# bookings in this period}} — move them after approving",
+    "approve": "Approve",
+    "decline": "Decline",
+    "declineConfirm": "Decline {name}'s request?"
+  },
   "settings": {
     "title": "Business settings",
     "subtitle": "Your business, booking page, messages and team.",
@@ -569,6 +628,10 @@
         "title": "SMS & reminders",
         "hint": "Reminders, SMS texts, balance and log"
       },
+      "reviews": {
+        "title": "Reviews",
+        "hint": "Ask clients to rate their visit, show reviews on the booking page"
+      },
       "team": {
         "title": "Team & access",
         "hint": "Team members, invitations, what staff can see"
@@ -576,6 +639,10 @@
       "clients": {
         "title": "Clients",
         "hint": "Own fields on the client card, numbers behind the groups"
+      },
+      "subscription": {
+        "title": "Subscription",
+        "hint": "Your plan, card payment, payment history"
       },
       "data": {
         "title": "Data & security",
@@ -793,6 +860,63 @@
       "summary": "New: 0–1 visits · VIP: {vip}+ visits · at risk: no visit for {atRisk} days · lost: no visit for {lost} days.",
       "defaults": "Standard numbers"
     }
+  },
+  "reviews": {
+    "title": "Reviews",
+    "subtitle": "What clients say after their visit.",
+    "notAsking": "Clients are not asked for reviews yet.",
+    "turnOn": "Turn it on in Settings → Reviews",
+    "emptyTitle": "No reviews yet",
+    "emptyBody": "After a finished visit clients get an SMS link to rate it; reviews appear here.",
+    "count": "{count, plural, one {# review} other {# reviews}}",
+    "distribution": "Ratings",
+    "filter": "Show",
+    "filters": {
+      "all": "All",
+      "low": "3 stars or less",
+      "hidden": "Hidden"
+    },
+    "anonymous": "Client",
+    "hidden": "Hidden",
+    "visit": "visit {date}",
+    "noComment": "No comment.",
+    "yourReply": "Your reply",
+    "send": "Save reply",
+    "cancel": "Cancel",
+    "reply": "Reply",
+    "editReply": "Edit reply",
+    "show": "Show on the page",
+    "hide": "Hide from the page",
+    "saved": "Saved"
+  },
+  "reviewSettings": {
+    "ask": "Ask for a review after a visit",
+    "askHint": "One SMS with a private link after a finished visit (costs one SMS). Quiet hours apply.",
+    "delay": "Send after (hours)",
+    "delayHint": "Counted from the end of the visit, 1–48.",
+    "show": "Show reviews on the booking page",
+    "showHint": "The average and the latest reviews with a comment; clients by first name only. Hidden reviews never show."
+  },
+  "reviewForm": {
+    "title": "Rate your visit",
+    "question": "How was your visit?",
+    "stars": "{count, plural, one {# star} other {# stars}}",
+    "comment": "Comment (optional)",
+    "commentPlaceholder": "What did you like? What could be better?",
+    "publicNote": "Your first name and comment may be shown on the business's booking page.",
+    "send": "Send",
+    "thanks": "Thank you!",
+    "thanksBody": "Your review was sent to the business.",
+    "notFoundTitle": "This link does not work",
+    "notFoundBody": "It may have expired. Thank you anyway!",
+    "already": "Thank you — this visit is already rated.",
+    "bookAgain": "Book again"
+  },
+  "publicReviews": {
+    "title": "Reviews",
+    "count": "{count, plural, one {# review} other {# reviews}}",
+    "client": "Client",
+    "reply": "Reply:"
   },
   "clientImport": {
     "title": "Import clients",
@@ -1204,7 +1328,8 @@
     "rescheduled": "{business_name}: your visit is moved to {date}, {time}. {manage_link}",
     "cancelled": "{business_name}: your visit on {date}, {time} is cancelled. {phone}",
     "optOut": "Unsubscribe: {link}",
-    "waitlistOffer": "{business_name}: a time opened up — {date}, {time}, {service}. Want it? Call {phone}"
+    "waitlistOffer": "{business_name}: a time opened up — {date}, {time}, {service}. Want it? Call {phone}",
+    "review": "{business_name}: thank you for your visit, {client_name}! How was it? {manage_link}"
   },
   "smsSettings": {
     "title": "SMS",
@@ -1310,7 +1435,8 @@
       "rescheduled": "Moved",
       "cancelled": "Cancelled",
       "manual": "Manual",
-      "marketing": "Promotion"
+      "marketing": "Promotion",
+      "review": "Review request"
     },
     "parts": "{count, plural, one {# SMS} other {# SMS}}",
     "more": "Older",
@@ -1341,8 +1467,8 @@
     "invalidBody": "It may be incomplete. Please contact the business."
   },
   "account": {
-    "trialEnding": "Your trial ends in {days, plural, =0 {less than a day} one {# day} other {# days}}. Contact Visito to choose a plan.",
-    "pastDue": "Your trial has ended or a payment is overdue. Contact Visito so the account is not suspended.",
+    "trialEnding": "Your trial ends in {days, plural, =0 {less than a day} one {# day} other {# days}}. Choose a plan in Settings → Subscription, or contact Visito.",
+    "pastDue": "Your trial has ended or a payment is overdue. Pay in Settings → Subscription, or contact Visito, so the account is not suspended.",
     "suspended": "The account is suspended: you can view and download your data, but not change it. Contact Visito.",
     "cancelled": "The account is cancelled: you can still view and download your data.",
     "deletion": "This business will be deleted on {date}. You can cancel this in Settings."
@@ -1559,6 +1685,53 @@
       "base": "Services value",
       "summary": "Payroll",
       "detail": "Details"
+    }
+  },
+  "billing": {
+    "current": "Your plan",
+    "trial": "Free trial",
+    "statusTrial": "Free until {date}",
+    "statusPaidAuto": "Paid until {date} · renews automatically by card",
+    "statusPaidUntil": "Paid until {date} · automatic payment is off",
+    "status": {
+      "trial": "Trial",
+      "active": "Active",
+      "past_due": "Payment due",
+      "suspended": "Suspended",
+      "cancelled": "Cancelled"
+    },
+    "smsLeft": "{count} SMS left",
+    "stop": "Turn off automatic payment",
+    "stopConfirm": "Turn off the monthly card payment? The plan works until the end of the paid month.",
+    "stopped": "Automatic payment is off",
+    "cardOff": "Card payment is not switched on yet — contact Visito to pay by bank transfer.",
+    "plansTitle": "Plans",
+    "yourPlan": "Your plan",
+    "perMonth": "/ month",
+    "staffUnlimited": "Unlimited specialists",
+    "staffUpTo": "Up to {count} specialists",
+    "smsPerMonth": "{count} SMS every month",
+    "payroll": "Payroll",
+    "opening": "Opening the card page…",
+    "paysAutomatically": "Paid automatically",
+    "payMonthly": "Pay {price} monthly by card",
+    "cardNote": "You pay on Flitt's (TBC Group) secure page; Visito never sees your card. The same amount is charged every month until you turn it off.",
+    "historyTitle": "Payments",
+    "historyEmpty": "No card payments yet.",
+    "payStatus": {
+      "approved": "Paid",
+      "processing": "Processing",
+      "declined": "Declined",
+      "expired": "Expired",
+      "reversed": "Refunded",
+      "mismatch": "Check with Visito",
+      "created": "Not finished"
+    },
+    "returned": {
+      "approved": "Payment received — thank you!",
+      "processing": "The payment is being processed. This page will show it within a minute; refresh it.",
+      "declined": "The card payment was declined. Nothing was charged; try again or use another card.",
+      "expired": "The payment page expired. Nothing was charged."
     }
   },
   "auditLog": {

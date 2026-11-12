@@ -20,6 +20,8 @@ import { deleteService } from "../actions";
 import type { Category, Service } from "../queries";
 import { CategoriesPanel } from "./categories-panel";
 import { ExtrasEditor } from "./extras-editor";
+import { ReadyServicesCard } from "./ready-services";
+import { defaultKind } from "../templates";
 import { ServiceForm } from "./service-form";
 
 const ALL = "__all";
@@ -114,11 +116,11 @@ export function ServicesView({
             action={
               canManage && (
                 <div className="flex flex-wrap justify-center gap-2">
-                  <Button asChild className="h-11 md:h-9">
-                    <Link href="/services/import">{t("services.import")}</Link>
-                  </Button>
-                  <Button variant="outline" className="h-11 md:h-9" onClick={() => setOpenId("new")}>
+                  <Button className="h-11 md:h-9" onClick={() => setOpenId("new")}>
                     {t("services.new")}
+                  </Button>
+                  <Button asChild variant="outline" className="h-11 md:h-9">
+                    <Link href="/services/import">{t("services.import")}</Link>
                   </Button>
                 </div>
               )
@@ -170,7 +172,7 @@ export function ServicesView({
             </p>
           ) : (
             <div className="overflow-hidden rounded-xl border bg-card">
-              <div className="hidden grid-cols-[minmax(0,1fr)_8rem_9rem_8rem] gap-4 border-b bg-muted/50 px-4 py-2.5 text-xs font-medium text-muted-foreground md:grid">
+              <div className="hidden grid-cols-[minmax(0,1fr)_8rem_9rem_8rem] gap-4 border-b bg-muted/50 px-4 py-2.5 text-xs font-medium text-muted-foreground xl:grid">
                 <span>{t("services.colName")}</span>
                 <span>{t("services.colDuration")}</span>
                 <span className="text-right">{t("services.colPrice")}</span>
@@ -184,7 +186,7 @@ export function ServicesView({
                       <button
                         type="button"
                         onClick={() => setOpenId(s.id)}
-                        className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3 text-left outline-none hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset md:grid-cols-[minmax(0,1fr)_8rem_9rem_8rem]"
+                        className="grid w-full grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 px-4 py-3 text-left outline-none hover:bg-muted/50 focus-visible:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:ring-inset xl:grid-cols-[minmax(0,1fr)_8rem_9rem_8rem]"
                       >
                         <span className="flex min-w-0 items-center gap-3">
                           <span
@@ -204,13 +206,13 @@ export function ServicesView({
                             </span>
                           </span>
                         </span>
-                        <span className="text-sm text-muted-foreground md:order-none">
+                        <span className="text-sm text-muted-foreground xl:order-none">
                           {fmt.duration(s.durationMin)}
                         </span>
-                        <span className="col-start-1 text-sm font-medium tabular-nums md:col-start-auto md:text-right">
+                        <span className="col-start-1 text-sm font-medium tabular-nums xl:col-start-auto xl:text-right">
                           {fmt.price(s)}
                         </span>
-                        <span className="justify-self-end md:justify-self-start">{status(s)}</span>
+                        <span className="justify-self-end xl:justify-self-start">{status(s)}</span>
                       </button>
                     </li>
                   );
@@ -218,6 +220,17 @@ export function ServicesView({
               </ul>
             </div>
           )}
+        </div>
+      )}
+
+      {/* ready services, added one by one next to the business's own (decision 028) */}
+      {canManage && (
+        <div className="mt-4">
+          <ReadyServicesCard
+            existing={services.map((s) => s.name.ka ?? "").filter(Boolean)}
+            initialKind={defaultKind(isDental ? "dental" : "salon")}
+            defaultOpen={services.length === 0}
+          />
         </div>
       )}
 

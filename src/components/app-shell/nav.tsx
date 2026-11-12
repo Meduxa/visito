@@ -9,6 +9,7 @@ import {
   Menu,
   Scissors,
   Settings,
+  Star,
   Stethoscope,
   UserRound,
   Users,
@@ -37,6 +38,7 @@ function groups(type: BusinessType, canManage: boolean, hasProfile: boolean) {
         { href: "/clients", key: type === "dental" ? "patients" : "clients", icon: Users },
         { href: "/services", key: "services", icon: type === "dental" ? Stethoscope : Scissors },
         { href: "/staff", key: "staff", icon: UserRound },
+        { href: "/reviews", key: "reviews", icon: Star },
         ...(canManage
           ? [
               { href: "/cash", key: "cash", icon: Banknote },
@@ -114,7 +116,7 @@ export function BottomNav({ type, myDayFirst }: { type: BusinessType; myDayFirst
     { href: "/services", key: "services", icon: type === "dental" ? Stethoscope : Scissors },
     { href: "/more", key: "more", icon: Menu },
   ] as const;
-  const moreActive = ["/more", "/staff", "/settings", "/cash", "/reports", "/payroll"].some((p) =>
+  const moreActive = ["/more", "/staff", "/reviews", "/settings", "/cash", "/reports", "/payroll"].some((p) =>
     isActive(p),
   );
 
@@ -152,6 +154,7 @@ export function MoreNavList({ canManage }: { canManage: boolean }) {
   const t = useTranslations("nav");
   const items = [
     { href: "/staff", key: "staff", icon: UserRound },
+    { href: "/reviews", key: "reviews", icon: Star },
     ...(canManage
       ? [
           { href: "/cash", key: "cash", icon: Banknote },

@@ -7,6 +7,8 @@ import {
   Building2,
   CalendarOff,
   Contact,
+  CreditCard,
+  Star,
   Globe,
   Link2,
   MessageSquare,
@@ -25,6 +27,8 @@ export type SettingsSectionKey =
   | "sms"
   | "team"
   | "clients"
+  | "reviews"
+  | "subscription"
   | "data";
 
 type Section = {
@@ -52,6 +56,7 @@ export const SETTINGS_GROUPS: { key: "business" | "messages" | "people"; section
     sections: [
       { key: "notifications", href: "/settings/notifications", icon: Bell },
       { key: "sms", href: "/settings/sms", icon: MessageSquare },
+      { key: "reviews", href: "/settings/reviews", icon: Star },
     ],
   },
   {
@@ -59,6 +64,7 @@ export const SETTINGS_GROUPS: { key: "business" | "messages" | "people"; section
     sections: [
       { key: "team", href: "/settings/team", icon: UsersRound },
       { key: "clients", href: "/settings/clients", icon: Contact },
+      { key: "subscription", href: "/settings/subscription", icon: CreditCard, only: "owner" },
       { key: "data", href: "/settings/data", icon: ShieldCheck, also: ["/settings/audit"], only: "owner" },
     ],
   },

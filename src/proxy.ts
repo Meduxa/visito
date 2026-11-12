@@ -73,7 +73,7 @@ export const config = {
 // A business's short address ({slug}.visito.ge, decision 016): its home page is
 // the booking page, in any language (/en, /ru). Public pages (legal texts, manage
 // and unsubscribe links) work there as usual; anything else belongs to the main site.
-const PUBLIC_ON_SITE = /^\/(?:legal|m|u)(?:\/|$)/;
+const PUBLIC_ON_SITE = /^\/(?:legal|m|r|u)(?:\/|$)/; // r = review link (decision 030)
 function siteRequest(request: NextRequest, slug: string): NextResponse | null {
   const [, first = "", ...rest] = request.nextUrl.pathname.split("/");
   const locale = (locales as readonly string[]).includes(first) ? first : null;

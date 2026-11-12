@@ -16,6 +16,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { saveService } from "../actions";
 import type { Category, Service } from "../queries";
 import { priceTypes, resourceTypes, serviceSchema, type ServiceInput } from "../schema";
+import { defaultKind } from "../templates";
+import { ReadyServicePicker } from "./ready-services";
 
 const LANGS = ["ka", "en", "ru"] as const;
 const NONE = "__none";
@@ -78,6 +80,20 @@ export function ServiceForm({
 
   return (
     <form id="service-form" onSubmit={onSubmit} noValidate className="flex flex-col gap-5">
+      {!service && (
+        <ReadyServicePicker
+          initialKind={defaultKind(isDental ? "dental" : "salon")}
+          onPick={(c, s) => {
+            // fills the form; everything stays editable before saving
+            const cat = categories.find((x) => (x.name.ka ?? "").toLowerCase() === c.name.ka.toLowerCase());
+            form.setValue("name", { ...s.name });
+            form.setValue("durationMin", s.min);
+            form.setValue("price", String(s.gel));
+            form.setValue("priceType", s.from ? "from" : "fixed");
+            if (cat) form.setValue("categoryId", cat.id);
+          }}
+        />
+      )}
       <fieldset className="flex flex-col gap-3">
         <legend className="mb-1 text-sm font-medium">{t("services.fields.name")}</legend>
         {LANGS.map((l) => (

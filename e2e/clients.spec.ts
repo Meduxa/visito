@@ -39,7 +39,7 @@ test("owner: columns, groups, sorting by money, the card's numbers", async ({ pa
     await expect(page.getByRole("combobox", { name: "დალაგება" })).toHaveText("დახარჯული თანხით");
     const rows = page.getByRole("main").getByRole("list").first().getByRole("listitem");
     const spent = async (i: number) =>
-      money(await rows.nth(i).locator("span.tabular-nums").nth(2).innerText());
+      money(await rows.nth(i).locator("span.tabular-nums", { hasText: "₾" }).first().innerText()); // the "spent" column
     expect(await spent(0)).toBeGreaterThanOrEqual(await spent(1));
     expect(await spent(0)).toBeGreaterThan(0);
   }

@@ -2,7 +2,7 @@
 
 import { Plus, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { DetailPanel } from "@/components/detail-panel";
 import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
@@ -19,10 +19,13 @@ export function StaffList({
   staff,
   canManage,
   isDental,
+  top,
 }: {
   staff: StaffMember[];
   canManage: boolean;
   isDental: boolean;
+  /** shown under the page title (time-off requests, decision 029) */
+  top?: ReactNode;
 }) {
   const t = useTranslations();
   const router = useRouter();
@@ -42,6 +45,7 @@ export function StaffList({
           )
         }
       />
+      {top && <div className="mb-5">{top}</div>}
 
       {staff.length === 0 ? (
         <div className="rounded-xl border bg-card">

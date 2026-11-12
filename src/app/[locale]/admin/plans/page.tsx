@@ -7,7 +7,8 @@ export default async function AdminPlansPage({ params }: PageProps<"/[locale]/ad
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("platform");
-  const { data } = await (await createClient()).from("plans").select("*").order("sort_order").order("code");
+  const db = await createClient();
+  const { data } = await db.from("plans").select("*").order("sort_order").order("code");
 
   return (
     <div className="flex flex-col gap-4">

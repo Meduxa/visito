@@ -4,6 +4,8 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { EmptyState } from "@/components/empty-state";
 import { MyDay } from "@/features/booking/components/my-day";
 import { getCalendar } from "@/features/booking/queries";
+import { MyTimeOff } from "@/features/timeoff/components/time-off-requests";
+import { listTimeOffRequests } from "@/features/timeoff/queries";
 import { addDays } from "@/lib/dates";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveTenant } from "@/lib/tenant";
@@ -38,7 +40,12 @@ export default async function MyDayPage({ params }: PageProps<"/[locale]/my-day"
 
   // only bookings with an item of mine (owners/admins may see more)
   const mine = data.bookings.filter((b) => b.items.some((i) => i.staffId === staffId));
+  const requests = await listTimeOffRequests(tenant.tenantId, { manager: false });
   return (
-    <MyDay bookings={mine} me={me} today={today} timeZone={timeZone} isDental={tenant.type === "dental"} />
+    <div className="flex flex-col gap-5">
+      <MyDay bookings={mine} me={me} today={today} timeZone={timeZone} isDental={tenant.type === "dental"} />
+      {/* time-off requests for my own profile (decision 029) */}
+      <MyTimeOff requests={requests} today={today} />
+    </div>
   );
 }

@@ -128,6 +128,9 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [ ] Clients step 3: SMS to a group from the list, own fields on the booking page, loyalty
 - [x] Payroll step 1 (Levan, 2026-11-11), only on plans with the Payroll feature (Pro/Standard, Clinic, trial): pay schemes (salary + % with category/service rates), tips, bonuses/deductions, monthly payslip + payouts, Excel, upgrade view — decision 025, plan `docs/plans/payroll.md`
 - [ ] Payroll step 2: staff see their own payslip, other pay periods, closing a month, product commission
+- [x] From the Rezervo review (Levan, 2026-11-12): ready services by business type (028), staff time-off requests with approval (029), reviews after a visit (030), owners pay their plan by card via Flitt (031)
+- [ ] Card billing go-live: Visito's Flitt merchant + subscriptions enabled, terms (recurring charges, refunds)
+- [ ] SMS packs for sale (database ready, decision 031) — after deciding how marketing SMS reach clients
 
 ## 🚀 Pilot with 2–3 salons + 1 dental clinic (2–4 weeks of real use, fix feedback)
 

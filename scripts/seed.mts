@@ -496,6 +496,7 @@ async function seedCatalog(tenantId: string, type: "salon" | "dental", staffLogi
       inserted.map((c) => c.id),
     ));
   await seedPay(tenantId, staffIds);
+  if (type === "salon") await seedReviewsAndRequests(tenantId);
   if (type === "salon")
     await seedClientFields(
       tenantId,
@@ -711,6 +712,78 @@ async function seedClientFields(tenantId: string, clientIds: string[]) {
     if (i % 5 === 0) custom[allergy] = true;
     if (i % 4 === 0) custom[patch] = `2026-${String(1 + (i % 9)).padStart(2, "0")}-1${i % 9}`;
     check("client custom", await db.from("clients").update({ custom }).eq("id", id));
+  }
+}
+
+// Reviews and a time-off request (decisions 029, 030): a few rated visits, one
+// with the owner's reply, review requests switched on; the demo specialist with a
+// login has asked for two days off next month.
+async function seedReviewsAndRequests(tenantId: string) {
+  check(
+    "review settings",
+    await db
+      .from("tenant_settings")
+      .update({ reviews_ask: true, reviews_public: true })
+      .eq("tenant_id", tenantId),
+  );
+  const { data: visits } = await db
+    .from("bookings")
+    .select("id, client_id, booking_items(staff_id, sort_order)")
+    .eq("tenant_id", tenantId)
+    .eq("status", "completed")
+    .order("starts_at", { ascending: false })
+    .limit(7);
+  const said: [number, string | null, string | null][] = [
+    [5, "ძალიან კმაყოფილი ვარ, ანამ ზუსტად ის გააკეთა, რაც მინდოდა.", "მადლობა, ნინო! მალე გელოდებით 🌸"],
+    [5, "სასიამოვნო გარემო და ზუსტად დროზე მიმიღეს.", null],
+    [4, "კარგი მომსახურება, ოღონდ ცოტა დამაგვიანდა რიგი.", null],
+    [5, null, null],
+    [3, "შედეგი კარგია, მაგრამ ფასი ცოტა მაღალია.", "გმადლობთ შეფასებისთვის — გავითვალისწინებთ."],
+    [5, "საუკეთესო მანიკური ქალაქში!", null],
+  ];
+  for (const [i, v] of (visits ?? []).slice(0, said.length).entries()) {
+    const [rating, comment, reply] = said[i];
+    const items = (v.booking_items as { staff_id: string; sort_order: number }[]).sort(
+      (a, b) => a.sort_order - b.sort_order,
+    );
+    check(
+      "review",
+      await db.from("reviews").insert({
+        tenant_id: tenantId,
+        booking_id: v.id,
+        client_id: v.client_id,
+        staff_id: items[0]?.staff_id ?? null,
+        rating,
+        comment,
+        reply,
+        replied_at: reply ? new Date().toISOString() : null,
+      }),
+    );
+  }
+  const { data: me } = await db
+    .from("memberships")
+    .select("staff_id")
+    .eq("tenant_id", tenantId)
+    .eq("role", "staff")
+    .not("staff_id", "is", null)
+    .limit(1)
+    .maybeSingle();
+  if (me?.staff_id) {
+    const start = new Date();
+    start.setUTCMonth(start.getUTCMonth() + 1, 10);
+    start.setUTCHours(-4, 0, 0, 0); // midnight in Tbilisi
+    const end = new Date(start.getTime() + 2 * 86_400_000);
+    check(
+      "time-off request",
+      await db.from("time_off_requests").insert({
+        tenant_id: tenantId,
+        staff_id: me.staff_id,
+        starts_at: start.toISOString(),
+        ends_at: end.toISOString(),
+        reason: "vacation",
+        note: "ოჯახური მოგზაურობა",
+      }),
+    );
   }
 }
 

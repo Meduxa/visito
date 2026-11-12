@@ -2,6 +2,26 @@
 
 All notable changes per phase. Newest on top.
 
+## From the Rezervo review: ready services, time-off requests, reviews, card billing (2026-11-12)
+
+- **Ready services, next to manual adding** (decision 028): the Services page has a **Ready services** box covering 7 business types (names in ka/en/ru, duration, suggested price); each service is added with one click and existing ones are marked. **New service** can **start from a ready service**, which fills the form for editing.
+- **Time-off requests:**
+  - On **My day**, a specialist asks for days off: reason, note, withdraw.
+  - On the **Staff** page, owner/admin approve or decline, with a warning when bookings exist in that period.
+  - Approving creates the time off (decision 029).
+- **Reviews:**
+  - Optional SMS after a finished visit with a private link: 1–5 stars and a comment.
+  - **Reviews** page: average, filters, reply, hide.
+  - Published reviews appear on the booking page (clients by first name).
+  - **Settings → Reviews** has the switches (decision 030).
+- **Card payments** (**Settings → Subscription**, owner only):
+  - pay the plan monthly by card on Flitt's secure page, and turn automatic payment off
+  - payment history
+  - the trial and payment-due banners link there
+  - SMS packs are **not offered yet** (Levan: first decide how marketing SMS reach clients); the database is ready for them
+  - Flitt's signed notices; the server checks the status itself (decision 031)
+- **Database:** migrations `20261112090000_templates_timeoff_reviews.sql` and `20261112100000_billing.sql`. Tests: `rls_rezervo_features.test.ts`, `flitt.test.ts`, `e2e/rezervo-features.spec.ts`.
+
 ## Clients step 2: own fields, group numbers, columns, quick note, Excel, booking from the card (2026-11-11)
 
 - **Settings → Clients** (new section):

@@ -58,6 +58,89 @@ export type Database = {
           },
         ]
       }
+      billing_payments: {
+        Row: {
+          amount_minor: number
+          created_at: string
+          created_by: string | null
+          currency: string
+          id: string
+          kind: string
+          masked_card: string | null
+          pack_code: string | null
+          paid_at: string | null
+          parent_id: string | null
+          plan_code: string | null
+          provider_payment_id: string | null
+          segments: number | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          amount_minor: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          kind: string
+          masked_card?: string | null
+          pack_code?: string | null
+          paid_at?: string | null
+          parent_id?: string | null
+          plan_code?: string | null
+          provider_payment_id?: string | null
+          segments?: number | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          amount_minor?: number
+          created_at?: string
+          created_by?: string | null
+          currency?: string
+          id?: string
+          kind?: string
+          masked_card?: string | null
+          pack_code?: string | null
+          paid_at?: string | null
+          parent_id?: string | null
+          plan_code?: string | null
+          provider_payment_id?: string | null
+          segments?: number | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_payments_pack_code_fkey"
+            columns: ["pack_code"]
+            isOneToOne: false
+            referencedRelation: "sms_packs"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "billing_payments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "billing_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_plan_code_fkey"
+            columns: ["plan_code"]
+            isOneToOne: false
+            referencedRelation: "plans"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "billing_payments_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       booking_charges: {
         Row: {
           booking_id: string
@@ -1445,6 +1528,126 @@ export type Database = {
           },
         ]
       }
+      review_requests: {
+        Row: {
+          booking_id: string
+          created_at: string
+          expires_at: string
+          tenant_id: string
+          token_hash: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          expires_at?: string
+          tenant_id: string
+          token_hash: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          expires_at?: string
+          tenant_id?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "review_requests_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: true
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "review_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reviews: {
+        Row: {
+          booking_id: string
+          client_id: string | null
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          replied_at: string | null
+          replied_by: string | null
+          reply: string | null
+          staff_id: string | null
+          status: string
+          tenant_id: string
+        }
+        Insert: {
+          booking_id: string
+          client_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          replied_at?: string | null
+          replied_by?: string | null
+          reply?: string | null
+          staff_id?: string | null
+          status?: string
+          tenant_id: string
+        }
+        Update: {
+          booking_id?: string
+          client_id?: string | null
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          replied_at?: string | null
+          replied_by?: string | null
+          reply?: string | null
+          staff_id?: string | null
+          status?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reviews_booking_id_tenant_id_fkey"
+            columns: ["booking_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "reviews_client_id_tenant_id_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "client_list"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "reviews_client_id_tenant_id_fkey"
+            columns: ["client_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "reviews_staff_id_tenant_id_fkey"
+            columns: ["staff_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "reviews_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_addons: {
         Row: {
           created_at: string
@@ -1808,6 +2011,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sms_packs: {
+        Row: {
+          active: boolean
+          code: string
+          price_minor: number
+          segments: number
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          price_minor: number
+          segments: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          price_minor?: number
+          segments?: number
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       sms_templates: {
         Row: {
@@ -2230,6 +2460,9 @@ export type Database = {
           quiet_start: string
           reminder_24h: boolean
           reminder_2h: boolean
+          reviews_ask: boolean
+          reviews_delay_hours: number
+          reviews_public: boolean
           segment_at_risk_days: number
           segment_lost_days: number
           segment_vip_visits: number
@@ -2271,6 +2504,9 @@ export type Database = {
           quiet_start?: string
           reminder_24h?: boolean
           reminder_2h?: boolean
+          reviews_ask?: boolean
+          reviews_delay_hours?: number
+          reviews_public?: boolean
           segment_at_risk_days?: number
           segment_lost_days?: number
           segment_vip_visits?: number
@@ -2312,6 +2548,9 @@ export type Database = {
           quiet_start?: string
           reminder_24h?: boolean
           reminder_2h?: boolean
+          reviews_ask?: boolean
+          reviews_delay_hours?: number
+          reviews_public?: boolean
           segment_at_risk_days?: number
           segment_lost_days?: number
           segment_vip_visits?: number
@@ -2345,6 +2584,7 @@ export type Database = {
       }
       tenants: {
         Row: {
+          autopay: boolean
           created_at: string
           created_by: string | null
           currency: string
@@ -2353,6 +2593,7 @@ export type Database = {
           id: string
           locale_default: string
           name: string
+          paid_until: string | null
           plan: string
           settings: Json
           slug: string
@@ -2363,6 +2604,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          autopay?: boolean
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -2371,6 +2613,7 @@ export type Database = {
           id?: string
           locale_default?: string
           name: string
+          paid_until?: string | null
           plan?: string
           settings?: Json
           slug: string
@@ -2381,6 +2624,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          autopay?: boolean
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -2389,6 +2633,7 @@ export type Database = {
           id?: string
           locale_default?: string
           name?: string
+          paid_until?: string | null
           plan?: string
           settings?: Json
           slug?: string
@@ -2455,6 +2700,79 @@ export type Database = {
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_off_requests: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          ends_at: string
+          id: string
+          note: string | null
+          reason: string
+          staff_id: string
+          starts_at: string
+          status: string
+          tenant_id: string
+          time_off_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          ends_at: string
+          id?: string
+          note?: string | null
+          reason?: string
+          staff_id: string
+          starts_at: string
+          status?: string
+          tenant_id: string
+          time_off_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          ends_at?: string
+          id?: string
+          note?: string | null
+          reason?: string
+          staff_id?: string
+          starts_at?: string
+          status?: string
+          tenant_id?: string
+          time_off_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_off_requests_staff_id_tenant_id_fkey"
+            columns: ["staff_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "time_off_requests_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_off_requests_time_off_id_fkey"
+            columns: ["time_off_id"]
+            isOneToOne: false
+            referencedRelation: "time_off"
             referencedColumns: ["id"]
           },
         ]
@@ -2651,6 +2969,14 @@ export type Database = {
         Args: { p_booking: string; p_token_hash: string }
         Returns: undefined
       }
+      add_review_request: {
+        Args: { p_booking: string; p_token_hash: string }
+        Returns: boolean
+      }
+      add_template_services: {
+        Args: { p_rows: Json; p_tenant: string }
+        Returns: number
+      }
       add_to_waitlist: {
         Args: {
           p_client: string
@@ -2711,6 +3037,27 @@ export type Database = {
         Returns: undefined
       }
       anonymize_client: { Args: { p_client: string }; Returns: undefined }
+      billing_apply: {
+        Args: {
+          p_amount: number
+          p_card: string
+          p_order: string
+          p_parent?: string
+          p_payment_id: string
+          p_status: string
+        }
+        Returns: string
+      }
+      billing_autopay_off: { Args: { p_tenant: string }; Returns: undefined }
+      billing_start: {
+        Args: { p_code: string; p_kind: string; p_tenant: string }
+        Returns: {
+          amount_minor: number
+          id: string
+          name: string
+          segments: number
+        }[]
+      }
       can_see_booking: {
         Args: { p_booking: string; p_tenant: string }
         Returns: boolean
@@ -2732,6 +3079,7 @@ export type Database = {
         Returns: number
       }
       cancel_tenant_deletion: { Args: { p_tenant: string }; Returns: undefined }
+      cancel_time_off_request: { Args: { p_id: string }; Returns: undefined }
       checkout_booking: {
         Args: {
           p_booking: string
@@ -2781,6 +3129,11 @@ export type Database = {
         Returns: string
       }
       current_staff_id: { Args: { p_tenant: string }; Returns: string }
+      decide_time_off: {
+        Args: { p_approve: boolean; p_id: string; p_note?: string }
+        Returns: string
+      }
+      expire_paid_periods: { Args: never; Returns: number }
       expire_trials: { Args: never; Returns: number }
       export_client: { Args: { p_client: string }; Returns: Json }
       export_tenant: { Args: { p_tenant: string }; Returns: Json }
@@ -2857,6 +3210,10 @@ export type Database = {
       }
       merge_clients: {
         Args: { p_keep: string; p_remove: string }
+        Returns: undefined
+      }
+      moderate_review: {
+        Args: { p_id: string; p_reply: string; p_status: string }
         Returns: undefined
       }
       move_booking: {
@@ -2937,6 +3294,15 @@ export type Database = {
         Args: { p_starts_at: string; p_token_hash: string }
         Returns: undefined
       }
+      public_review_get: { Args: { p_token_hash: string }; Returns: Json }
+      public_review_submit: {
+        Args: { p_comment: string; p_rating: number; p_token_hash: string }
+        Returns: string
+      }
+      public_reviews: {
+        Args: { p_limit?: number; p_tenant: string }
+        Returns: Json
+      }
       purge_due_tenants: { Args: never; Returns: number }
       rate_hit: {
         Args: { p_key: string; p_limit: number; p_window_sec: number }
@@ -2955,6 +3321,32 @@ export type Database = {
       request_tenant_deletion: {
         Args: { p_confirm_name: string; p_tenant: string }
         Returns: string
+      }
+      request_time_off: {
+        Args: {
+          p_ends: string
+          p_note: string
+          p_reason: string
+          p_staff?: string
+          p_starts: string
+          p_tenant: string
+        }
+        Returns: string
+      }
+      reviews_due: {
+        Args: never
+        Returns: {
+          booking_id: string
+          business: string
+          client_id: string
+          first_name: string
+          locale: string
+          phone: string
+          quiet_end: string
+          quiet_start: string
+          tenant_id: string
+          timezone: string
+        }[]
       }
       revoke_invitation: { Args: { p_invitation: string }; Returns: undefined }
       revoke_support_access: { Args: { p_tenant: string }; Returns: undefined }
@@ -3087,6 +3479,7 @@ export type Database = {
         Args: { p_feature: string; p_tenant: string }
         Returns: boolean
       }
+      time_off_conflicts: { Args: { p_id: string }; Returns: number }
       user_tenant_ids: { Args: never; Returns: string[] }
       valid_about: { Args: { p: Json }; Returns: boolean }
       valid_i18n: { Args: { p: Json; p_required?: boolean }; Returns: boolean }

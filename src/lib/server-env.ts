@@ -8,6 +8,13 @@ const serverSchema = z.object({
   EMAIL_FROM: z.string().optional(), // e.g. "Visito <no-reply@visito.ge>" — a domain verified in Resend
   SMS_PROVIDER: z.enum(["fake", "senderge"]).default("fake"),
   SMS_API_KEY: z.string().optional(),
+  // Visito's own card payments (decision 031): Flitt merchant of Visito
+  PAYMENTS_PROVIDER: z.enum(["none", "flitt"]).default("none"),
+  FLITT_MERCHANT_ID: z
+    .string()
+    .regex(/^\d{1,12}$/)
+    .optional(),
+  FLITT_SECRET_KEY: z.string().optional(),
 });
 
 let cached: z.infer<typeof serverSchema> | undefined;
@@ -21,6 +28,9 @@ export function serverEnv() {
     EMAIL_FROM: process.env.EMAIL_FROM || undefined,
     SMS_PROVIDER: process.env.SMS_PROVIDER || undefined,
     SMS_API_KEY: process.env.SMS_API_KEY || undefined,
+    PAYMENTS_PROVIDER: process.env.PAYMENTS_PROVIDER || undefined,
+    FLITT_MERCHANT_ID: process.env.FLITT_MERCHANT_ID || undefined,
+    FLITT_SECRET_KEY: process.env.FLITT_SECRET_KEY || undefined,
   });
   return cached;
 }

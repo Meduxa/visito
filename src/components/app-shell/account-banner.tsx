@@ -37,9 +37,11 @@ export async function AccountBanner({ tenant }: { tenant: TenantMembership }) {
     text = t(`account.${tenant.status as "suspended"}`);
   } else if (tenant.status === "past_due" && manager) {
     text = t("account.pastDue");
+    if (tenant.role === "owner") href = "/settings/subscription"; // pay by card (decision 031)
   } else if (tenant.status === "trial" && manager) {
     const days = daysUntil(tenant.trialEndsAt);
     if (days <= 3) text = t("account.trialEnding", { days: Math.max(0, days) });
+    if (text && tenant.role === "owner") href = "/settings/subscription";
   }
   if (!text) return null;
 

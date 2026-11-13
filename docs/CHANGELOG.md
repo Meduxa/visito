@@ -2,6 +2,12 @@
 
 All notable changes per phase. Newest on top.
 
+## Foldable sidebar (2026-11-13)
+
+- **Desktop sidebar folds to a slim icon rail**: a round button on its edge (or Ctrl/⌘+B) folds and unfolds it with a smooth width animation. Icons stay in place, labels fade, group titles turn into thin lines, the logo shrinks to its mark; hovering an icon shows its name. The choice is remembered (cookie), so pages open the same way without a flash. Phones keep the bottom menu.
+- Settings → SMS: a switched-off SMS now shows its text in a dashed outline instead of faded (contrast).
+- Test: `e2e/sidebar.spec.ts`.
+
 ## Pilot SMS: automatic only, texts by Visito (2026-11-13)
 
 - For the pilot (November–December), businesses send **only automatic SMS**: confirmation, request received, moved, cancelled, reminders, review request (decision 033).

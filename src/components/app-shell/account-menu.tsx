@@ -27,6 +27,8 @@ import { signOut, signOutEverywhere } from "@/features/auth/actions";
 import { switchTenant } from "@/features/tenants/actions";
 import { Link } from "@/i18n/navigation";
 import { initials } from "@/lib/initials";
+import { cn } from "@/lib/utils";
+import { SIDEBAR_LABEL } from "./sidebar";
 
 type Props = {
   user: { fullName: string; email: string };
@@ -48,13 +50,13 @@ export function AccountMenu({ user, active, tenants }: Props) {
             <Avatar className="size-8">
               <AvatarFallback>{initials(user.fullName, user.email)}</AvatarFallback>
             </Avatar>
-            <span className="flex min-w-0 flex-1 flex-col">
+            <span className={cn("flex min-w-0 flex-1 flex-col", SIDEBAR_LABEL)}>
               <span className="truncate text-sm font-medium">{active.name}</span>
               <span className="truncate text-xs text-muted-foreground">
                 {user.fullName || user.email} · {t(`roles.${active.role}`)}
               </span>
             </span>
-            <ChevronsUpDown className="text-muted-foreground" aria-hidden />
+            <ChevronsUpDown className={cn("text-muted-foreground", SIDEBAR_LABEL)} aria-hidden />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-64">

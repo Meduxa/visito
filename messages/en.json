@@ -58,7 +58,9 @@
     "cash": "Cash",
     "sms": "SMS",
     "reports": "Reports",
-    "payroll": "Payroll"
+    "payroll": "Payroll",
+    "collapse": "Fold the menu",
+    "expand": "Unfold the menu"
   },
   "auth": {
     "email": "Email",

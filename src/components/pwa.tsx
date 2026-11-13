@@ -4,6 +4,7 @@ import { Download, Share } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
+import { SIDEBAR_LABEL } from "@/components/app-shell/sidebar";
 
 type InstallEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
@@ -55,14 +56,14 @@ export function InstallApp() {
         }}
       >
         <Download aria-hidden />
-        {t("install")}
+        <span className={SIDEBAR_LABEL}>{t("install")}</span>
       </Button>
     );
   if (ios)
     return (
       <p className="flex items-start gap-2 px-3 py-2 text-xs text-muted-foreground">
         <Share className="mt-0.5 size-4 shrink-0" aria-hidden />
-        {t("iosHint")}
+        <span className={SIDEBAR_LABEL}>{t("iosHint")}</span>
       </p>
     );
   return null;

@@ -19,6 +19,7 @@ import {
 import { useTranslations } from "next-intl";
 import { Link, usePathname } from "@/i18n/navigation";
 import { cn } from "@/lib/utils";
+import { RailTip, SIDEBAR_LABEL } from "./sidebar";
 
 type BusinessType = "salon" | "dental";
 
@@ -80,21 +81,32 @@ export function SidebarNav({
     <nav aria-label={t("main")} className="flex flex-col gap-5">
       {groups(type, canManage, hasProfile).map((group) => (
         <div key={group.key} className="flex flex-col gap-0.5">
-          <p className="px-3 pb-1 text-xs font-medium text-muted-foreground">{t(`groups.${group.key}`)}</p>
+          {/* the group title; a thin line in its place when folded (same height, nothing moves) */}
+          <div className="relative h-5 px-3">
+            <p className={cn("text-xs font-medium text-muted-foreground", SIDEBAR_LABEL)}>
+              {t(`groups.${group.key}`)}
+            </p>
+            <span
+              aria-hidden
+              className="absolute inset-x-2 top-2 h-px bg-border opacity-0 transition-opacity duration-300 group-data-[collapsed=true]/sidebar:opacity-100"
+            />
+          </div>
           {group.items.map(({ href, key, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              aria-current={isActive(href) ? "page" : undefined}
-              className={cn(
-                "flex min-h-9 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 outline-none hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
-                isActive(href) &&
-                  "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground",
-              )}
-            >
-              <Icon className="size-4" aria-hidden />
-              {t(key)}
-            </Link>
+            <RailTip key={href} label={t(key)}>
+              <Link
+                href={href}
+                aria-current={isActive(href) ? "page" : undefined}
+                className={cn(
+                  // folded: a 40 px square around the icon, so the active background sits exactly on it
+                  "flex min-h-9 items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-foreground/80 outline-none group-data-[collapsed=true]/sidebar:size-10 hover:bg-muted hover:text-foreground focus-visible:ring-3 focus-visible:ring-ring/50",
+                  isActive(href) &&
+                    "bg-accent text-accent-foreground hover:bg-accent hover:text-accent-foreground",
+                )}
+              >
+                <Icon className="size-4 shrink-0" aria-hidden />
+                <span className={SIDEBAR_LABEL}>{t(key)}</span>
+              </Link>
+            </RailTip>
           ))}
         </div>
       ))}

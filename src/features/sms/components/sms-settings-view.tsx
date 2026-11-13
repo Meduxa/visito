@@ -15,6 +15,7 @@ import { Switch } from "@/components/ui/switch";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "@/i18n/navigation";
+import { cn } from "@/lib/utils";
 import type { ActionResult } from "@/lib/action-result";
 import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { resetTemplate, saveSmsSettings, saveTemplate, sendTestSms } from "../actions";
@@ -311,9 +312,15 @@ function MessageRow({
         </div>
         {children}
       </div>
-      <div className={on ? "" : "opacity-50"}>
+      <div>
         <p className="sr-only">{t("textLabel")}</p>
-        <p className="w-fit max-w-full rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-sm break-words whitespace-pre-line">
+        <p
+          className={cn(
+            "w-fit max-w-full rounded-2xl rounded-bl-sm px-3 py-2 text-sm break-words whitespace-pre-line",
+            // switched off: an outline instead of a filled bubble (fading would fail contrast)
+            on ? "bg-muted" : "border border-dashed text-muted-foreground",
+          )}
+        >
           {text}
         </p>
         {extra && <p className="mt-1 text-xs break-words">{extra}</p>}

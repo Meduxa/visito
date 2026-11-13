@@ -3,6 +3,9 @@ import { setRequestLocale } from "next-intl/server";
 import { AccountBanner } from "@/components/app-shell/account-banner";
 import { AccountMenu } from "@/components/app-shell/account-menu";
 import { BottomNav, SidebarNav } from "@/components/app-shell/nav";
+import { Sidebar } from "@/components/app-shell/sidebar";
+import { SIDEBAR_COOKIE } from "@/components/app-shell/sidebar-cookie";
+import { cookies } from "next/headers";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { BrandLogo } from "@/components/brand-logo";
 import { InstallApp } from "@/components/pwa";
@@ -34,24 +37,32 @@ export default async function DashboardLayout({ children, params }: LayoutProps<
 
   return (
     <div className="flex flex-1">
-      <aside className="sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r bg-sidebar p-3 md:flex">
-        <div className="flex items-center justify-between gap-2 pt-2 pr-1">
-          <Link
-            href="/dashboard"
-            className="rounded-lg px-3 focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
-          >
-            <BrandLogo className="h-9" />
-          </Link>
-          <NotificationBell />
-        </div>
+      <Sidebar
+        initialCollapsed={(await cookies()).get(SIDEBAR_COOKIE)?.value === "1"}
+        top={
+          // the mark sits where the menu icons are; the wordmark is clipped as the sidebar folds,
+          // and the bell moves under the logo when there is no room beside it
+          <div className="flex flex-wrap items-center justify-between gap-2 pt-2 pr-1 group-data-[collapsed=true]/sidebar:pr-0">
+            <Link
+              href="/dashboard"
+              className="w-[131px] shrink-0 overflow-hidden rounded-lg pl-0.5 transition-[width] duration-300 ease-[cubic-bezier(0.2,0.8,0.2,1)] group-data-[collapsed=true]/sidebar:w-[38px] focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none motion-reduce:transition-none"
+            >
+              <BrandLogo className="h-9" />
+            </Link>
+            <NotificationBell />
+          </div>
+        }
+        footer={
+          <>
+            <InstallApp />
+            <ThemeToggle />
+            <LanguageSwitcher />
+            {menu}
+          </>
+        }
+      >
         <SidebarNav type={active.type} canManage={canManage(active.role)} hasProfile={!!ownStaffId} />
-        <div className="mt-auto flex flex-col gap-1 border-t pt-3">
-          <InstallApp />
-          <ThemeToggle />
-          <LanguageSwitcher />
-          {menu}
-        </div>
-      </aside>
+      </Sidebar>
 
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="sticky top-0 z-30 flex items-center gap-2 border-b bg-card px-4 py-2 md:hidden">

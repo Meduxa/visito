@@ -3,6 +3,7 @@ import { cache } from "react";
 import { localized } from "@/lib/i18n-text";
 import { publicEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { sortBranches, usableBranches } from "@/features/branches/queries";
 import { trimSeconds } from "@/lib/time";
 
 // Everything the public page shows about a business — and nothing else. Read
@@ -31,9 +32,17 @@ export type PublicStaff = {
   photoUrl: string | null;
 };
 
+export type PublicBranch = { slug: string; name: string; address: string | null };
+
 export type PublicBusiness = {
   tenantId: string;
+  locationId: string; // the branch being booked (server only)
   slug: string;
+  // Several branches (decision 032): the client picks one first. `branch` is its
+  // link name, null until picked; then hours, address, phone, services, prices
+  // and people below are that branch's.
+  branch: string | null;
+  branches: PublicBranch[]; // empty for one-branch businesses
   name: string;
   type: "salon" | "dental";
   timeZone: string;
@@ -58,55 +67,94 @@ export type PublicBusiness = {
 };
 
 export const getPublicBusiness = cache(
-  async (slug: string, locale: string): Promise<PublicBusiness | null> => {
+  async (slug: string, locale: string, branchSlug?: string | null): Promise<PublicBusiness | null> => {
     if (!/^[a-z0-9-]{3,50}$/.test(slug)) return null;
     const db = createAdminClient();
     const { data: tenant } = await db
       .from("tenants")
-      .select("id, slug, name, type, timezone, status")
+      .select("id, slug, name, type, timezone, status, plans(max_locations)")
       .eq("slug", slug)
       .in("status", ["trial", "active", "past_due"])
       .maybeSingle();
     if (!tenant) return null;
     const id = tenant.id;
 
-    const [settings, location, categories, services, staff, links, photos] = await Promise.all([
-      db
-        .from("tenant_settings")
-        .select(
-          "phone, online_otp_required, online_show_prices, max_days_ahead, cancel_window_min, site_about, site_cover_path, site_logo_path, site_instagram, site_facebook, site_theme",
-        )
-        .eq("tenant_id", id)
-        .single(),
-      db
-        .from("locations")
-        .select("address, phone, location_hours(weekday, start_time, end_time)")
-        .eq("tenant_id", id)
-        .eq("is_primary", true)
-        .maybeSingle(),
-      db.from("service_categories").select("id, name_i18n").eq("tenant_id", id).order("sort_order"),
-      db
-        .from("services")
-        .select(
-          "id, name_i18n, description_i18n, category_id, duration_min, price_type, price_minor, price_max_minor, service_variants(id, name_i18n, duration_min, price_minor, sort_order)",
-        )
-        .eq("tenant_id", id)
-        .eq("active", true)
-        .eq("bookable_online", true)
-        .order("sort_order"),
-      db
-        .from("staff")
-        .select("id, display_name, position, bio, photo_path")
-        .eq("tenant_id", id)
-        .eq("active", true)
-        .eq("bookable_online", true)
-        .order("sort_order")
-        .order("display_name"),
-      db.from("staff_services").select("staff_id, service_id").eq("tenant_id", id),
-      db.from("business_photos").select("path").eq("tenant_id", id).order("sort_order").limit(12),
-    ]);
+    const today = new Date().toISOString().slice(0, 10);
+    const [settings, locations, categories, services, staff, links, photos, schedules, overrides, atBranch] =
+      await Promise.all([
+        db
+          .from("tenant_settings")
+          .select(
+            "phone, online_otp_required, online_show_prices, max_days_ahead, cancel_window_min, site_about, site_cover_path, site_logo_path, site_instagram, site_facebook, site_theme",
+          )
+          .eq("tenant_id", id)
+          .single(),
+        db
+          .from("locations")
+          .select(
+            "id, name, slug, address, phone, is_primary, active, sort_order, location_hours(weekday, start_time, end_time)",
+          )
+          .eq("tenant_id", id),
+        db.from("service_categories").select("id, name_i18n").eq("tenant_id", id).order("sort_order"),
+        db
+          .from("services")
+          .select(
+            "id, name_i18n, description_i18n, category_id, duration_min, price_type, price_minor, price_max_minor, service_variants(id, name_i18n, duration_min, price_minor, sort_order)",
+          )
+          .eq("tenant_id", id)
+          .eq("active", true)
+          .eq("bookable_online", true)
+          .order("sort_order"),
+        db
+          .from("staff")
+          .select("id, display_name, position, bio, photo_path")
+          .eq("tenant_id", id)
+          .eq("active", true)
+          .eq("bookable_online", true)
+          .order("sort_order")
+          .order("display_name"),
+        db.from("staff_services").select("staff_id, service_id").eq("tenant_id", id),
+        db.from("business_photos").select("path").eq("tenant_id", id).order("sort_order").limit(12),
+        db.from("staff_schedules").select("staff_id, location_id").eq("tenant_id", id),
+        db
+          .from("staff_schedule_overrides")
+          .select("staff_id, location_id")
+          .eq("tenant_id", id)
+          .eq("is_day_off", false)
+          .gte("date", today),
+        db
+          .from("service_locations")
+          .select("service_id, location_id, offered, price_minor, price_max_minor")
+          .eq("tenant_id", id),
+      ]);
 
-    const staffIds = new Set((staff.data ?? []).map((s) => s.id));
+    // the branches clients can choose (active, within the plan's limit), main first
+    const max = (tenant.plans as { max_locations: number | null } | null)?.max_locations ?? null;
+    const usable = usableBranches(
+      sortBranches(
+        (locations.data ?? []).map((l) => ({ ...l, isPrimary: l.is_primary, sortOrder: l.sort_order })),
+      ),
+      max,
+    );
+    const primary = usable[0];
+    if (!primary) return null;
+    const multi = usable.length > 1;
+    const chosen = multi ? usable.find((l) => l.slug && l.slug === branchSlug) : primary;
+    const location = chosen ?? primary;
+    const at = (loc: string | null) => loc ?? primary.id;
+    // with branches: only the people who work in this branch (weekly or on a coming date)
+    const worksHere = new Set(
+      [...(schedules.data ?? []), ...(overrides.data ?? [])]
+        .filter((x) => at(x.location_id) === location.id)
+        .map((x) => x.staff_id),
+    );
+    const here = new Map(
+      (atBranch.data ?? []).filter((x) => x.location_id === location.id).map((x) => [x.service_id, x]),
+    );
+
+    const staffIds = new Set(
+      (staff.data ?? []).map((s) => s.id).filter((sid) => !multi || worksHere.has(sid)),
+    );
     const performers = (serviceId: string) =>
       (links.data ?? [])
         .filter((l) => l.service_id === serviceId && staffIds.has(l.staff_id))
@@ -114,6 +162,8 @@ export const getPublicBusiness = cache(
 
     const list: PublicService[] = [];
     for (const s of services.data ?? []) {
+      if (here.get(s.id)?.offered === false) continue; // switched off in this branch
+      const own = here.get(s.id)?.price_minor ?? null; // this branch's price
       const who = performers(s.id);
       if (!who.length) continue; // nobody can do it online
       const base = {
@@ -131,8 +181,8 @@ export const getPublicBusiness = cache(
           name: localized(s.name_i18n, locale),
           durationMin: s.duration_min,
           priceType: s.price_type as PublicService["priceType"],
-          priceMinor: s.price_minor,
-          priceMaxMinor: s.price_max_minor,
+          priceMinor: own ?? s.price_minor,
+          priceMaxMinor: own !== null ? (here.get(s.id)?.price_max_minor ?? null) : s.price_max_minor,
         });
       } else {
         for (const v of variants)
@@ -150,7 +200,7 @@ export const getPublicBusiness = cache(
     }
 
     const hours: PublicBusiness["hours"] = {};
-    for (const h of location.data?.location_hours ?? [])
+    for (const h of location.location_hours)
       (hours[h.weekday] ??= []).push([trimSeconds(h.start_time), trimSeconds(h.end_time)]);
     for (const k of Object.keys(hours)) hours[Number(k)].sort((a, b) => a[0].localeCompare(b[0]));
 
@@ -161,12 +211,19 @@ export const getPublicBusiness = cache(
     const url = publicEnv.NEXT_PUBLIC_SUPABASE_URL;
     return {
       tenantId: id,
+      locationId: location.id,
       slug: tenant.slug,
+      branch: multi ? (chosen?.slug ?? null) : null,
+      branches: multi
+        ? usable.filter((l) => l.slug).map((l) => ({ slug: l.slug!, name: l.name, address: l.address }))
+        : [],
       name: tenant.name,
       type: tenant.type as PublicBusiness["type"],
       timeZone: tenant.timezone,
-      phone: settings.data?.phone ?? location.data?.phone ?? null,
-      address: location.data?.address ?? null,
+      phone: location.is_primary
+        ? (settings.data?.phone ?? location.phone ?? null)
+        : (location.phone ?? settings.data?.phone ?? null),
+      address: location.address ?? null,
       otpRequired: settings.data?.online_otp_required ?? true,
       showPrices,
       maxDaysAhead: settings.data?.max_days_ahead ?? 60,
@@ -198,5 +255,5 @@ export const getPublicBusiness = cache(
   },
 );
 
-/** What the browser receives: no tenant id. */
-export type PublicBusinessView = Omit<PublicBusiness, "tenantId">;
+/** What the browser receives: no tenant or branch id. */
+export type PublicBusinessView = Omit<PublicBusiness, "tenantId" | "locationId">;

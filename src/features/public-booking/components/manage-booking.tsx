@@ -80,10 +80,10 @@ export function ManageBooking({ token, view }: { token: string; view: View }) {
           {[...new Set(view.items.map((i) => i.staff))].join(", ")}
           <span className="block text-muted-foreground">{formatMoney(view.totalMinor)}</span>
         </dd>
-        {view.address && (
+        {(view.address || view.branch) && (
           <>
             <dt className="text-muted-foreground">{tm("where")}</dt>
-            <dd>{view.address}</dd>
+            <dd>{[view.branch, view.address].filter(Boolean).join(" · ")}</dd>
           </>
         )}
       </dl>

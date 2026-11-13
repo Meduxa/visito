@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { config } from "dotenv";
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { SMS_SALON_TOOLS } from "../src/lib/pilot";
 import { assertDevProject } from "../scripts/dev-project.mts";
 
 config({ path: ".env.local", quiet: true });
@@ -62,6 +63,7 @@ test("sign out of all devices ends the other device's session too", async ({ bro
 
 // Cancelling a booking shows who on the waitlist wants that time; the manager offers it by SMS.
 test("waitlist: offer a freed time by SMS", async ({ page }, info) => {
+  test.skip(!SMS_SALON_TOOLS, "pilot: salons' own SMS tools are off (decision 033)");
   test.skip(info.project.name !== "desktop"); // changes shared demo data
   const db = admin();
   const { data: tenant } = await db.from("tenants").select("id, timezone").eq("slug", "orchidea").single();

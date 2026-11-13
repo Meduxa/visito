@@ -3,6 +3,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { CalendarScreen, type CalendarView } from "@/features/booking/components/calendar-view";
 import type { CatalogEntry } from "@/features/booking/components/new-booking-panel";
 import { getCalendar } from "@/features/booking/queries";
+import { getBranchInfo, pickBranch } from "@/features/branches/queries";
 import { listWaitlist } from "@/features/booking/waitlist-actions";
 import { getCatalog } from "@/features/services/queries";
 import { addDays, monthGrid, weekDates } from "@/lib/dates";
@@ -26,10 +27,14 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
   const sp = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: tz }, { data: ownStaffId }] = await Promise.all([
+  const [{ data: tz }, { data: ownStaffId }, branchInfo] = await Promise.all([
     supabase.from("tenants").select("timezone").eq("id", tenant.tenantId).single(),
     supabase.rpc("current_staff_id", { p_tenant: tenant.tenantId }),
+    getBranchInfo(supabase, tenant.tenantId),
   ]);
+  // several branches: one at a time (?branch=<id>, else the main one) — decision 032
+  const multi = branchInfo.usable.length > 1;
+  const branch = multi ? pickBranch(branchInfo, typeof sp.branch === "string" ? sp.branch : null) : undefined;
   const timeZone = tz?.timezone ?? DEFAULT_TZ;
   const today = formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd");
   const date = typeof sp.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : today;
@@ -63,25 +68,37 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
           ? [date, date]
           : [date, addDays(date, 6)];
 
-  const [data, { categories, services }, links, waitlist] = await Promise.all([
+  const [data, { categories, services }, links, waitlist, here] = await Promise.all([
     // staff see their own column only
-    getCalendar(tenant.tenantId, from, to, { onlyStaffId: isManager ? undefined : (ownStaffId ?? "none") }),
+    getCalendar(tenant.tenantId, from, to, {
+      onlyStaffId: isManager ? undefined : (ownStaffId ?? "none"),
+      branch: branch && { id: branch.id, isPrimary: branch.isPrimary },
+    }),
     getCatalog(tenant.tenantId),
     supabase.from("staff_services").select("staff_id, service_id").eq("tenant_id", tenant.tenantId),
     listWaitlist(),
+    branch
+      ? supabase
+          .from("service_locations")
+          .select("service_id, offered, price_minor, price_max_minor")
+          .eq("location_id", branch.id)
+      : Promise.resolve({ data: [] }),
   ]);
+  // this branch's own service settings: switched-off services left out, its prices shown
+  const atBranch = new Map((here.data ?? []).map((x) => [x.service_id, x]));
 
   const catName = new Map(categories.map((c) => [c.id, localized(c.name, locale)]));
   const catalog: CatalogEntry[] = services
-    .filter((s) => s.active)
+    .filter((s) => s.active && atBranch.get(s.id)?.offered !== false)
     .map((s) => ({
       id: s.id,
       name: s.name,
       categoryName: (s.categoryId && catName.get(s.categoryId)) || "—",
       durationMin: s.durationMin,
       priceType: s.priceType,
-      priceMinor: s.priceMinor,
-      priceMaxMinor: s.priceMaxMinor,
+      priceMinor: atBranch.get(s.id)?.price_minor ?? s.priceMinor,
+      priceMaxMinor:
+        atBranch.get(s.id)?.price_minor != null ? atBranch.get(s.id)!.price_max_minor : s.priceMaxMinor,
       staffIds: (links.data ?? []).filter((l) => l.service_id === s.id).map((l) => l.staff_id),
     }));
 
@@ -101,6 +118,8 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
       waitlist={waitlist}
       dayBy={sp.by === "chair" ? "chair" : "staff"}
       bookFor={bookFor}
+      branches={multi ? branchInfo.usable.map((b) => ({ id: b.id, name: b.name })) : []}
+      branchId={branch?.id ?? null}
     />
   );
 }

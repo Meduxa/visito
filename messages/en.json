@@ -248,7 +248,10 @@
     "alreadyDecided": "This request was already decided.",
     "reviewExpired": "This link has expired.",
     "reviewDone": "This visit is already rated.",
-    "chooseRating": "Choose 1–5 stars."
+    "chooseRating": "Choose 1–5 stars.",
+    "branchLimit": "Your plan allows no more branches. Change the plan or switch another branch off.",
+    "branchHasBookings": "This branch has visits, so it cannot be deleted. Switch it off instead.",
+    "branchSlugInvalid": "2–40 characters: latin letters, digits and dashes"
   },
   "email": {
     "invite": {
@@ -603,6 +606,10 @@
       "business": {
         "title": "Business details",
         "hint": "Name, contacts, address, opening hours"
+      },
+      "branches": {
+        "title": "Branches",
+        "hint": "Several addresses: hours, services and prices per branch, own booking link"
       },
       "booking": {
         "title": "Online booking",
@@ -1299,7 +1306,12 @@
     "closedNow": "Closed now",
     "todayHours": "today {hours}",
     "closedToday": "closed today",
-    "embedTitle": "Online booking"
+    "embedTitle": "Online booking",
+    "branches": {
+      "title": "Choose a branch",
+      "hint": "Where would you like to come?",
+      "change": "Change"
+    }
   },
   "manageBooking": {
     "title": "Your booking",
@@ -1322,14 +1334,14 @@
     "bookAgain": "Book again"
   },
   "smsTemplates": {
-    "confirmed": "{business_name}: booked for {date}, {time}. Change: {manage_link}",
-    "pending": "{business_name}: request for {date}, {time} received, we'll confirm soon. {manage_link}",
-    "reminder": "{business_name}: reminder — {date}, {time}. Change: {manage_link}",
-    "rescheduled": "{business_name}: your visit is moved to {date}, {time}. {manage_link}",
-    "cancelled": "{business_name}: your visit on {date}, {time} is cancelled. {phone}",
+    "confirmed": "Your booking is confirmed. Date: {date} - {time} 💚",
+    "pending": "Your request is received: {date} - {time}. We'll confirm soon 💚",
+    "reminder": "Reminder: your visit {date} - {time} 💚",
+    "rescheduled": "Your booking is moved. New date: {date} - {time} 💚",
+    "cancelled": "Your booking is cancelled: {date} - {time} 💚",
     "optOut": "Unsubscribe: {link}",
     "waitlistOffer": "{business_name}: a time opened up — {date}, {time}, {service}. Want it? Call {phone}",
-    "review": "{business_name}: thank you for your visit, {client_name}! How was it? {manage_link}"
+    "review": "Thank you for your visit! Rate us: {manage_link} 💚"
   },
   "smsSettings": {
     "title": "SMS",
@@ -1402,7 +1414,12 @@
     "testPhone": "Your phone",
     "testSend": "Send test",
     "testSent": "Test SMS sent",
-    "testText": "{business}: test message from Visito."
+    "testText": "{business}: test message from Visito.",
+    "pilotNote": "During the pilot, SMS go out under Visito's sender name with texts prepared by Visito. Here you choose which automatic SMS your clients receive.",
+    "reviewRequest": "Review request after a visit",
+    "reviewRequestHint": "When a visit is marked completed. Delay: Settings → Reviews.",
+    "textLabel": "Text",
+    "pendingNote": "When you approve online bookings first:"
   },
   "smsLog": {
     "title": "Message log",
@@ -1425,7 +1442,16 @@
       "no_credits": "no SMS left",
       "no_consent": "no marketing consent",
       "exception": "provider error",
-      "no_provider": "no SMS company connected"
+      "no_provider": "no SMS company connected",
+      "uncertain": "no answer from the SMS company — not resent, to avoid a double SMS",
+      "sender": "sender name not registered with the SMS company",
+      "rejected": "rejected by the SMS company",
+      "invalid": "refused as invalid",
+      "not_permitted": "SMS account not fully set up",
+      "rate_limited": "too many requests — will retry",
+      "invalid_credentials": "SMS company login failed",
+      "destination": "phone number not supported",
+      "undelivered": "not delivered"
     },
     "types": {
       "otp": "Code",
@@ -1732,7 +1758,9 @@
       "processing": "The payment is being processed. This page will show it within a minute; refresh it.",
       "declined": "The card payment was declined. Nothing was charged; try again or use another card.",
       "expired": "The payment page expired. Nothing was charged."
-    }
+    },
+    "branchesUpTo": "{count, plural, one {# branch} other {Up to # branches}}",
+    "branchesUnlimited": "Any number of branches"
   },
   "auditLog": {
     "title": "Audit log",
@@ -1808,7 +1836,8 @@
       "businesses": "Businesses",
       "plans": "Plans",
       "sms": "SMS log",
-      "app": "Back to the app"
+      "app": "Back to the app",
+      "smsTexts": "SMS texts"
     },
     "count": "{count, plural, one {# business} other {# businesses}}",
     "cols": {
@@ -1852,7 +1881,8 @@
       "add": "Add plan",
       "features": {
         "payroll": "Includes Payroll"
-      }
+      },
+      "maxLocations": "Max branches"
     },
     "errorRate": "{failed} of the last {total} failed",
     "smsFilters": {
@@ -1865,6 +1895,20 @@
       "none": "No SMS company connected — SMS are not sent (test mode).",
       "balance": "SMS company: {provider} · balance {amount}",
       "unknown": "SMS company: {provider} · balance not available"
+    },
+    "smsTexts": {
+      "hint": "The automatic SMS every business sends during the pilot. Businesses cannot change these texts. Empty or untouched = the built-in default.",
+      "sampleBusiness": "Salon Orchid",
+      "edited": "Edited by Visito",
+      "reviewHint": "'{manage_link}' here is the review page link.",
+      "types": {
+        "confirmed": "Confirmation",
+        "pending": "Request received (needs approval)",
+        "reminder": "Reminder",
+        "rescheduled": "Moved",
+        "cancelled": "Cancelled",
+        "review": "Review request after a visit"
+      }
     }
   },
   "photos": {
@@ -2207,5 +2251,60 @@
     "needsAction": "Booking needs a status",
     "noClient": "No client",
     "when": "{date}, {time}"
+  },
+  "branches": {
+    "branch": "Branch",
+    "allBranches": "All branches",
+    "main": "Main",
+    "off": "Off",
+    "overLimit": "Over the plan's limit",
+    "noAddress": "No address yet",
+    "back": "Branches",
+    "mainHint": "The main branch. Its address and phone are also the business's.",
+    "fields": {
+      "name": "Branch name",
+      "nameHint": "As clients know it, e.g. “Vake” or “Saburtalo”.",
+      "phone": "Phone",
+      "address": "Address",
+      "slug": "Link name",
+      "slugHint": "The end of this branch's booking link: latin letters, digits, dashes."
+    },
+    "add": {
+      "title": "Add a branch",
+      "hint": "Then set its opening hours and services, and in each specialist's schedule which days they work there.",
+      "button": "Add branch"
+    },
+    "details": {
+      "title": "Branch"
+    },
+    "link": {
+      "title": "This branch's booking link",
+      "hint": "Opens booking straight in this branch. Print the QR code for this branch's reception."
+    },
+    "services": {
+      "title": "Services and prices in this branch",
+      "hint": "Switch off what this branch does not offer. Leave the price empty to use the normal price.",
+      "empty": "No services yet.",
+      "offered": "offered here",
+      "normalPrice": "Normal price: {price}",
+      "branchPrice": "price in this branch",
+      "branchPriceMax": "highest price in this branch",
+      "variants": "Has variants — their prices apply in every branch"
+    },
+    "state": {
+      "title": "Switch off or delete",
+      "hint": "A branch that is switched off keeps its history but takes no bookings. A branch can be deleted only if it never had a booking.",
+      "off": "Switch off",
+      "on": "Switch on again",
+      "offConfirm": "Switch this branch off? It will not appear on the booking page or in the calendar. Its past visits stay.",
+      "deleteConfirm": "Delete this branch? This cannot be undone."
+    },
+    "limit": {
+      "one": "Your plan includes one branch. Branches come with the Standard plan (up to 3) and above — ask the owner.",
+      "oneOwner": "Your plan includes one branch. Branches come with the Standard plan (up to 3) and above.",
+      "reached": "Your plan allows {max} branches, and all are in use. Switch one off or change the plan.",
+      "left": "Your plan allows {max} branches: {left} more can be added.",
+      "upgrade": "See plans"
+    }
   }
 }

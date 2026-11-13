@@ -46,6 +46,7 @@ export function NewBookingPanel({
   ownStaffId,
   preset,
   onCreated,
+  locationId = null,
 }: {
   open: boolean;
   onClose: () => void;
@@ -57,6 +58,8 @@ export function NewBookingPanel({
   ownStaffId: string | null;
   preset?: { client: ClientHit; serviceIds: string[] };
   onCreated?: (bookingId: string) => void;
+  /** the calendar's branch (decision 032) */
+  locationId?: string | null;
 }) {
   const t = useTranslations();
   const locale = useLocale();
@@ -104,7 +107,7 @@ export function NewBookingPanel({
   useEffect(() => {
     if (!open || picked.length === 0 || !staffId) return;
     let live = true;
-    findSlots({ date, staffId, picks: picked.map((serviceId) => ({ serviceId })) }).then((r) => {
+    findSlots({ date, staffId, picks: picked.map((serviceId) => ({ serviceId })), locationId }).then((r) => {
       if (!live) return;
       const list = r.ok ? r.data : [];
       setSlots(list);
@@ -119,7 +122,7 @@ export function NewBookingPanel({
     return () => {
       live = false;
     };
-  }, [open, picked, staffId, date, initial.time, timeZone]);
+  }, [open, picked, staffId, date, initial.time, timeZone, locationId]);
 
   const submit = (force = false) =>
     startTransition(async () => {
@@ -141,6 +144,7 @@ export function NewBookingPanel({
           starts,
           everyWeeks,
           note,
+          locationId,
         });
         if (!r.ok) return setError(r.error);
         toast.success(t("booking.seriesSaved", { count: r.data.count }));
@@ -155,6 +159,7 @@ export function NewBookingPanel({
         note,
         source: walkIn ? "walk_in" : "admin",
         force,
+        locationId,
       });
       if (!r.ok) {
         if (r.error === "conflicts" && "conflicts" in r) return setConflicts(r.conflicts);
@@ -514,6 +519,7 @@ export function NewBookingPanel({
                           start,
                           everyWeeks,
                           times: Math.min(52, Math.max(2, times)),
+                          locationId,
                         });
                         if (!r.ok) return setError(r.error);
                         setSeries(r.data.map((x) => ({ ...x, include: x.conflicts.length === 0 })));

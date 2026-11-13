@@ -17,6 +17,7 @@ export type SmsOverview = {
     onConfirm: boolean;
     onReschedule: boolean;
     onCancel: boolean;
+    reviewAsk: boolean; // review request after a visit (decision 030)
   };
   templates: { type: TemplateType; locale: string; body: string }[]; // the business's own texts only
   sentThisMonth: number;
@@ -54,6 +55,7 @@ export async function getSmsOverview(tenantId: string): Promise<SmsOverview> {
       onConfirm: s?.sms_on_confirm ?? true,
       onReschedule: s?.sms_on_reschedule ?? true,
       onCancel: s?.sms_on_cancel ?? true,
+      reviewAsk: s?.reviews_ask ?? false,
     },
     templates: (templates ?? []) as SmsOverview["templates"],
     sentThisMonth: count ?? 0,

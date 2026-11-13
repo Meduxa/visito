@@ -11,7 +11,9 @@ import { Switch } from "@/components/ui/switch";
 import { intervalProblem, WEEKDAYS, type Interval } from "@/lib/time";
 import type { ActionResult } from "@/lib/action-result";
 
-export type Week = Record<number, Interval[]>;
+// locationId: the branch of a working interval (staff schedules with several branches, decision 032)
+export type WeekInterval = Interval & { locationId?: string };
+export type Week = Record<number, WeekInterval[]>;
 
 // Weekly hours with several intervals per day. Used for staff schedules and
 // business opening hours; the caller decides where it is saved.
@@ -19,10 +21,13 @@ export function WeekEditor({
   initial,
   hint,
   onSave,
+  branches,
 }: {
   initial: Week;
   hint: string;
-  onSave: (week: Record<string, Interval[]>) => Promise<ActionResult>;
+  onSave: (week: Record<string, WeekInterval[]>) => Promise<ActionResult>;
+  /** more than one: each interval gets a branch choice */
+  branches?: { id: string; name: string }[];
 }) {
   const t = useTranslations();
   const [week, setWeek] = useState<Week>(() =>
@@ -31,7 +36,9 @@ export function WeekEditor({
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
 
-  const set = (d: number, list: Interval[]) => setWeek((w) => ({ ...w, [d]: list }));
+  const multi = (branches?.length ?? 0) > 1;
+  const firstBranch = multi ? branches![0].id : undefined;
+  const set = (d: number, list: WeekInterval[]) => setWeek((w) => ({ ...w, [d]: list }));
   const invalidDays = WEEKDAYS.filter((d) => intervalProblem(week[d]) !== null);
 
   const save = () =>
@@ -56,7 +63,9 @@ export function WeekEditor({
               <label className="flex min-h-9 w-40 shrink-0 cursor-pointer items-center gap-3">
                 <Switch
                   checked={working}
-                  onCheckedChange={(on) => set(d, on ? [{ start: "10:00", end: "19:00" }] : [])}
+                  onCheckedChange={(on) =>
+                    set(d, on ? [{ start: "10:00", end: "19:00", locationId: firstBranch }] : [])
+                  }
                   aria-label={t(`weekdays.long.${d}`)}
                 />
                 <span className="text-sm font-medium">{t(`weekdays.long.${d}`)}</span>
@@ -94,6 +103,25 @@ export function WeekEditor({
                         }
                         className="h-11 w-32 md:h-9"
                       />
+                      {multi && (
+                        <select
+                          value={iv.locationId ?? firstBranch}
+                          aria-label={`${t(`weekdays.long.${d}`)} ${t("branches.branch")}`}
+                          onChange={(e) =>
+                            set(
+                              d,
+                              list.map((x, k) => (k === i ? { ...x, locationId: e.target.value } : x)),
+                            )
+                          }
+                          className="h-11 max-w-40 min-w-0 rounded-lg border bg-background px-2 text-sm md:h-9"
+                        >
+                          {branches!.map((b) => (
+                            <option key={b.id} value={b.id}>
+                              {b.name}
+                            </option>
+                          ))}
+                        </select>
+                      )}
                       {list.length > 1 && (
                         <Button
                           variant="ghost"
@@ -116,7 +144,16 @@ export function WeekEditor({
                     size="sm"
                     className="h-9 self-start"
                     disabled={list.length >= 4}
-                    onClick={() => set(d, [...list, { start: list.at(-1)?.end ?? "10:00", end: "20:00" }])}
+                    onClick={() =>
+                      set(d, [
+                        ...list,
+                        {
+                          start: list.at(-1)?.end ?? "10:00",
+                          end: "20:00",
+                          locationId: list.at(-1)?.locationId ?? firstBranch,
+                        },
+                      ])
+                    }
                   >
                     <Plus aria-hidden />
                     {t("staff.schedule.addInterval")}

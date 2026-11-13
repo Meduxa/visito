@@ -36,7 +36,11 @@ export const staffSchema = z.object({
 });
 export type StaffInput = z.input<typeof staffSchema>;
 
-const interval = z.object({ start: z.string().refine(isTime), end: z.string().refine(isTime) });
+const interval = z.object({
+  start: z.string().refine(isTime),
+  end: z.string().refine(isTime),
+  locationId: z.uuid().optional(), // the branch (staff schedules, decision 032)
+});
 
 export const weekSchema = z
   .record(z.string(), z.array(interval).max(10))
@@ -47,7 +51,7 @@ export const weekSchema = z
       ),
     "scheduleInvalid",
   );
-export type WeekInput = Record<string, { start: string; end: string }[]>;
+export type WeekInput = Record<string, { start: string; end: string; locationId?: string }[]>;
 
 // Services this person performs; empty override = use the service's own value.
 export const staffServicesSchema = z
@@ -82,6 +86,7 @@ export const overrideSchema = z
     dayOff: z.boolean(),
     start: z.string(),
     end: z.string(),
+    locationId: z.uuid().nullable().optional(), // the branch of that day (decision 032)
   })
   .refine((v) => v.dayOff || intervalProblem([{ start: v.start, end: v.end }]) === null, {
     message: "timeInvalid",

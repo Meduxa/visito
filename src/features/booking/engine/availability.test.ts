@@ -226,3 +226,69 @@ describe("validateBooking", () => {
     ).toEqual(["cannotPerform"]);
   });
 });
+
+// Branches (decision 032): a person can work in several branches on different
+// days; each interval says where. The booking is for one branch.
+describe("branches", () => {
+  const split = staff("ana", {
+    week: {
+      ...WEEK,
+      1: [
+        { start: "10:00", end: "14:00", locationId: "vake" },
+        { start: "15:00", end: "19:00", locationId: "saburtalo" },
+      ],
+      2: [{ start: "10:00", end: "19:00", locationId: "saburtalo" }],
+    },
+  });
+
+  it("only the intervals at the chosen branch give times", () => {
+    const vake = starts(data({ staff: [split], locationId: "vake" }));
+    expect(vake[0]).toBe("10:00");
+    expect(vake.at(-1)).toBe("13:00");
+    const sab = starts(data({ staff: [split], locationId: "saburtalo" }));
+    expect(sab[0]).toBe("15:00");
+    expect(sab.at(-1)).toBe("18:00");
+  });
+
+  it("a day spent in another branch gives no times here", () => {
+    expect(starts(data({ staff: [split], locationId: "vake" }), [cut], "ana", "2031-03-04")).toEqual([]);
+  });
+
+  it("no branch given (one-branch business) = every interval counts", () => {
+    expect(starts(data({ staff: [split] }))).toHaveLength(13 + 13);
+  });
+
+  it("a date change at another branch replaces the day everywhere", () => {
+    const moved = staff("ana", {
+      week: { ...WEEK, 1: [{ start: "10:00", end: "19:00", locationId: "vake" }] },
+      overrides: { [MON]: { intervals: [{ start: "12:00", end: "16:00", locationId: "saburtalo" }] } },
+    });
+    expect(starts(data({ staff: [moved], locationId: "vake" }))).toEqual([]);
+    const sab = starts(data({ staff: [moved], locationId: "saburtalo" }));
+    expect([sab[0], sab.at(-1)]).toEqual(["12:00", "15:00"]);
+  });
+
+  it("a booking at another branch still blocks the person", () => {
+    const busy = staff("ana", {
+      week: { ...WEEK, 1: [{ start: "10:00", end: "19:00", locationId: "vake" }] },
+      busy: [[at(MON, "10:00"), at(MON, "18:00")]],
+    });
+    expect(starts(data({ staff: [busy], locationId: "vake" }))).toEqual(["18:00"]);
+  });
+
+  it("a service switched off at the branch is not offered and not accepted", () => {
+    const d = data({ staff: [split], locationId: "vake", notOffered: ["cut"] });
+    expect(starts(d)).toEqual([]);
+    expect(starts(d, [colour])).not.toEqual([]);
+    expect(
+      validateBooking({ staffId: "ana", start: new Date(at(MON, "10:00")), services: [cut] }, d),
+    ).toEqual(["cannotPerform"]);
+  });
+
+  it("booking outside the person's hours at this branch is flagged", () => {
+    const d = data({ staff: [split], locationId: "vake" });
+    expect(
+      validateBooking({ staffId: "ana", start: new Date(at(MON, "15:00")), services: [cut] }, d),
+    ).toEqual(["outsideHours"]);
+  });
+});

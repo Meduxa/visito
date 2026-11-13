@@ -31,9 +31,10 @@ type Props = {
   isDental: boolean;
   catalog: (PriceShape & { id: string; name: I18nText; durationMin: number; categoryName: string })[];
   members: { id: string; name: string; role: string; staffId: string | null }[];
+  branches: { id: string; name: string }[];
 };
 
-export function StaffDetailView({ staff, tenantId, timeZone, isDental, catalog, members }: Props) {
+export function StaffDetailView({ staff, tenantId, timeZone, isDental, catalog, members, branches }: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -178,8 +179,9 @@ export function StaffDetailView({ staff, tenantId, timeZone, isDental, catalog, 
             initial={staff.week}
             hint={t("staff.schedule.hint")}
             onSave={(week) => saveWeek(staff.id, week)}
+            branches={branches}
           />
-          <OverridesEditor staffId={staff.id} items={staff.overrides} />
+          <OverridesEditor staffId={staff.id} items={staff.overrides} branches={branches} />
         </TabsContent>
 
         <TabsContent value="timeOff">

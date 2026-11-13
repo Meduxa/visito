@@ -2,10 +2,10 @@
 
 import { MessageSquare, Send, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, type ReactNode } from "react";
 import { toast } from "sonner";
 import { FieldError } from "@/components/field-error";
-import { describedBy, FormField, SwitchRow } from "@/components/form-field";
+import { describedBy, FormField } from "@/components/form-field";
 import { StatCard } from "@/components/stat-card";
 import { StatusPill, type PillTone } from "@/components/status-pill";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import { Link } from "@/i18n/navigation";
 import type { ActionResult } from "@/lib/action-result";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { resetTemplate, saveSmsSettings, saveTemplate, sendTestSms } from "../actions";
 import type { SmsOverview } from "../queries";
 import { renderSms, SMS_VARIABLES, TEMPLATE_TYPES, unknownVariables, type TemplateType } from "../render";
@@ -48,8 +49,11 @@ export function SmsSettingsView({
   data,
   defaults,
   businessName,
+  previews,
 }: {
   data: SmsOverview;
+  /** each automatic SMS as clients get it, with an example date and time */
+  previews: Record<TemplateType | "review", string>;
   defaults: Record<Locale, Record<TemplateType, string>>;
   businessName: string;
 }) {
@@ -90,46 +94,98 @@ export function SmsSettingsView({
       </div>
 
       <Card className="gap-4 p-4 md:p-6">
-        <FormField
-          id="sms-sender"
-          label={t("sender")}
-          hint={t("senderHint")}
-          error={save.error?.field === "senderName" ? save.error.code : undefined}
-        >
-          <div className="flex flex-wrap items-center gap-3">
-            <Input
-              id="sms-sender"
-              maxLength={11}
-              className="h-11 max-w-56 md:h-9"
-              value={s.senderName}
-              onChange={(e) => setS({ ...s, senderName: e.target.value })}
-              {...describedBy("sms-sender", save.error?.field === "senderName" ? save.error.code : undefined)}
-            />
-            <StatusPill
-              tone={SENDER_TONE[s.senderName === data.settings.senderName ? s.senderStatus : "none"]}
-              dot
-            >
-              {t(`senderStatus.${s.senderName === data.settings.senderName ? s.senderStatus : "none"}`)}
-            </StatusPill>
-          </div>
-        </FormField>
+        {/* pilot (decision 033): Visito's sender name and texts for everyone */}
+        {!SMS_SALON_TOOLS && <p className="text-sm text-muted-foreground">{t("pilotNote")}</p>}
+        {SMS_SALON_TOOLS && (
+          <FormField
+            id="sms-sender"
+            label={t("sender")}
+            hint={t("senderHint")}
+            error={save.error?.field === "senderName" ? save.error.code : undefined}
+          >
+            <div className="flex flex-wrap items-center gap-3">
+              <Input
+                id="sms-sender"
+                maxLength={11}
+                className="h-11 max-w-56 md:h-9"
+                value={s.senderName}
+                onChange={(e) => setS({ ...s, senderName: e.target.value })}
+                {...describedBy(
+                  "sms-sender",
+                  save.error?.field === "senderName" ? save.error.code : undefined,
+                )}
+              />
+              <StatusPill
+                tone={SENDER_TONE[s.senderName === data.settings.senderName ? s.senderStatus : "none"]}
+                dot
+              >
+                {t(`senderStatus.${s.senderName === data.settings.senderName ? s.senderStatus : "none"}`)}
+              </StatusPill>
+            </div>
+          </FormField>
+        )}
 
         <h2 className="pt-2 text-base font-semibold">{t("messagesTitle")}</h2>
-        <SwitchRow label={t("reminder2h")}>
-          <Switch checked={s.reminder2h} onCheckedChange={(v) => setS({ ...s, reminder2h: v })} />
-        </SwitchRow>
-        <SwitchRow label={t("reminder24h")}>
-          <Switch checked={s.reminder24h} onCheckedChange={(v) => setS({ ...s, reminder24h: v })} />
-        </SwitchRow>
-        <SwitchRow label={t("onConfirm")} hint={t("onConfirmHint")}>
-          <Switch checked={s.onConfirm} onCheckedChange={(v) => setS({ ...s, onConfirm: v })} />
-        </SwitchRow>
-        <SwitchRow label={t("onReschedule")}>
-          <Switch checked={s.onReschedule} onCheckedChange={(v) => setS({ ...s, onReschedule: v })} />
-        </SwitchRow>
-        <SwitchRow label={t("onCancel")}>
-          <Switch checked={s.onCancel} onCheckedChange={(v) => setS({ ...s, onCancel: v })} />
-        </SwitchRow>
+        <ul className="flex flex-col gap-3" data-testid="auto-sms">
+          <MessageRow
+            label={t("onConfirm")}
+            hint={t("onConfirmHint")}
+            text={previews.confirmed}
+            on={s.onConfirm}
+            extra={
+              <>
+                <span className="text-muted-foreground">{t("pendingNote")} </span>
+                {previews.pending}
+              </>
+            }
+          >
+            <Switch
+              checked={s.onConfirm}
+              onCheckedChange={(v) => setS({ ...s, onConfirm: v })}
+              aria-label={t("onConfirm")}
+            />
+          </MessageRow>
+          <MessageRow label={t("onReschedule")} text={previews.rescheduled} on={s.onReschedule}>
+            <Switch
+              checked={s.onReschedule}
+              onCheckedChange={(v) => setS({ ...s, onReschedule: v })}
+              aria-label={t("onReschedule")}
+            />
+          </MessageRow>
+          <MessageRow label={t("onCancel")} text={previews.cancelled} on={s.onCancel}>
+            <Switch
+              checked={s.onCancel}
+              onCheckedChange={(v) => setS({ ...s, onCancel: v })}
+              aria-label={t("onCancel")}
+            />
+          </MessageRow>
+          <MessageRow label={t("reminder24h")} text={previews.reminder} on={s.reminder24h}>
+            <Switch
+              checked={s.reminder24h}
+              onCheckedChange={(v) => setS({ ...s, reminder24h: v })}
+              aria-label={t("reminder24h")}
+            />
+          </MessageRow>
+          <MessageRow label={t("reminder2h")} text={previews.reminder} on={s.reminder2h}>
+            <Switch
+              checked={s.reminder2h}
+              onCheckedChange={(v) => setS({ ...s, reminder2h: v })}
+              aria-label={t("reminder2h")}
+            />
+          </MessageRow>
+          <MessageRow
+            label={t("reviewRequest")}
+            hint={t("reviewRequestHint")}
+            text={previews.review}
+            on={s.reviewAsk}
+          >
+            <Switch
+              checked={s.reviewAsk}
+              onCheckedChange={(v) => setS({ ...s, reviewAsk: v })}
+              aria-label={t("reviewRequest")}
+            />
+          </MessageRow>
+        </ul>
 
         <h2 className="pt-2 text-base font-semibold">{t("quietTitle")}</h2>
         <p className="text-sm text-muted-foreground">{t("quietHint")}</p>
@@ -163,64 +219,109 @@ export function SmsSettingsView({
         </Button>
       </Card>
 
-      <Card className="gap-4 p-4 md:p-6">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-base font-semibold">{t("templatesTitle")}</h2>
-          <p className="text-sm text-muted-foreground">{t("templatesHint")}</p>
-        </div>
-        <Tabs defaultValue={data.locale}>
-          <TabsList>
-            {LOCALES.map((l) => (
-              <TabsTrigger key={l} value={l} className="min-h-9 px-3">
-                {l.toUpperCase()}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-          {LOCALES.map((l) => (
-            <TabsContent key={l} value={l} className="flex flex-col gap-6 pt-4">
-              {TEMPLATE_TYPES.map((type) => (
-                <TemplateEditor
-                  key={`${l}-${type}`}
-                  type={type}
-                  locale={l}
-                  fallback={defaults[l][type]}
-                  custom={data.templates.find((x) => x.type === type && x.locale === l)?.body ?? null}
-                  businessName={businessName}
-                />
+      {SMS_SALON_TOOLS && (
+        <Card className="gap-4 p-4 md:p-6">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-base font-semibold">{t("templatesTitle")}</h2>
+            <p className="text-sm text-muted-foreground">{t("templatesHint")}</p>
+          </div>
+          <Tabs defaultValue={data.locale}>
+            <TabsList>
+              {LOCALES.map((l) => (
+                <TabsTrigger key={l} value={l} className="min-h-9 px-3">
+                  {l.toUpperCase()}
+                </TabsTrigger>
               ))}
-            </TabsContent>
-          ))}
-        </Tabs>
-      </Card>
+            </TabsList>
+            {LOCALES.map((l) => (
+              <TabsContent key={l} value={l} className="flex flex-col gap-6 pt-4">
+                {TEMPLATE_TYPES.map((type) => (
+                  <TemplateEditor
+                    key={`${l}-${type}`}
+                    type={type}
+                    locale={l}
+                    fallback={defaults[l][type]}
+                    custom={data.templates.find((x) => x.type === type && x.locale === l)?.body ?? null}
+                    businessName={businessName}
+                  />
+                ))}
+              </TabsContent>
+            ))}
+          </Tabs>
+        </Card>
+      )}
 
-      <Card className="gap-3 p-4 md:p-6">
-        <h2 className="text-base font-semibold">{t("test")}</h2>
-        <p className="text-sm text-muted-foreground">{t("testHint")}</p>
-        <div className="flex flex-wrap items-end gap-2">
-          <FormField id="sms-test" label={t("testPhone")} error={test.error?.code}>
-            <Input
-              id="sms-test"
-              type="tel"
-              className="h-11 w-48 md:h-9"
-              value={testPhone}
-              onChange={(e) => setTestPhone(e.target.value)}
-            />
-          </FormField>
-          <Button
-            variant="outline"
-            className="h-11 md:h-9"
-            disabled={test.pending || !testPhone.trim()}
-            onClick={() => test.run(() => sendTestSms(testPhone), t("testSent"))}
-          >
-            {t("testSend")}
-          </Button>
-        </div>
-      </Card>
+      {SMS_SALON_TOOLS && (
+        <Card className="gap-3 p-4 md:p-6">
+          <h2 className="text-base font-semibold">{t("test")}</h2>
+          <p className="text-sm text-muted-foreground">{t("testHint")}</p>
+          <div className="flex flex-wrap items-end gap-2">
+            <FormField id="sms-test" label={t("testPhone")} error={test.error?.code}>
+              <Input
+                id="sms-test"
+                type="tel"
+                className="h-11 w-48 md:h-9"
+                value={testPhone}
+                onChange={(e) => setTestPhone(e.target.value)}
+              />
+            </FormField>
+            <Button
+              variant="outline"
+              className="h-11 md:h-9"
+              disabled={test.pending || !testPhone.trim()}
+              onClick={() => test.run(() => sendTestSms(testPhone), t("testSent"))}
+            >
+              {t("testSend")}
+            </Button>
+          </div>
+        </Card>
+      )}
 
       <Button variant="link" asChild className="self-start px-0">
         <Link href="/settings/sms/log">{t("log")}</Link>
       </Button>
     </div>
+  );
+}
+
+// One automatic SMS: its name, on/off, and the text clients get (an SMS bubble).
+function MessageRow({
+  label,
+  hint,
+  text,
+  on,
+  extra,
+  children,
+}: {
+  label: string;
+  hint?: string;
+  text: string;
+  on: boolean;
+  extra?: ReactNode;
+  children: ReactNode;
+}) {
+  const t = useTranslations("smsSettings");
+  const seg = countSegments(text);
+  return (
+    <li className="flex flex-col gap-2 rounded-xl border p-3">
+      <div className="flex items-start gap-3">
+        <div className="flex min-w-0 flex-1 flex-col">
+          <span className="text-sm font-medium">{label}</span>
+          {hint && <span className="text-xs text-muted-foreground">{hint}</span>}
+        </div>
+        {children}
+      </div>
+      <div className={on ? "" : "opacity-50"}>
+        <p className="sr-only">{t("textLabel")}</p>
+        <p className="w-fit max-w-full rounded-2xl rounded-bl-sm bg-muted px-3 py-2 text-sm break-words whitespace-pre-line">
+          {text}
+        </p>
+        {extra && <p className="mt-1 text-xs break-words">{extra}</p>}
+        <p className="mt-1 text-xs text-muted-foreground">
+          {t("counter", { chars: seg.length, segments: seg.segments })}
+        </p>
+      </div>
+    </li>
   );
 }
 

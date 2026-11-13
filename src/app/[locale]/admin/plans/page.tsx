@@ -21,6 +21,7 @@ export default async function AdminPlansPage({ params }: PageProps<"/[locale]/ad
             name: p.name,
             price: (p.price_minor / 100).toString(),
             maxStaff: p.max_staff === null ? "" : String(p.max_staff),
+            maxLocations: p.max_locations === null ? "" : String(p.max_locations),
             smsPerMonth: String(p.sms_per_month),
             active: p.active,
             features: p.features.filter((f): f is "payroll" => f === "payroll"),
@@ -30,7 +31,16 @@ export default async function AdminPlansPage({ params }: PageProps<"/[locale]/ad
       <h2 className="pt-2 text-base font-semibold">{t("plans.new")}</h2>
       <PlanEditor
         isNew
-        plan={{ code: "", name: "", price: "", maxStaff: "", smsPerMonth: "0", active: true, features: [] }}
+        plan={{
+          code: "",
+          name: "",
+          price: "",
+          maxStaff: "",
+          maxLocations: "1",
+          smsPerMonth: "0",
+          active: true,
+          features: [],
+        }}
       />
     </div>
   );

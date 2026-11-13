@@ -17,12 +17,12 @@ export async function GET(req: Request) {
     ? url.searchParams.get("locale")!
     : "ka";
   const db = await createClient();
-  const { from, to, staff } = reportParams(
+  const { from, to, staff, branch } = reportParams(
     Object.fromEntries(url.searchParams),
     ymdIn(new Date().toISOString()),
   );
   const [report, money, t] = await Promise.all([
-    buildReport(db, tenant.tenantId, { from, to, staffId: staff, locale }),
+    buildReport(db, tenant.tenantId, { from, to, staffId: staff, branchId: branch, locale }),
     canSeeMoney(db, tenant.tenantId, tenant.role),
     getTranslations({ locale }),
   ]);

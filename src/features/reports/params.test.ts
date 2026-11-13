@@ -7,6 +7,7 @@ describe("report params", () => {
       from: "2026-11-01",
       to: "2026-11-07",
       staff: null,
+      branch: null,
       compare: "off",
       tab: "overview",
     });

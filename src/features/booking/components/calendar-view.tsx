@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Plus, TriangleAlert, Upload, UserRound } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, Plus, TriangleAlert, Upload, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { toast } from "sonner";
@@ -88,6 +88,8 @@ export function CalendarScreen({
   waitlist,
   dayBy,
   bookFor = null,
+  branches = [],
+  branchId = null,
 }: {
   data: CalendarData;
   date: string;
@@ -111,6 +113,9 @@ export function CalendarScreen({
     important_note: string | null;
     no_show_count: number;
   } | null;
+  /** more than one: the calendar shows one branch at a time (decision 032) */
+  branches?: { id: string; name: string }[];
+  branchId?: string | null;
 }) {
   const t = useTranslations();
   const dates = useDates();
@@ -148,9 +153,12 @@ export function CalendarScreen({
     setMoved({});
   }
 
-  const go = (patch: Partial<{ date: string; view: CalendarView; staff: string; by: DayBy }>) => {
+  const go = (
+    patch: Partial<{ date: string; view: CalendarView; staff: string; by: DayBy; branch: string }>,
+  ) => {
     const p = new URLSearchParams({
       date,
+      ...(branchId && { branch: branchId }),
       ...(viewParam && { view: viewParam }),
       ...(weekStaffId && { staff: weekStaffId }),
       ...(dayBy === "chair" && { by: "chair" }),
@@ -291,6 +299,25 @@ export function CalendarScreen({
       {/* toolbar */}
       <div className="flex flex-wrap items-center gap-2">
         <h1 className="mr-auto min-w-0 text-xl font-semibold text-balance md:text-2xl">{title}</h1>
+        {branches.length > 1 && (
+          <Select value={branchId ?? branches[0].id} onValueChange={(v) => go({ branch: v })}>
+            <SelectTrigger
+              aria-label={t("branches.branch")}
+              className="h-11 w-auto min-w-36 md:h-9"
+              data-testid="branch-switch"
+            >
+              <MapPin aria-hidden className="text-muted-foreground" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {branches.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
         <div className="flex items-center gap-1">
           <Button
             variant="outline"
@@ -621,6 +648,7 @@ export function CalendarScreen({
             // drop ?booking= so the same link opens the panel again next time
             const p = new URLSearchParams({
               date,
+              ...(branchId && { branch: branchId }),
               ...(viewParam && { view: viewParam }),
               ...(weekStaffId && { staff: weekStaffId }),
               ...(dayBy === "chair" && { by: "chair" }),
@@ -667,7 +695,10 @@ export function CalendarScreen({
             const fromCard = !!creating.forClient;
             setCreating(null);
             // drop ?for= so a reload does not open the form again
-            if (fromCard) router.replace(`${pathname}?${new URLSearchParams({ date })}`);
+            if (fromCard)
+              router.replace(
+                `${pathname}?${new URLSearchParams({ date, ...(branchId && { branch: branchId }) })}`,
+              );
             else router.refresh();
           }}
           initial={creating}
@@ -676,6 +707,7 @@ export function CalendarScreen({
           timeZone={tz}
           isManager={isManager}
           ownStaffId={ownStaffId}
+          locationId={branchId}
           preset={
             creating.fromWaitlist
               ? {

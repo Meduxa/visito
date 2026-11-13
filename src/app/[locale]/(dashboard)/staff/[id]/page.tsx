@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
+import { getBranchInfo } from "@/features/branches/queries";
 import { getCatalog } from "@/features/services/queries";
 import { StaffDetailView } from "@/features/staff/components/staff-detail";
 import { getLinkableMembers, getStaffDetail } from "@/features/staff/queries";
@@ -32,11 +33,12 @@ export default async function StaffDetailPage({ params }: PageProps<"/[locale]/s
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
 
   const supabase = await createClient();
-  const [staff, { categories, services }, members, { data: t }] = await Promise.all([
+  const [staff, { categories, services }, members, { data: t }, branches] = await Promise.all([
     getStaffDetail(tenant.tenantId, id),
     getCatalog(tenant.tenantId),
     getLinkableMembers(tenant.tenantId),
     supabase.from("tenants").select("timezone").eq("id", tenant.tenantId).single(),
+    getBranchInfo(supabase, tenant.tenantId),
   ]);
   if (!staff) notFound();
 
@@ -61,6 +63,7 @@ export default async function StaffDetailPage({ params }: PageProps<"/[locale]/s
       isDental={tenant.type === "dental"}
       catalog={catalog}
       members={members}
+      branches={branches.usable.map((b) => ({ id: b.id, name: b.name }))}
     />
   );
 }

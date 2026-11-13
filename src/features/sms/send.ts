@@ -1,4 +1,5 @@
 import "server-only";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { getSmsProvider } from "@/integrations/sms";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { countSegments } from "./segments";
@@ -61,7 +62,9 @@ export async function queueSms(m: QueueInput): Promise<string | null> {
 }
 
 // The business's own sender name once the provider approved it; otherwise the default.
+// During the pilot always the default (Visito's), decision 033.
 async function senderName(tenantId: string) {
+  if (!SMS_SALON_TOOLS) return undefined;
   const { data } = await createAdminClient()
     .from("tenant_settings")
     .select("sms_sender_name, sms_sender_status")

@@ -70,10 +70,18 @@ export async function getCalendar(
   tenantId: string,
   from: string,
   to: string,
-  opts: { onlyStaffId?: string } = {},
+  // branch: only that branch's bookings, rooms and people working there (decision 032)
+  opts: { onlyStaffId?: string; branch?: { id: string; isPrimary: boolean } } = {},
 ): Promise<CalendarData> {
   const supabase = await createClient();
-  const engine = await loadEngineData(supabase, tenantId, from, to);
+  const engine = await loadEngineData(supabase, tenantId, from, to, { locationId: opts.branch?.id });
+  const branch = opts.branch;
+  // bookings without a branch (made before branches existed) belong to the main one
+  const inBranch = branch
+    ? branch.isPrimary
+      ? `location_id.eq.${branch.id},location_id.is.null`
+      : `location_id.eq.${branch.id}`
+    : null;
   const fromIso = new Date(`${from}T00:00:00Z`).getTime() - 14 * 3_600_000; // generous; filtered by local date in the UI
   const toIso = new Date(`${addDays(to, 1)}T00:00:00Z`).getTime() + 14 * 3_600_000;
 
@@ -85,21 +93,33 @@ export async function getCalendar(
       .eq("active", true)
       .order("sort_order")
       .order("display_name"),
-    supabase
-      .from("bookings")
-      .select(
-        "id, status, source, recurrence_id, starts_at, ends_at, internal_note, client_comment, total_minor, paid_minor, clients(id, first_name, last_name, phone_e164, important_note, no_show_count), booking_items(id, staff_id, resource_id, service_id, name_snapshot, price_minor_snapshot, price_type_snapshot, duration_min_snapshot, starts_at, ends_at, sort_order, services(color))",
-      )
-      .eq("tenant_id", tenantId)
-      .lt("starts_at", new Date(toIso).toISOString())
-      .gt("ends_at", new Date(fromIso).toISOString())
-      .order("starts_at"),
+    (() => {
+      const q = supabase
+        .from("bookings")
+        .select(
+          "id, status, source, recurrence_id, starts_at, ends_at, internal_note, client_comment, total_minor, paid_minor, clients(id, first_name, last_name, phone_e164, important_note, no_show_count), booking_items(id, staff_id, resource_id, service_id, name_snapshot, price_minor_snapshot, price_type_snapshot, duration_min_snapshot, starts_at, ends_at, sort_order, services(color))",
+        )
+        .eq("tenant_id", tenantId)
+        .lt("starts_at", new Date(toIso).toISOString())
+        .gt("ends_at", new Date(fromIso).toISOString())
+        .order("starts_at");
+      return inBranch ? q.or(inBranch) : q;
+    })(),
   ]);
   if (error) throw new Error("Could not load calendar");
 
+  // With branches: the people who work in this branch in these days or have a visit here
+  // (everyone if nobody does yet, so the calendar is never empty).
+  const here = new Set<string>();
+  if (branch) {
+    for (const b of rows ?? []) for (const i of b.booking_items) here.add(i.staff_id);
+    for (let d = from; d <= to; d = addDays(d, 1))
+      for (const s of engine.staff) if (workingRanges(s, d, engine).length) here.add(s.id);
+  }
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const staff: CalStaff[] = (staffRows ?? [])
     .filter((s) => !opts.onlyStaffId || s.id === opts.onlyStaffId)
+    .filter((s) => !branch || here.size === 0 || here.has(s.id))
     .map((s) => ({
       id: s.id,
       name: s.display_name,
@@ -126,13 +146,14 @@ export async function getCalendar(
       fromZonedTime(`${d}T${h.end}`, engine.timeZone).getTime(),
     ]);
   }
-  const { data: resourceRows } = await supabase
+  const resourceQuery = supabase
     .from("resources")
     .select("id, name, type")
     .eq("tenant_id", tenantId)
     .eq("active", true)
     .order("sort_order")
     .order("name");
+  const { data: resourceRows } = await (inBranch ? resourceQuery.or(inBranch) : resourceQuery);
 
   const all = Object.values(engine.openingHours).flat();
   const dayStartMin = all.length ? Math.min(...all.map((h) => toMin(h.start))) : 8 * 60;

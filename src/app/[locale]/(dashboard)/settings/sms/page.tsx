@@ -3,7 +3,9 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
 import { SmsSettingsView } from "@/features/sms/components/sms-settings-view";
 import { getSmsOverview } from "@/features/sms/queries";
-import { TEMPLATE_TYPES, type TemplateType } from "@/features/sms/render";
+import { renderSms, TEMPLATE_TYPES, type TemplateType } from "@/features/sms/render";
+import { PLATFORM_TEXT_TYPES, smsText, type PlatformTextType } from "@/features/sms/texts";
+import { shortDate } from "@/lib/date-format";
 import { canManage, getActiveTenant } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/settings/sms">) {
@@ -28,14 +30,33 @@ export default async function SmsSettingsPage({ params }: PageProps<"/[locale]/s
     ),
   ) as Record<"ka" | "en" | "ru", Record<TemplateType, string>>;
 
+  // the texts the clients get now, filled with an example (decision 033)
+  const overview = await getSmsOverview(tenant.tenantId);
+  const tAll = await getTranslations({ locale: overview.locale });
+  const sample = {
+    client_name: tAll("smsSettings.sample.client_name"),
+    business_name: tenant.name,
+    service: tAll("smsSettings.sample.service"),
+    staff: tAll("smsSettings.sample.staff"),
+    date: shortDate(tAll, "2026-11-09"),
+    time: "12:15",
+    address: tAll("smsSettings.sample.address"),
+    phone: tAll("smsSettings.sample.phone"),
+    manage_link: "https://visito.ge/r/Xk3pQ9vRm2LbT7wZ4nYc8dHf6gJs1aEq", // as long as a real link
+  };
+  const previews = Object.fromEntries(
+    await Promise.all(
+      PLATFORM_TEXT_TYPES.map(async (type) => [
+        type,
+        renderSms(await smsText(tenant.tenantId, type, overview.locale), sample),
+      ]),
+    ),
+  ) as Record<PlatformTextType, string>;
+
   return (
     <div className="flex max-w-3xl flex-col gap-2">
       <PageHeader title={t("title")} description={t("subtitle")} />
-      <SmsSettingsView
-        data={await getSmsOverview(tenant.tenantId)}
-        defaults={defaults}
-        businessName={tenant.name}
-      />
+      <SmsSettingsView data={overview} previews={previews} defaults={defaults} businessName={tenant.name} />
     </div>
   );
 }

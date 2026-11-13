@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { z } from "zod";
 import { dbErrorCode, managerContext } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import {
   cleanCustom,
   clientFieldSchema,
@@ -75,28 +76,34 @@ export async function saveClient(
     );
 
   // Marketing consent: store an event only when the state actually changes,
-  // so the history shows who changed it and when.
-  const { data: state } = await supabase
-    .from("client_consent_state")
-    .select("channel, granted")
-    .eq("client_id", data.id);
-  const userId = (await supabase.auth.getUser()).data.user!.id;
-  for (const [channel, wanted] of [
-    ["sms", v.consentSms],
-    ["email", v.consentEmail],
-  ] as const) {
-    const current = state?.find((s) => s.channel === channel)?.granted ?? false;
-    if (current !== wanted) {
-      const { error: cErr } = await supabase.from("client_consents").insert({
-        tenant_id: tenant.tenantId,
-        client_id: data.id,
-        channel,
-        granted: wanted,
-        source: "admin",
-        recorded_by: userId,
-      });
-      if (cErr) return fail(dbErrorCode(cErr));
+  // so the history shows who changed it and when. Not asked during the pilot (decision 033).
+  const clientId = data.id;
+  const consentError = SMS_SALON_TOOLS ? await saveConsents() : null;
+  if (consentError) return fail(consentError);
+  async function saveConsents() {
+    const { data: state } = await supabase
+      .from("client_consent_state")
+      .select("channel, granted")
+      .eq("client_id", clientId);
+    const userId = (await supabase.auth.getUser()).data.user!.id;
+    for (const [channel, wanted] of [
+      ["sms", v.consentSms],
+      ["email", v.consentEmail],
+    ] as const) {
+      const current = state?.find((s) => s.channel === channel)?.granted ?? false;
+      if (current !== wanted) {
+        const { error: cErr } = await supabase.from("client_consents").insert({
+          tenant_id: tenant.tenantId,
+          client_id: clientId,
+          channel,
+          granted: wanted,
+          source: "admin",
+          recorded_by: userId,
+        });
+        if (cErr) return dbErrorCode(cErr);
+      }
     }
+    return null;
   }
 
   revalidatePath(`/${ctx.locale}/clients`);

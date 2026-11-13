@@ -1,6 +1,7 @@
 // Phase 5: SMS settings, templates, manual and bulk SMS, unsubscribe, log, job.
 import { existsSync, readFileSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
+import { SMS_SALON_TOOLS } from "../src/lib/pilot";
 
 // some tests here walk through several pages and sign-ins
 test.describe.configure({ timeout: 60_000 });
@@ -32,6 +33,7 @@ async function sms(match: (m: { to: string; text: string }) => boolean, atLeast 
 test("SMS settings: sender name waits for approval; texts are checked, saved and reset", async ({
   page,
 }, info) => {
+  test.skip(!SMS_SALON_TOOLS, "pilot: salons' own SMS tools are off (decision 033)");
   test.skip(info.project.name !== "desktop");
   await signIn(page, "dental.owner@demo.test");
   await page.goto("/ka/settings/sms");
@@ -59,6 +61,7 @@ test("SMS settings: sender name waits for approval; texts are checked, saved and
 });
 
 test("manual SMS to a client; a promotion needs consent; it shows in the log", async ({ page }, info) => {
+  test.skip(!SMS_SALON_TOOLS, "pilot: salons' own SMS tools are off (decision 033)");
   test.skip(info.project.name !== "desktop");
   await signIn(page, "salon.owner@demo.test");
   await page.goto("/ka/clients");
@@ -100,6 +103,7 @@ test("manual SMS to a client; a promotion needs consent; it shows in the log", a
 });
 
 test("promotion to VIP clients, and the unsubscribe link works", async ({ page }, info) => {
+  test.skip(!SMS_SALON_TOOLS, "pilot: salons' own SMS tools are off (decision 033)");
   test.skip(info.project.name !== "desktop");
   // promotions wait for the end of the demo salon's quiet hours (22:00–09:00 Tbilisi)
   const hour = Number(
@@ -158,4 +162,24 @@ test("phone: SMS settings never scroll sideways", async ({ page }, info) => {
   await page.waitForLoadState("networkidle");
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
+});
+
+test("pilot: salons see only the automatic SMS switches; Visito writes the texts", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop" || SMS_SALON_TOOLS);
+  await signIn(page, "salon.owner@demo.test");
+  await page.goto("/ka/settings/sms");
+  await expect(page.getByText(/პილოტის პერიოდში SMS იგზავნება Visito-ს/)).toBeVisible();
+  await expect(page.getByLabel("გამგზავნის სახელი")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "ტექსტის შენახვა" })).toHaveCount(0);
+  await expect(page.getByRole("switch").first()).toBeVisible(); // the on/off switches stay
+  // nobody but Visito's admins reaches the texts page
+  await page.goto("/ka/admin/sms-texts");
+  await expect(page.getByRole("heading", { name: "SMS ტექსტები" })).toHaveCount(0);
+
+  await page.context().clearCookies();
+  await signIn(page, "platform.admin@demo.test");
+  await page.goto("/ka/admin/sms-texts");
+  await expect(page.getByRole("heading", { name: "SMS ტექსტები" })).toBeVisible();
+  await expect(page.getByTestId("ptxt-ka-confirmed").getByRole("textbox")).toBeVisible();
+  await expect(page.getByTestId("ptxt-ka-review")).toBeVisible();
 });

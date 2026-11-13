@@ -128,6 +128,12 @@ export function SubscriptionView({ data, returned }: { data: BillingPage; return
                     </li>
                     <li className="flex gap-2">
                       <BadgeCheck className="size-4 shrink-0 text-primary" aria-hidden />
+                      {p.maxLocations === null
+                        ? t("branchesUnlimited")
+                        : t("branchesUpTo", { count: p.maxLocations })}
+                    </li>
+                    <li className="flex gap-2">
+                      <BadgeCheck className="size-4 shrink-0 text-primary" aria-hidden />
                       {t("smsPerMonth", { count: p.smsPerMonth })}
                     </li>
                     {p.payroll && (

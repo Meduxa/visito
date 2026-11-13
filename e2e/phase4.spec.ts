@@ -1,6 +1,7 @@
 // Phase 4: public online booking page and manage link, as a client on a phone.
 import { readFileSync, existsSync } from "node:fs";
 import { expect, test, type Page } from "@playwright/test";
+import { SMS_SALON_TOOLS } from "../src/lib/pilot";
 
 const TZ = "Asia/Tbilisi";
 const plusDays = (n: number) =>
@@ -57,7 +58,9 @@ test("client books online with an SMS code, then moves and cancels with the link
   await page.getByLabel("სახელი", { exact: true }).fill("ონლაინ");
   await page.getByLabel("გვარი").fill("კლიენტი");
   await page.getByLabel("მობილური").fill(phone);
-  await page.getByText("მსურს აქციების და სიახლეების მიღება SMS-ით").click();
+  // marketing consent is not asked during the pilot (decision 033)
+  if (SMS_SALON_TOOLS) await page.getByText("მსურს აქციების და სიახლეების მიღება SMS-ით").click();
+  else await expect(page.getByText("მსურს აქციების და სიახლეების მიღება SMS-ით")).toHaveCount(0);
   await page.getByRole("button", { name: "SMS კოდის გაგზავნა" }).click();
 
   const code = (await lastSms(`+995${phone}`, "კოდია")).match(/\d{6}/)![0];
@@ -69,8 +72,10 @@ test("client books online with an SMS code, then moves and cancels with the link
   await expect(page.getByRole("heading", { name: "დაჯავშნილია!" })).toBeVisible();
   await expect(page.getByRole("button", { name: "კალენდარში დამატება" })).toBeVisible();
 
-  // the confirmation SMS carries the manage link
-  const link = (await lastSms(`+995${phone}`, "/m/")).match(/\/m\/([A-Za-z0-9_-]{32})/)![1];
+  // the confirmation SMS is short (date, time, 💚 — no link); the manage link is on the success screen
+  expect(await lastSms(`+995${phone}`, "💚")).not.toContain("/m/");
+  const href = await page.getByRole("link", { name: "შეცვლა ან გაუქმება" }).getAttribute("href");
+  const link = href!.match(/\/m\/([A-Za-z0-9_-]{32})/)![1];
   await page.goto(`/ka/m/${link}`);
   await expect(page.getByRole("heading", { name: "თქვენი ჯავშანი" })).toBeVisible();
   await expect(page.getByText("დადასტურებული")).toBeVisible();

@@ -85,9 +85,14 @@ export default async function SmsLogPage({ params, searchParams }: PageProps<"/[
                 <span className="text-muted-foreground">{t("smsLog.parts", { count: m.segments })}</span>
                 {m.error && (
                   <span className="text-destructive">
-                    {t.has(`smsLog.errors.${m.error}`)
-                      ? t(`smsLog.errors.${m.error as "no_credits"}`)
-                      : m.error}
+                    {/* "undelivered:UNDELIV" = our reason + the SMS company's own code */}
+                    {(() => {
+                      const [code, detail] = m.error.split(":");
+                      const label = t.has(`smsLog.errors.${code}`)
+                        ? t(`smsLog.errors.${code as "no_credits"}`)
+                        : code;
+                      return detail ? `${label} (${detail})` : label;
+                    })()}
                   </span>
                 )}
               </div>

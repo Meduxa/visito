@@ -138,11 +138,14 @@ export function HoursCard({ initial }: { initial: Week }) {
 
 export function ClosuresCard({
   closures,
+  branches = [],
 }: {
-  closures: { id: string; date: string; reason: string | null }[];
+  closures: { id: string; date: string; reason: string | null; locationId?: string | null }[];
+  branches?: { id: string; name: string }[];
 }) {
   const t = useTranslations();
-  const [closure, setClosure] = useState({ date: "", reason: "" });
+  const multi = branches.length > 1;
+  const [closure, setClosure] = useState({ date: "", reason: "", locationId: "" });
   const save = useSave();
   return (
     <SettingsCard title={t("settings.closures.title")} hint={t("settings.closures.hint")}>
@@ -156,6 +159,26 @@ export function ClosuresCard({
             className="h-11 w-44 md:h-9"
           />
         </FormField>
+        {multi && (
+          <FormField id="closure-branch" label={t("branches.branch")}>
+            <Select
+              value={closure.locationId || "__all"}
+              onValueChange={(v) => setClosure({ ...closure, locationId: v === "__all" ? "" : v })}
+            >
+              <SelectTrigger id="closure-branch" className="h-11 w-44 md:h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all">{t("branches.allBranches")}</SelectItem>
+                {branches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+        )}
         <FormField
           id="closure-reason"
           label={`${t("settings.closures.reason")} (${t("common.optional")})`}
@@ -173,8 +196,8 @@ export function ClosuresCard({
           disabled={save.pending || !closure.date}
           onClick={() =>
             save.run(
-              () => addClosure(closure),
-              () => setClosure({ date: "", reason: "" }),
+              () => addClosure({ ...closure, locationId: closure.locationId || null }),
+              () => setClosure({ date: "", reason: "", locationId: closure.locationId }),
             )
           }
         >
@@ -191,6 +214,12 @@ export function ClosuresCard({
               <span className="flex-1 text-sm">
                 {fullDate(t, c.date)}
                 {c.reason && <span className="text-muted-foreground"> · {c.reason}</span>}
+                {multi && (
+                  <span className="text-muted-foreground">
+                    {" · "}
+                    {branches.find((b) => b.id === c.locationId)?.name ?? t("branches.allBranches")}
+                  </span>
+                )}
               </span>
               <ConfirmDialog
                 description={t("common.confirm")}
@@ -332,13 +361,17 @@ export function NotificationsCard({ initial }: { initial: NotifyInput }) {
 
 export function ResourcesCard({
   resources,
+  branches = [],
 }: {
-  resources: { id: string; name: string; type: "chair" | "room" | "equipment" }[];
+  resources: { id: string; name: string; type: "chair" | "room" | "equipment"; locationId?: string | null }[];
+  branches?: { id: string; name: string }[];
 }) {
   const t = useTranslations();
+  const multi = branches.length > 1;
   const [resource, setResource] = useState({
     name: "",
     type: "chair" as "chair" | "room" | "equipment",
+    locationId: branches[0]?.id ?? "",
   });
   const save = useSave();
   return (
@@ -369,12 +402,31 @@ export function ResourcesCard({
             </SelectContent>
           </Select>
         </FormField>
+        {multi && (
+          <FormField id="res-branch" label={t("branches.branch")}>
+            <Select
+              value={resource.locationId}
+              onValueChange={(v) => setResource({ ...resource, locationId: v })}
+            >
+              <SelectTrigger id="res-branch" className="h-11 w-44 md:h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {branches.map((b) => (
+                  <SelectItem key={b.id} value={b.id}>
+                    {b.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </FormField>
+        )}
         <Button
           className="h-11 md:h-9"
           disabled={save.pending || !resource.name.trim()}
           onClick={() =>
             save.run(
-              () => addResource(resource),
+              () => addResource({ ...resource, locationId: multi ? resource.locationId : null }),
               () => setResource({ ...resource, name: "" }),
             )
           }
@@ -390,6 +442,11 @@ export function ResourcesCard({
           {resources.map((r) => (
             <li key={r.id} className="flex min-h-11 items-center gap-3 px-3 py-1">
               <span className="flex-1 text-sm">{r.name}</span>
+              {multi && (
+                <span className="text-xs text-muted-foreground">
+                  {branches.find((b) => b.id === r.locationId)?.name ?? branches[0].name}
+                </span>
+              )}
               <span className="text-xs text-muted-foreground">{t(`settings.resources.types.${r.type}`)}</span>
               <ConfirmDialog
                 description={t("common.confirm")}

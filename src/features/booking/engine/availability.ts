@@ -6,14 +6,16 @@ import { formatInTimeZone, fromZonedTime } from "date-fns-tz";
 import { contains, intersect, MIN, overlapsAny, subtract, type Range } from "./intervals";
 
 export type HM = { start: string; end: string }; // "HH:MM" local
+// A working interval and the branch it is in (undefined = any branch, e.g. one-branch businesses)
+export type WorkHM = HM & { locationId?: string };
 
 export type StaffData = {
   id: string;
   sortOrder: number;
   active: boolean;
   bookableOnline: boolean;
-  week: Record<number, HM[]>; // 1 = Monday … 7 = Sunday
-  overrides: Record<string, { dayOff: true } | { intervals: HM[] }>; // by local date
+  week: Record<number, WorkHM[]>; // 1 = Monday … 7 = Sunday
+  overrides: Record<string, { dayOff: true } | { intervals: WorkHM[] }>; // by local date
   timeOff: Range[];
   busy: Range[]; // active booking items, start → blocked_until (buffer included)
   services: Record<string, { durationMin: number | null }>; // what they perform; own duration if set
@@ -34,6 +36,10 @@ export type EngineData = {
   timeZone: string;
   now: Date;
   rules: { minNoticeMin: number; maxDaysAhead: number; slotStepMin: number };
+  // The branch being booked (decision 032): only intervals there count. Opening
+  // hours, closures and resources passed in are already that branch's.
+  locationId?: string | null;
+  notOffered?: string[]; // services switched off at this branch
   openingHours: Record<number, HM[]>;
   closures: string[]; // local dates "yyyy-MM-dd"
   staff: StaffData[];
@@ -59,7 +65,11 @@ function dayRanges(date: string, list: HM[] | undefined, tz: string): Range[] {
   ]);
 }
 
-// When this staff member works on that local date, inside opening hours, minus time off.
+const atBranch = (list: WorkHM[] | undefined, loc: string | null | undefined) =>
+  !loc ? list : list?.filter((i) => !i.locationId || i.locationId === loc);
+
+// When this staff member works on that local date at the branch, inside its
+// opening hours, minus time off. A date change replaces the whole day (all branches).
 export function workingRanges(staff: StaffData, date: string, data: EngineData): Range[] {
   if (data.closures.includes(date)) return [];
   const tz = data.timeZone;
@@ -69,8 +79,8 @@ export function workingRanges(staff: StaffData, date: string, data: EngineData):
   const own = o
     ? "dayOff" in o
       ? []
-      : dayRanges(date, o.intervals, tz)
-    : dayRanges(date, staff.week[wd], tz);
+      : dayRanges(date, atBranch(o.intervals, data.locationId), tz)
+    : dayRanges(date, atBranch(staff.week[wd], data.locationId), tz);
   return subtract(intersect(open, own), staff.timeOff);
 }
 
@@ -100,6 +110,7 @@ function freeResource(data: EngineData, type: string, block: Range): string | nu
 function slotsForStaff(staff: StaffData, req: SlotRequest, data: EngineData): Slot[] {
   if (!staff.active || (req.online && !staff.bookableOnline)) return [];
   if (req.online && req.services.some((s) => !s.bookableOnline)) return [];
+  if (req.services.some((s) => data.notOffered?.includes(s.serviceId))) return [];
   const total = totalFor(staff, req.services);
   if (!total) return [];
 
@@ -181,7 +192,7 @@ export function validateBooking(
   const staff = data.staff.find((s) => s.id === draft.staffId);
   if (!staff || !staff.active) return ["inactive"];
   const total = totalFor(staff, draft.services);
-  if (!total) return ["cannotPerform"];
+  if (!total || draft.services.some((s) => data.notOffered?.includes(s.serviceId))) return ["cannotPerform"];
   const date = formatInTimeZone(draft.start, data.timeZone, "yyyy-MM-dd");
   const start = draft.start.getTime();
   const end = start + total.durationMin * MIN;

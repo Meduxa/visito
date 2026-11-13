@@ -1,4 +1,5 @@
 "use server";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 
 import { formatInTimeZone } from "date-fns-tz";
 import { revalidatePath } from "next/cache";
@@ -162,6 +163,7 @@ export async function waitlistMatches(bookingId: string): Promise<string[]> {
 // message: they asked for it). Managers only, like other SMS the team sends.
 // One offer per client per freed time — pressing twice does not send twice.
 export async function sendWaitlistOffer(entryId: string, bookingId: string): Promise<ActionResult> {
+  if (!SMS_SALON_TOOLS) return fail("notAllowed"); // pilot, decision 033
   const ctx = await memberContext();
   if (!ctx?.isManager) return fail("notAllowed");
   if (!uuid.safeParse(entryId).success || !uuid.safeParse(bookingId).success) return fail("invalidInput");
@@ -173,7 +175,11 @@ export async function sendWaitlistOffer(entryId: string, bookingId: string): Pro
       .select("client_id, clients(phone_e164, anonymized_at), services(name_i18n)")
       .eq("id", entryId)
       .single(),
-    ctx.supabase.from("bookings").select("starts_at").eq("id", bookingId).single(),
+    ctx.supabase
+      .from("bookings")
+      .select("starts_at, locations(phone, is_primary)")
+      .eq("id", bookingId)
+      .single(),
     ctx.supabase
       .from("tenants")
       .select("name, timezone, locale_default")
@@ -191,6 +197,7 @@ export async function sendWaitlistOffer(entryId: string, bookingId: string): Pro
   if (!w || !b || !tenant || !client?.phone_e164 || client.anonymized_at) return fail("noPhone");
   if (new Date(b.starts_at) <= new Date()) return fail("invalidInput");
 
+  const branch = b.locations as unknown as { phone: string | null; is_primary: boolean } | null;
   const locale = tenant.locale_default;
   const t = await getTranslations({ locale });
   const text = renderSms(t.raw("smsTemplates.waitlistOffer") as string, {
@@ -198,7 +205,8 @@ export async function sendWaitlistOffer(entryId: string, bookingId: string): Pro
     service: localized((w.services as unknown as { name_i18n: never }).name_i18n, locale),
     date: shortDate(t, ymdIn(b.starts_at, tenant.timezone)),
     time: formatInTimeZone(b.starts_at, tenant.timezone, "HH:mm"),
-    phone: s?.phone ?? loc?.phone ?? "",
+    // the branch of the freed time (decision 032); the main branch: the business phone first
+    phone: (branch && !branch.is_primary ? (branch.phone ?? s?.phone) : (s?.phone ?? loc?.phone)) ?? "",
   });
   const sent = await sendNow({
     tenantId: ctx.tenant.tenantId,

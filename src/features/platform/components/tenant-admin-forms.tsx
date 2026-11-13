@@ -150,6 +150,7 @@ type Plan = {
   name: string;
   price: string;
   maxStaff: string;
+  maxLocations: string;
   smsPerMonth: string;
   active: boolean;
   features: "payroll"[];
@@ -162,7 +163,7 @@ export function PlanEditor({ plan, isNew = false }: { plan: Plan; isNew?: boolea
   const id = `plan-${isNew ? "new" : plan.code}`;
   return (
     <Card className="gap-3 p-4">
-      <div className="grid gap-3 sm:grid-cols-6">
+      <div className="grid gap-3 sm:grid-cols-7">
         <FormField id={`${id}-code`} label={t("plans.code")}>
           <Input
             id={`${id}-code`}
@@ -197,6 +198,16 @@ export function PlanEditor({ plan, isNew = false }: { plan: Plan; isNew?: boolea
             className="h-11 md:h-9"
             value={v.maxStaff}
             onChange={(e) => setV({ ...v, maxStaff: e.target.value })}
+          />
+        </FormField>
+        <FormField id={`${id}-branches`} label={t("plans.maxLocations")}>
+          <Input
+            id={`${id}-branches`}
+            inputMode="numeric"
+            placeholder="∞"
+            className="h-11 md:h-9"
+            value={v.maxLocations}
+            onChange={(e) => setV({ ...v, maxLocations: e.target.value })}
           />
         </FormField>
         <FormField id={`${id}-sms`} label={t("plans.sms")}>

@@ -167,9 +167,12 @@ export async function addClosure(input: z.input<typeof closureSchema>): Promise<
   if (!ctx) return fail("notAllowed");
   const parsed = closureSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
-  const { error } = await ctx.supabase
-    .from("closures")
-    .insert({ tenant_id: ctx.tenant.tenantId, date: parsed.data.date, reason: parsed.data.reason || null });
+  const { error } = await ctx.supabase.from("closures").insert({
+    tenant_id: ctx.tenant.tenantId,
+    date: parsed.data.date,
+    reason: parsed.data.reason || null,
+    location_id: parsed.data.locationId ?? null,
+  });
   if (error) return fail(dbErrorCode(error));
   done(ctx);
   return ok(undefined);
@@ -180,10 +183,11 @@ export async function addResource(input: z.input<typeof resourceSchema>): Promis
   if (!ctx) return fail("notAllowed");
   const parsed = resourceSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
-  const loc = await primaryLocationId(ctx);
+  const { locationId, ...v } = parsed.data;
+  const loc = locationId ?? (await primaryLocationId(ctx));
   const { error } = await ctx.supabase
     .from("resources")
-    .insert({ tenant_id: ctx.tenant.tenantId, location_id: loc, ...parsed.data });
+    .insert({ tenant_id: ctx.tenant.tenantId, location_id: loc, ...v });
   if (error) return fail(dbErrorCode(error));
   done(ctx);
   return ok(undefined);

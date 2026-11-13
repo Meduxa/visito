@@ -1,7 +1,7 @@
 import "server-only";
-import { getTranslations } from "next-intl/server";
 import { hmac, newToken } from "@/features/public-booking/security";
 import { renderSms, sendTime } from "@/features/sms/render";
+import { smsText } from "@/features/sms/texts";
 import { queueSms } from "@/features/sms/send";
 import { publicEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -30,11 +30,10 @@ export async function enqueueReviewRequests() {
       p_token_hash: hmac(token),
     });
     if (!made) continue; // another run made it first
-    const t = await getTranslations({ locale: r.locale, namespace: "smsTemplates" });
     const id = await queueSms({
       tenantId: r.tenant_id,
       to: r.phone,
-      text: renderSms(t.raw("review") as string, {
+      text: renderSms(await smsText(r.tenant_id, "review", r.locale), {
         client_name: r.first_name,
         business_name: r.business,
         manage_link: `${publicEnv.NEXT_PUBLIC_APP_URL}/r/${token}`, // the review page link

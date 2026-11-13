@@ -31,6 +31,7 @@ import {
   shiftDays,
 } from "@/features/reports/params";
 import { buildReport, canSeeMoney } from "@/features/reports/report";
+import { getBranchInfo } from "@/features/branches/queries";
 import { Link } from "@/i18n/navigation";
 import { fullDate, ymdIn } from "@/lib/date-format";
 import { formatMoney } from "@/lib/money";
@@ -111,14 +112,18 @@ export default async function ReportsPage({ params, searchParams }: PageProps<"/
   const db = await createClient();
   const { data: tz } = await db.from("tenants").select("timezone").eq("id", tenant.tenantId).single();
   const today = ymdIn(new Date().toISOString(), tz?.timezone);
-  const { from, to, staff, compare, tab: asked } = reportParams(await searchParams, today);
+  const { from, to, staff, branch, compare, tab: asked } = reportParams(await searchParams, today);
   const prevRange = comparisonRange(from, to, compare);
-  const [r, prev, money, { data: staffList }] = await Promise.all([
-    buildReport(db, tenant.tenantId, { from, to, staffId: staff, locale }),
-    prevRange ? buildReport(db, tenant.tenantId, { ...prevRange, staffId: staff, locale }) : null,
+  const [r, prev, money, { data: staffList }, branchInfo] = await Promise.all([
+    buildReport(db, tenant.tenantId, { from, to, staffId: staff, branchId: branch, locale }),
+    prevRange
+      ? buildReport(db, tenant.tenantId, { ...prevRange, staffId: staff, branchId: branch, locale })
+      : null,
     canSeeMoney(db, tenant.tenantId, tenant.role),
     db.from("staff").select("id, display_name").eq("tenant_id", tenant.tenantId).order("sort_order"),
+    getBranchInfo(db, tenant.tenantId),
   ]);
+  const branchList = branchInfo.usable.length > 1 ? branchInfo.usable : [];
   const tabs = REPORT_TABS.filter((k) => money || !MONEY_TABS.includes(k));
   const tab = tabs.includes(asked) ? asked : "overview";
 
@@ -137,11 +142,12 @@ export default async function ReportsPage({ params, searchParams }: PageProps<"/
   const href = (o: { from?: string; to?: string; tab?: string }) => {
     const q = new URLSearchParams({ from: o.from ?? from, to: o.to ?? to });
     if (staff) q.set("staff", staff);
+    if (branch) q.set("branch", branch);
     if (compare !== "off") q.set("compare", compare);
     if ((o.tab ?? tab) !== "overview") q.set("tab", o.tab ?? tab);
     return `/reports?${q}`;
   };
-  const exportHref = `/api/export/report?from=${from}&to=${to}${staff ? `&staff=${staff}` : ""}&locale=${locale}`;
+  const exportHref = `/api/export/report?from=${from}&to=${to}${staff ? `&staff=${staff}` : ""}${branch ? `&branch=${branch}` : ""}&locale=${locale}`;
 
   // ----- comparison helpers -----
   const vs = prev ? L(`compareVs.${compare}`) : "";
@@ -389,6 +395,23 @@ export default async function ReportsPage({ params, searchParams }: PageProps<"/
               ))}
             </select>
           </label>
+          {branchList.length > 0 && (
+            <label className="flex flex-col gap-1 text-sm">
+              {t("branches.branch")}
+              <select
+                name="branch"
+                defaultValue={branch ?? ""}
+                className="h-11 rounded-lg border bg-background px-3 md:h-9"
+              >
+                <option value="">{t("branches.allBranches")}</option>
+                {branchList.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
           <label className="flex flex-col gap-1 text-sm">
             {L("compare")}
             <select

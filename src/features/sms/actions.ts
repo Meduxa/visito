@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { managerContext } from "@/lib/action-context";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { normalizePhone } from "@/lib/phone";
 import { TEMPLATE_TYPES, unknownVariables } from "./render";
@@ -26,6 +27,7 @@ const settingsSchema = z.object({
   onConfirm: z.boolean(),
   onReschedule: z.boolean(),
   onCancel: z.boolean(),
+  reviewAsk: z.boolean().optional(),
 });
 
 export async function saveSmsSettings(input: z.input<typeof settingsSchema>): Promise<ActionResult> {
@@ -41,7 +43,8 @@ export async function saveSmsSettings(input: z.input<typeof settingsSchema>): Pr
   const { error } = await ctx.supabase
     .from("tenant_settings")
     .update({
-      sms_sender_name: v.senderName || null, // a new name goes to "pending" in the database
+      // a new name goes to "pending" in the database; not settable during the pilot (decision 033)
+      ...(SMS_SALON_TOOLS ? { sms_sender_name: v.senderName || null } : {}),
       reminder_24h: v.reminder24h,
       reminder_2h: v.reminder2h,
       quiet_start: v.quietStart,
@@ -49,10 +52,12 @@ export async function saveSmsSettings(input: z.input<typeof settingsSchema>): Pr
       sms_on_confirm: v.onConfirm,
       sms_on_reschedule: v.onReschedule,
       sms_on_cancel: v.onCancel,
+      ...(v.reviewAsk === undefined ? {} : { reviews_ask: v.reviewAsk }),
     })
     .eq("tenant_id", ctx.tenant.tenantId);
   if (error) return fail("generic");
   revalidatePath(`/${ctx.locale}/settings/sms`);
+  revalidatePath(`/${ctx.locale}/settings/reviews`);
   return ok(undefined);
 }
 
@@ -65,6 +70,7 @@ const templateSchema = z.object({
 export async function saveTemplate(input: z.input<typeof templateSchema>): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = templateSchema.safeParse(input);
+  if (!SMS_SALON_TOOLS) return fail("notAllowed");
   if (!ctx || !p.success) return fail("invalidInput", "body");
   if (unknownVariables(p.data.body).length) return fail("templateVariable", "body");
   const { error } = await ctx.supabase
@@ -81,6 +87,7 @@ export async function saveTemplate(input: z.input<typeof templateSchema>): Promi
 export async function resetTemplate(input: { type: string; locale: string }): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = templateSchema.pick({ type: true, locale: true }).safeParse(input);
+  if (!SMS_SALON_TOOLS) return fail("notAllowed");
   if (!ctx || !p.success) return fail("invalidInput");
   await ctx.supabase
     .from("sms_templates")
@@ -95,7 +102,7 @@ export async function resetTemplate(input: { type: string; locale: string }): Pr
 // "Send a test SMS to my phone": uses one real credit, shows up in the log.
 export async function sendTestSms(phone: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx || !SMS_SALON_TOOLS) return fail("notAllowed");
   const to = normalizePhone(phone ?? "");
   if (!to) return fail("phoneInvalid", "phone");
   const t = await getTranslations("smsSettings");

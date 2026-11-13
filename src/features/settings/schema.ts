@@ -58,9 +58,11 @@ export type NotifyInput = z.input<typeof notifySchema>;
 export const closureSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "dateInvalid"),
   reason: z.string().trim().max(200, "tooLong"),
+  locationId: z.uuid().nullable().optional(), // null = the whole business (decision 032)
 });
 
 export const resourceSchema = z.object({
   name: z.string().trim().min(1, "required").max(80, "tooLong"),
   type: z.enum(["chair", "room", "equipment"]),
+  locationId: z.uuid().nullable().optional(), // null = the main branch
 });

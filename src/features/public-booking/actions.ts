@@ -10,6 +10,7 @@ import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { fullDateTime } from "@/lib/date-format";
 import { publicEnv } from "@/lib/env";
 import { normalizePhone } from "@/lib/phone";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { buildItems } from "../booking/build-items";
 import { getAvailableSlots } from "../booking/engine/availability";
@@ -29,6 +30,11 @@ const picksSchema = z
   .max(5);
 const staffSchema = z.union([z.literal("any"), z.uuid()]);
 const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
+const branchSchema = z
+  .string()
+  .regex(/^[a-z0-9-]{1,40}$/)
+  .nullable()
+  .optional();
 
 type Slot = { start: string; staffId: string; staffName: string };
 
@@ -37,10 +43,11 @@ async function slotsFor(
   date: string,
   staffId: string,
   picks: z.infer<typeof picksSchema>,
+  locationId: string | null,
   excludeBookingId?: string,
 ) {
   const db = createAdminClient();
-  const data = await loadEngineData(db, tenantId, date, date, { excludeBookingId });
+  const data = await loadEngineData(db, tenantId, date, date, { excludeBookingId, locationId });
   const services = await loadServiceRequests(db, tenantId, picks);
   if (!services) return null;
   return {
@@ -55,15 +62,22 @@ export async function findPublicSlots(input: {
   date: string;
   staffId: string;
   picks: { serviceId: string; variantId?: string | null }[];
+  branch?: string | null;
 }): Promise<ActionResult<Slot[]>> {
   const p = z
-    .object({ slug: slugSchema, date: dateSchema, staffId: staffSchema, picks: picksSchema })
+    .object({
+      slug: slugSchema,
+      date: dateSchema,
+      staffId: staffSchema,
+      picks: picksSchema,
+      branch: branchSchema,
+    })
     .safeParse(input);
   if (!p.success) return fail("invalidInput");
   if (!(await allow("slotsPerIp", await clientIp()))) return fail("tooMany");
-  const business = await getPublicBusiness(p.data.slug, await getLocale());
-  if (!business) return fail("notFound");
-  const r = await slotsFor(business.tenantId, p.data.date, p.data.staffId, p.data.picks);
+  const business = await getPublicBusiness(p.data.slug, await getLocale(), p.data.branch);
+  if (!business || (business.branches.length && !business.branch)) return fail("notFound");
+  const r = await slotsFor(business.tenantId, p.data.date, p.data.staffId, p.data.picks, business.locationId);
   if (!r) return fail("notFound");
   return ok(
     r.slots.map((s) => ({
@@ -146,6 +160,7 @@ const bookSchema = z.object({
   marketingEmail: z.boolean(),
   pass: z.string().max(64).nullable(),
   website: z.string().optional(),
+  branch: branchSchema,
 });
 
 export type BookedSummary = {
@@ -166,13 +181,13 @@ export async function bookOnline(input: z.input<typeof bookSchema>): Promise<Act
   if (!(await allow("bookPerPhone", phone)) || !(await allow("bookPerIp", await clientIp())))
     return fail("tooMany");
   const locale = await getLocale();
-  const business = await getPublicBusiness(v.slug, locale);
-  if (!business) return fail("notFound");
+  const business = await getPublicBusiness(v.slug, locale, v.branch);
+  if (!business || (business.branches.length && !business.branch)) return fail("notFound");
   if (business.otpRequired && !v.pass) return fail("phoneNotVerified");
 
   // The chosen time must be one the engine offers right now, online rules included.
   const date = formatInTimeZone(v.start, business.timeZone, "yyyy-MM-dd");
-  const r = await slotsFor(business.tenantId, date, v.staffId, v.picks);
+  const r = await slotsFor(business.tenantId, date, v.staffId, v.picks, business.locationId);
   const startMs = new Date(v.start).getTime();
   const slot = r?.slots.find((s) => s.start.getTime() === startMs);
   if (!r || !slot) return fail("slotTaken");
@@ -193,11 +208,13 @@ export async function bookOnline(input: z.input<typeof bookSchema>): Promise<Act
     p_email: v.email,
     p_comment: v.comment,
     p_items: items,
-    p_marketing_sms: v.marketingSms,
-    p_marketing_email: v.marketingEmail && v.email !== "",
+    // no marketing consent is asked during the pilot (decision 033)
+    p_marketing_sms: SMS_SALON_TOOLS && v.marketingSms,
+    p_marketing_email: SMS_SALON_TOOLS && v.marketingEmail && v.email !== "",
     p_locale: locale,
     p_manage_token_hash: hmac(token),
     p_otp_pass_hash: (v.pass ? hmac(v.pass) : null) as string,
+    p_location: business.locationId,
   });
   if (error) {
     if (error.code === "23P01") return fail("slotTaken");
@@ -254,6 +271,8 @@ export type ManageView = {
   changeable: boolean; // active and still before the cancellation window
   phone: string | null;
   address: string | null;
+  locationId: string | null;
+  branch: string | null; // the branch's name when not the main one
   items: {
     serviceId: string | null;
     variantId: string | null;
@@ -285,6 +304,8 @@ export async function manageView(token: string): Promise<ManageView | null> {
       Date.now() < new Date(d.starts_at as string).getTime() - (d.cancel_window_min as number) * 60_000,
     phone: (d.phone as string) ?? null,
     address: (d.address as string) ?? null,
+    locationId: (d.location_id as string) ?? null,
+    branch: (d.branch as string) ?? null,
     items: (d.items ?? []).map((i) => ({
       serviceId: i.service_id,
       variantId: i.variant_id,
@@ -308,7 +329,7 @@ export async function manageSlots(token: string, date: string): Promise<ActionRe
   const staff = [...new Set(view.items.map((i) => i.staffId))];
   if (staff.length !== 1 || view.items.some((i) => !i.serviceId)) return fail("cannotMove");
   const picks = view.items.map((i) => ({ serviceId: i.serviceId!, variantId: i.variantId }));
-  const r = await slotsFor(view.tenantId, date, staff[0], picks, view.bookingId);
+  const r = await slotsFor(view.tenantId, date, staff[0], picks, view.locationId, view.bookingId);
   if (!r) return fail("cannotMove");
   return ok(
     r.slots.map((s) => ({

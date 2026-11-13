@@ -29,14 +29,14 @@ export async function loadEngineData(
   tenantId: string,
   fromDate: string,
   toDate: string,
-  opts: { excludeBookingId?: string } = {},
-): Promise<EngineData & { staffNames: Record<string, { name: string; color: string }> }> {
+  opts: { excludeBookingId?: string; locationId?: string | null } = {},
+): Promise<EngineData & { locationId: string; staffNames: Record<string, { name: string; color: string }> }> {
   const { data: tenant } = await db.from("tenants").select("timezone").eq("id", tenantId).single();
   const tz = tenant?.timezone ?? DEFAULT_TZ;
   const from = fromZonedTime(`${fromDate}T00:00`, tz).toISOString();
   const to = fromZonedTime(`${addDaysStr(toDate, 1)}T00:00`, tz).toISOString();
 
-  const [settings, location, closures, staff, overrides, timeOff, staffServices, resources, items] =
+  const [settings, locations, closures, staff, overrides, timeOff, staffServices, resources, items, offered] =
     await Promise.all([
       db
         .from("tenant_settings")
@@ -45,20 +45,23 @@ export async function loadEngineData(
         .single(),
       db
         .from("locations")
-        .select("location_hours(weekday, start_time, end_time)")
+        .select("id, is_primary, location_hours(weekday, start_time, end_time)")
+        .eq("tenant_id", tenantId),
+      db
+        .from("closures")
+        .select("date, location_id")
         .eq("tenant_id", tenantId)
-        .eq("is_primary", true)
-        .single(),
-      db.from("closures").select("date").eq("tenant_id", tenantId).gte("date", fromDate).lte("date", toDate),
+        .gte("date", fromDate)
+        .lte("date", toDate),
       db
         .from("staff")
         .select(
-          "id, display_name, color, sort_order, active, bookable_online, staff_schedules(weekday, start_time, end_time)",
+          "id, display_name, color, sort_order, active, bookable_online, staff_schedules(weekday, start_time, end_time, location_id)",
         )
         .eq("tenant_id", tenantId),
       db
         .from("staff_schedule_overrides")
-        .select("staff_id, date, is_day_off, start_time, end_time")
+        .select("staff_id, date, is_day_off, start_time, end_time, location_id")
         .eq("tenant_id", tenantId)
         .gte("date", fromDate)
         .lte("date", toDate),
@@ -72,7 +75,11 @@ export async function loadEngineData(
         .from("staff_services")
         .select("staff_id, service_id, duration_min_override")
         .eq("tenant_id", tenantId),
-      db.from("resources").select("id, type, sort_order").eq("tenant_id", tenantId).eq("active", true),
+      db
+        .from("resources")
+        .select("id, type, sort_order, location_id")
+        .eq("tenant_id", tenantId)
+        .eq("active", true),
       db
         .from("booking_items")
         .select("booking_id, staff_id, resource_id, starts_at, blocked_until")
@@ -80,18 +87,26 @@ export async function loadEngineData(
         .eq("active", true)
         .lt("starts_at", to)
         .gt("blocked_until", from),
+      db.from("service_locations").select("service_id, location_id, offered").eq("tenant_id", tenantId),
     ]);
 
+  // The branch: the one asked for, else the main one. "No branch" on a row = the main branch.
+  const primary = locations.data?.find((l) => l.is_primary);
+  const branch = locations.data?.find((l) => l.id === opts.locationId) ?? primary;
+  const locId = branch?.id ?? "";
+  const at = (id: string | null) => id ?? primary?.id ?? "";
+
   const opening: Record<number, HM[]> = {};
-  for (const h of location.data?.location_hours ?? []) (opening[h.weekday] ??= []).push(hm(h));
+  for (const h of branch?.location_hours ?? []) (opening[h.weekday] ??= []).push(hm(h));
 
   const activeItems = (items.data ?? []).filter((i) => i.booking_id !== opts.excludeBookingId);
   const staffNames: Record<string, { name: string; color: string }> = {};
 
   const staffData: StaffData[] = (staff.data ?? []).map((s) => {
     staffNames[s.id] = { name: s.display_name, color: s.color };
-    const week: Record<number, HM[]> = {};
-    for (const w of s.staff_schedules) (week[w.weekday] ??= []).push(hm(w));
+    const week: StaffData["week"] = {};
+    for (const w of s.staff_schedules)
+      (week[w.weekday] ??= []).push({ ...hm(w), locationId: at(w.location_id) });
     const ov: StaffData["overrides"] = {};
     for (const o of (overrides.data ?? []).filter((x) => x.staff_id === s.id)) {
       if (o.is_day_off) ov[o.date] = { dayOff: true };
@@ -99,7 +114,14 @@ export async function loadEngineData(
         const cur = ov[o.date];
         const list = cur && "intervals" in cur ? cur.intervals : [];
         ov[o.date] = {
-          intervals: [...list, { start: trimSeconds(o.start_time!), end: trimSeconds(o.end_time!) }],
+          intervals: [
+            ...list,
+            {
+              start: trimSeconds(o.start_time!),
+              end: trimSeconds(o.end_time!),
+              locationId: at(o.location_id),
+            },
+          ],
         };
       }
     }
@@ -121,12 +143,14 @@ export async function loadEngineData(
     };
   });
 
-  const resourceData: ResourceData[] = (resources.data ?? []).map((r) => ({
-    id: r.id,
-    type: r.type,
-    sortOrder: r.sort_order,
-    busy: activeItems.filter((i) => i.resource_id === r.id).map((i) => range(i.starts_at, i.blocked_until)),
-  }));
+  const resourceData: ResourceData[] = (resources.data ?? [])
+    .filter((r) => at(r.location_id) === locId)
+    .map((r) => ({
+      id: r.id,
+      type: r.type,
+      sortOrder: r.sort_order,
+      busy: activeItems.filter((i) => i.resource_id === r.id).map((i) => range(i.starts_at, i.blocked_until)),
+    }));
 
   return {
     timeZone: tz,
@@ -136,8 +160,15 @@ export async function loadEngineData(
       maxDaysAhead: settings.data?.max_days_ahead ?? 60,
       slotStepMin: settings.data?.slot_step_min ?? 15,
     },
+    locationId: locId,
+    notOffered: (offered.data ?? [])
+      .filter((x) => x.location_id === locId && !x.offered)
+      .map((x) => x.service_id),
     openingHours: opening,
-    closures: (closures.data ?? []).map((c) => c.date),
+    // closed days of the whole business and of this branch
+    closures: (closures.data ?? [])
+      .filter((c) => !c.location_id || c.location_id === locId)
+      .map((c) => c.date),
     staff: staffData,
     resources: resourceData,
     staffNames,

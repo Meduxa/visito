@@ -19,6 +19,7 @@ import { clientSorts, PAGE_SIZE, segments, type ClientListParams, type Segment }
 import { ClientVisits } from "@/features/booking/components/client-visits";
 import { DentalNotes } from "@/features/booking/components/dental-notes";
 import { BulkSmsDialog, ClientSmsDialog } from "@/features/sms/components/sms-dialogs";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { ClientForm } from "./client-form";
 import { ClientRights, ConsentHistory, MergeClient } from "./client-extras";
 import { ClientStats, SegmentPill, useVisitDate } from "./client-stats";
@@ -207,7 +208,7 @@ export function ClientsView({
         actions={
           canManage && (
             <div className="flex flex-wrap gap-2">
-              <BulkSmsDialog tags={tags} />
+              {SMS_SALON_TOOLS && <BulkSmsDialog tags={tags} />}
               {total > 0 && (
                 <Button variant="outline" className="h-11 md:h-9" asChild>
                   <a href={exportHref()} download>
@@ -407,11 +408,17 @@ export function ClientsView({
                               />
                             )}
                           </span>
-                          {(c.tags.length > 0 || c.consentSms || c.consentEmail || c.blockedOnline) && (
+                          {(c.tags.length > 0 ||
+                            (SMS_SALON_TOOLS && (c.consentSms || c.consentEmail)) ||
+                            c.blockedOnline) && (
                             <span className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">
                               {c.tags.length > 0 && <span>{c.tags.join(" · ")}</span>}
-                              {c.consentSms && <StatusPill tone="success">{t("clients.sms")}</StatusPill>}
-                              {c.consentEmail && <StatusPill tone="success">{t("clients.email")}</StatusPill>}
+                              {SMS_SALON_TOOLS && c.consentSms && (
+                                <StatusPill tone="success">{t("clients.sms")}</StatusPill>
+                              )}
+                              {SMS_SALON_TOOLS && c.consentEmail && (
+                                <StatusPill tone="success">{t("clients.email")}</StatusPill>
+                              )}
                               {c.blockedOnline && (
                                 <StatusPill tone="danger">{t("clients.blocked")}</StatusPill>
                               )}
@@ -507,11 +514,14 @@ export function ClientsView({
             {open && isDental && <DentalNotes clientId={open.id} bookingId={null} timeZone={timeZone} />}
             {open && canManage && (
               <>
-                <ClientSmsDialog clientId={open.id} phone={open.phone} />
-                <ConsentHistory
-                  key={`h-${open.id}-${open.consentSms}-${open.consentEmail}`}
-                  clientId={open.id}
-                />
+                {/* pilot (decision 033): no SMS written by the team, no marketing consent */}
+                {SMS_SALON_TOOLS && <ClientSmsDialog clientId={open.id} phone={open.phone} />}
+                {SMS_SALON_TOOLS && (
+                  <ConsentHistory
+                    key={`h-${open.id}-${open.consentSms}-${open.consentEmail}`}
+                    clientId={open.id}
+                  />
+                )}
                 <MergeClient clientId={open.id} name={fullName(open)} onMerged={() => router.refresh()} />
                 <ClientRights
                   clientId={open.id}

@@ -92,8 +92,12 @@ After the push, GitHub runs the automatic checks (typecheck, lint, unit tests) o
    | `SUPABASE_SECRET_KEY` | from step 2 — tick **Contains secret values** |
    | `CRON_SECRET` | a new random value (below) — secret |
    | `EMAIL_PROVIDER` | `fake` (until step 8) |
-   | `SMS_PROVIDER` | `senderge` once the sender.ge key works (decision 018); `fake` until then — SMS are then logged as "not sent" |
-   | `SMS_API_KEY` | sender.ge API key — **mark as secret** |
+   | `SMS_PROVIDER` | `tnet` once TNET finished onboarding (decision 027); `fake` until then — SMS are then logged as "not sent" |
+   | `TNET_BASE_URL` | the base_url TNET supplied |
+   | `TNET_CLIENT_ID` | client_id from TNET |
+   | `TNET_SECRET_HASH` | secret_hash from TNET — **mark as secret** |
+   | `TNET_SENDER` | the default sender title exactly as TNET registered it (e.g. `Visito`; case matters) |
+   | `TNET_WEBHOOK_SECRET` | the 64-character signing secret for delivery reports — **mark as secret** |
    | `PAYMENTS_PROVIDER` | `flitt` once Visito's own Flitt merchant is ready (decision 031); `none` until then (owners pay by transfer) |
    | `FLITT_MERCHANT_ID` | Visito's Flitt merchant ID (not the test 1549901) |
    | `FLITT_SECRET_KEY` | its payment key — **mark as secret** |
@@ -164,6 +168,6 @@ daily, but check it during quiet test weeks.
   `EMAIL_PROVIDER=resend`, `EMAIL_API_KEY` (secret), `EMAIL_FROM=Visito <no-reply@your-domain>`.
   Supabase → **Authentication → Emails → SMTP settings** → use Resend's SMTP (host
   `smtp.resend.com`, port 465, user `resend`, password = the API key) so sign-up emails arrive.
-- **SMS company**: sender.ge (decision 018) — register the sender name "Visito", top up the balance, then set `SMS_PROVIDER=senderge` and `SMS_API_KEY` on Netlify, **Cloudflare Turnstile** on the booking page, **lawyer's texts**
+- **SMS company**: TNET (decision 027) — give TNET the sender titles and the callback address `https://visito.ge/api/webhooks/sms/tnet`, receive base_url, client_id, secret_hash and the webhook signing secret, set the `TNET_*` values and `SMS_PROVIDER=tnet` on Netlify, then send a test SMS from Settings → SMS, **Cloudflare Turnstile** on the booking page, **lawyer's texts**
   for the legal pages, **plan prices** in `/admin/plans`, **Supabase Pro**.
 - Go through `docs/security-review.md` → "Before go-live".

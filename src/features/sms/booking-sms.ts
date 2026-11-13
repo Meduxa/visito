@@ -6,23 +6,13 @@ import { publicEnv } from "@/lib/env";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { renderSms, sendTime, type SmsVars, type TemplateType } from "./render";
 import { queueSms, sendNow } from "./send";
+import { smsText } from "./texts";
 
 // Service messages about bookings (no marketing consent needed): confirmation,
-// reminder, moved, cancelled. Texts come from the business's own template or
-// our default, in the business's language.
+// reminder, moved, cancelled, in the business's language. Texts: see texts.ts.
 
-async function template(tenantId: string, type: TemplateType, locale: string) {
-  const { data } = await createAdminClient()
-    .from("sms_templates")
-    .select("body")
-    .eq("tenant_id", tenantId)
-    .eq("type", type)
-    .eq("locale", locale)
-    .maybeSingle();
-  if (data) return data.body;
-  const t = await getTranslations({ locale, namespace: "smsTemplates" });
-  return t.raw(type) as string;
-}
+// decision 033: the business's text (when allowed) → Visito's → built-in
+const template = (tenantId: string, type: TemplateType, locale: string) => smsText(tenantId, type, locale);
 
 async function manageLink(bookingId: string) {
   const token = newToken();
@@ -53,7 +43,7 @@ export async function notifyBooking(
     const { data: b } = await db
       .from("bookings")
       .select(
-        "id, tenant_id, starts_at, client_id, clients(first_name, phone_e164, anonymized_at), booking_items(name_snapshot, sort_order, staff(display_name))",
+        "id, tenant_id, location_id, starts_at, client_id, clients(first_name, phone_e164, anonymized_at), booking_items(name_snapshot, sort_order, staff(display_name))",
       )
       .eq("id", bookingId)
       .single();
@@ -66,12 +56,15 @@ export async function notifyBooking(
     const [{ data: tenant }, { data: s }, { data: loc }] = await Promise.all([
       db.from("tenants").select("name, timezone, locale_default").eq("id", b.tenant_id).single(),
       db.from("tenant_settings").select("*").eq("tenant_id", b.tenant_id).single(),
-      db
-        .from("locations")
-        .select("address, phone")
-        .eq("tenant_id", b.tenant_id)
-        .eq("is_primary", true)
-        .maybeSingle(),
+      // the booking's own branch (decision 032); older bookings: the main one
+      b.location_id
+        ? db.from("locations").select("address, phone, is_primary").eq("id", b.location_id).maybeSingle()
+        : db
+            .from("locations")
+            .select("address, phone, is_primary")
+            .eq("tenant_id", b.tenant_id)
+            .eq("is_primary", true)
+            .maybeSingle(),
     ]);
     if (!tenant || !s || !s[SWITCH[type]]) return false;
 
@@ -105,7 +98,7 @@ export async function notifyBooking(
         minute: "2-digit",
       }),
       address: loc?.address ?? "",
-      phone: s.phone ?? loc?.phone ?? "",
+      phone: (loc && !loc.is_primary ? (loc.phone ?? s.phone) : (s.phone ?? loc?.phone)) ?? "",
     };
     if (body.includes("{manage_link}") && type !== "cancelled")
       vars.manage_link = opts.manageToken

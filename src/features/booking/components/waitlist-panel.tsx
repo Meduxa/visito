@@ -1,6 +1,7 @@
 "use client";
 
 import { CalendarPlus, MessageSquare, Trash2, TriangleAlert } from "lucide-react";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
@@ -80,7 +81,7 @@ export function WaitlistPanel({
                   <CalendarPlus aria-hidden />
                   {t("waitlist.book")}
                 </Button>
-                {freedBooking && highlight.includes(w.id) && w.client.phone && (
+                {SMS_SALON_TOOLS && freedBooking && highlight.includes(w.id) && w.client.phone && (
                   <Button
                     variant="outline"
                     className="h-11 md:h-9"

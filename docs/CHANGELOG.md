@@ -2,6 +2,33 @@
 
 All notable changes per phase. Newest on top.
 
+## Pilot SMS: automatic only, texts by Visito (2026-11-13)
+
+- For the pilot (November–December), businesses send **only automatic SMS**: confirmation, request received, moved, cancelled, reminders, review request (decision 033).
+- **Hidden for businesses** (one switch, `SMS_SALON_TOOLS` in `src/lib/pilot.ts`):
+  - sender name, SMS text editor and test SMS in **Settings → SMS**
+  - SMS to a client and to a group
+  - waitlist "offer by SMS"
+  - marketing-consent tick boxes on the booking page and the client card
+- **Kept:** the on/off switches for automatic SMS, quiet hours, balance, SMS log, the review-request switch. All SMS go out under Visito's sender name.
+- **Short ready texts** (like competitors'): date and time only, no business name, ending with 💚 — e.g. „თქვენი ჯავშანი შექმნილია. თარიღი: 9 ნოემბერი - 12:15 💚“. Booking SMS no longer carry the change/cancel link (it stays on the booking success screen and in the email); the review request keeps its link.
+- **Settings → SMS** lists every automatic SMS with its on/off switch and the exact text clients get (with an example date, character and SMS count), the review request included.
+- **New admin page `/admin/sms-texts`:** the Visito team writes the texts for every business, per message and language, with preview and SMS counter.
+- **Database:** migration `20261113120000_platform_sms_texts.sql`. Tests: `rls_platform_sms_texts.test.ts`, the "pilot" test in `e2e/phase5.spec.ts`.
+
+## Branches (2026-11-13)
+
+- **Several branches in one business** (decision 032), Standard plan and above:
+  - Starter 1 branch, Standard and the trial 3, Clinic/Premium no limit; set per plan in `/admin/plans` ("Max branches") and shown on the plan cards.
+  - **Settings → Branches:** list, add (with the plan limit), name, address, phone, link name, opening hours (a new branch starts with the main branch's hours), services offered and prices per branch, switch off or delete.
+  - Each branch has its own booking link (`?branch=…`) and QR code.
+- **Specialists in several branches, by day:** every interval of the weekly schedule and every date change says which branch. A booking anywhere blocks the person everywhere.
+- **Closed days and rooms/chairs** can belong to one branch.
+- **Calendar:** a branch switch; bookings, people and rooms of that branch; new bookings get its prices.
+- **Booking page:** the client chooses the branch first (the branch link skips this); hours, address, phone, services, prices and specialists are that branch's. A branch where nobody works yet lets the client choose again.
+- **Reports and the Excel export:** branch filter. **SMS reminders, confirmations, the waitlist SMS and the manage page** show the booking's own branch.
+- **Database:** migration `20261113090000_branches.sql`. Tests: engine "branches" unit tests, `rls_branches.test.ts`, `e2e/branches.spec.ts`.
+
 ## From the Rezervo review: ready services, time-off requests, reviews, card billing (2026-11-12)
 
 - **Ready services, next to manual adding** (decision 028): the Services page has a **Ready services** box covering 7 business types (names in ka/en/ru, duration, suggested price); each service is added with one click and existing ones are marked. **New service** can **start from a ready service**, which fills the form for editing.
@@ -21,6 +48,14 @@ All notable changes per phase. Newest on top.
   - SMS packs are **not offered yet** (Levan: first decide how marketing SMS reach clients); the database is ready for them
   - Flitt's signed notices; the server checks the status itself (decision 031)
 - **Database:** migrations `20261112090000_templates_timeoff_reviews.sql` and `20261112100000_billing.sql`. Tests: `rls_rezervo_features.test.ts`, `flitt.test.ts`, `e2e/rezervo-features.spec.ts`.
+
+## SMS company: TNET (2026-11-12)
+
+- New SMS adapter for **TNET** (decision 027, analysis `docs/plans/tnet-sms.md`). It is switched on with `SMS_PROVIDER=tnet` and the `TNET_*` values from TNET.
+- **Sending:** every SMS goes to TNET's single-message API, with a duplicate guard (Idempotency-Key = our message ID). An uncertain result is never sent twice.
+- **Delivery reports:** signed reports arrive at `/api/webhooks/sms/tnet`; the SMS job checks the status of messages still waiting as a backup.
+- **Message log:** clear reasons in ka/en/ru, e.g. "sender name not registered" and "not delivered (UNDELIV)".
+- **Not changed:** the queue, credits, consent and the unsubscribe link. sender.ge stays available as a backup.
 
 ## Clients step 2: own fields, group numbers, columns, quick note, Excel, booking from the card (2026-11-11)
 

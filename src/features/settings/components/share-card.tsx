@@ -8,7 +8,19 @@ import { Card } from "@/components/ui/card";
 
 // The public booking link with copy / open, and a QR code to print.
 // `qrSvg` is generated on the server by the qrcode library from our own URL.
-export function ShareCard({ url, slug, qrSvg }: { url: string; slug: string; qrSvg: string }) {
+export function ShareCard({
+  url,
+  slug,
+  qrSvg,
+  title,
+  hint,
+}: {
+  url: string;
+  slug: string;
+  qrSvg: string;
+  title?: string;
+  hint?: string;
+}) {
   const t = useTranslations("settings.share");
   const [copied, setCopied] = useState(false);
 
@@ -23,8 +35,8 @@ export function ShareCard({ url, slug, qrSvg }: { url: string; slug: string; qrS
   return (
     <Card className="gap-4 p-4 md:p-6">
       <div className="flex flex-col gap-1">
-        <h2 className="text-base font-semibold">{t("title")}</h2>
-        <p className="text-sm text-muted-foreground">{t("hint")}</p>
+        <h2 className="text-base font-semibold">{title ?? t("title")}</h2>
+        <p className="text-sm text-muted-foreground">{hint ?? t("hint")}</p>
       </div>
       <p className="rounded-lg bg-muted px-3 py-2 font-mono text-sm break-all">{url}</p>
       <div className="flex flex-wrap gap-2">

@@ -9,6 +9,7 @@ import {
   Contact,
   CreditCard,
   Star,
+  Store,
   Globe,
   Link2,
   MessageSquare,
@@ -19,6 +20,7 @@ import {
 
 export type SettingsSectionKey =
   | "business"
+  | "branches"
   | "booking"
   | "website"
   | "closures"
@@ -45,6 +47,7 @@ export const SETTINGS_GROUPS: { key: "business" | "messages" | "people"; section
     key: "business",
     sections: [
       { key: "business", href: "/settings/business", icon: Building2 },
+      { key: "branches", href: "/settings/branches", icon: Store },
       { key: "booking", href: "/settings/booking", icon: Link2 },
       { key: "website", href: "/settings/website", icon: Globe },
       { key: "closures", href: "/settings/closures", icon: CalendarOff },

@@ -34,7 +34,18 @@ function DeleteButton({ onConfirm, label }: { onConfirm: () => void; label: stri
   );
 }
 
-export function OverridesEditor({ staffId, items }: { staffId: string; items: StaffDetail["overrides"] }) {
+export function OverridesEditor({
+  staffId,
+  items,
+  branches = [],
+}: {
+  staffId: string;
+  items: StaffDetail["overrides"];
+  branches?: { id: string; name: string }[];
+}) {
+  const multi = branches.length > 1;
+  const [locationId, setLocationId] = useState(branches[0]?.id ?? "");
+  const branchName = (id: string | null) => branches.find((b) => b.id === (id ?? branches[0]?.id))?.name;
   const t = useTranslations();
   const [date, setDate] = useState(today());
   const [dayOff, setDayOff] = useState(true);
@@ -89,12 +100,30 @@ export function OverridesEditor({ staffId, items }: { staffId: string; items: St
               aria-label={t("staff.timeOff.to")}
               className="h-11 w-32 md:h-9"
             />
+            {multi && (
+              <select
+                value={locationId}
+                onChange={(e) => setLocationId(e.target.value)}
+                aria-label={t("branches.branch")}
+                className="h-11 rounded-lg border bg-background px-2 text-sm md:h-9"
+              >
+                {branches.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
         )}
         <Button
           className="h-11 md:h-9"
           disabled={pending}
-          onClick={() => run(() => addOverride(staffId, { date, dayOff, start, end }))}
+          onClick={() =>
+            run(() =>
+              addOverride(staffId, { date, dayOff, start, end, locationId: multi ? locationId : null }),
+            )
+          }
         >
           {t("staff.overrides.add")}
         </Button>
@@ -112,6 +141,7 @@ export function OverridesEditor({ staffId, items }: { staffId: string; items: St
               ) : (
                 <StatusPill tone="brand">
                   {o.start}–{o.end}
+                  {multi && ` · ${branchName(o.locationId)}`}
                 </StatusPill>
               )}
               <DeleteButton

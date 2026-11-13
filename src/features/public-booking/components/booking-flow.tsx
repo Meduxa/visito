@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarPlus, Check, ChevronDown, ChevronLeft, Search, UserRound } from "lucide-react";
+import { CalendarPlus, Check, ChevronDown, ChevronLeft, MapPin, Search, UserRound } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { FieldError } from "@/components/field-error";
@@ -17,6 +17,7 @@ import { addDays, dateParts } from "@/lib/dates";
 import { makeIcs } from "@/lib/ics";
 import { useFormat } from "@/lib/use-format";
 import { cn } from "@/lib/utils";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { bookOnline, findPublicSlots, sendCode, verifyCode, type BookedSummary } from "../actions";
 import type { PublicBusinessView, PublicService } from "../queries";
 import { CategoryIcon } from "./category-icon";
@@ -34,10 +35,13 @@ export function BookingFlow({
   business,
   header,
   embedded = false,
+  changeBranchHref,
 }: {
   business: PublicBusinessView;
   header: ReactNode;
   embedded?: boolean;
+  /** several branches: back to choosing one */
+  changeBranchHref?: string;
 }) {
   const t = useTranslations();
   const tb = useTranslations("publicBooking");
@@ -89,6 +93,7 @@ export function BookingFlow({
     priceMinor: chosen.reduce((a, s) => a + s.priceMinor, 0),
     priceMaxMinor: null,
   });
+  const branchName = business.branches.find((b) => b.slug === business.branch)?.name ?? null;
   const common = business.staff.filter((p) => chosen.every((s) => s.staffIds.includes(p.id)));
 
   const searchKey = `${date}|${staffId}|${picked.join(",")}|${refresh}`;
@@ -96,7 +101,7 @@ export function BookingFlow({
   useEffect(() => {
     if (step !== "time") return;
     let live = true;
-    findPublicSlots({ slug: business.slug, date, staffId, picks }).then((r) => {
+    findPublicSlots({ slug: business.slug, date, staffId, picks, branch: business.branch }).then((r) => {
       if (!live) return;
       setFound({ key: searchKey, slots: r.ok ? r.data : [] });
       if (!r.ok) setError({ code: r.error });
@@ -114,19 +119,25 @@ export function BookingFlow({
   };
 
   const book = (proof: string | null) =>
-    bookOnline({ slug: business.slug, picks, staffId, start: slot!.start, ...form, pass: proof }).then(
-      (r) => {
-        if (r.ok) {
-          setBooked(r.data);
-          go("done");
-        } else if (r.error === "slotTaken") {
-          setSlot(null);
-          setRefresh((n) => n + 1);
-          go("time");
-          setError({ code: "slotTaken" });
-        } else setError({ code: r.error, field: r.field });
-      },
-    );
+    bookOnline({
+      slug: business.slug,
+      picks,
+      staffId,
+      start: slot!.start,
+      ...form,
+      pass: proof,
+      branch: business.branch,
+    }).then((r) => {
+      if (r.ok) {
+        setBooked(r.data);
+        go("done");
+      } else if (r.error === "slotTaken") {
+        setSlot(null);
+        setRefresh((n) => n + 1);
+        go("time");
+        setError({ code: "slotTaken" });
+      } else setError({ code: r.error, field: r.field });
+    });
 
   const submitDetails = () =>
     startTransition(async () => {
@@ -164,8 +175,17 @@ export function BookingFlow({
       <>
         {header}
         <Column>
-          <Card className="p-6 text-center text-sm text-muted-foreground">
+          <Card className="gap-3 p-6 text-center text-sm text-muted-foreground">
             <p>{tb("noServices")}</p>
+            {/* nobody works in this branch yet: let the client choose another one */}
+            {branchName && changeBranchHref && (
+              <p data-testid="chosen-branch">
+                {branchName} ·{" "}
+                <Link href={changeBranchHref} className="text-primary underline">
+                  {tb("branches.change")}
+                </Link>
+              </p>
+            )}
           </Card>
         </Column>
       </>
@@ -249,7 +269,19 @@ export function BookingFlow({
       {step === "services" && header}
       <Column>
         {step !== "services" && (
-          <p className="px-1 pt-4 text-sm font-medium text-muted-foreground">{business.name}</p>
+          <p className="px-1 pt-4 text-sm font-medium text-muted-foreground">
+            {business.name}
+            {branchName && ` · ${branchName}`}
+          </p>
+        )}
+        {step === "services" && branchName && changeBranchHref && (
+          <p className="flex flex-wrap items-center gap-x-2 px-1 text-sm" data-testid="chosen-branch">
+            <MapPin aria-hidden className="size-4 text-primary" />
+            <span className="font-medium">{branchName}</span>
+            <Link href={changeBranchHref} className="text-primary underline">
+              {tb("branches.change")}
+            </Link>
+          </p>
         )}
         <Card id="book" className="scroll-mt-4 gap-4 p-4 md:p-6">
           <div className="flex items-center gap-2">
@@ -449,24 +481,27 @@ export function BookingFlow({
                   onChange={(e) => setForm({ ...form, website: e.target.value })}
                 />
               </div>
-              <fieldset className="flex flex-col gap-3">
-                <legend className="sr-only">{tb("marketingHint")}</legend>
-                <ConsentBox
-                  id="pb-msms"
-                  checked={form.marketingSms}
-                  onChange={(v) => setForm({ ...form, marketingSms: v })}
-                  label={tb("marketingSms")}
-                />
-                {form.email.trim() !== "" && (
+              {/* marketing consent is not asked during the pilot (decision 033) */}
+              {SMS_SALON_TOOLS && (
+                <fieldset className="flex flex-col gap-3">
+                  <legend className="sr-only">{tb("marketingHint")}</legend>
                   <ConsentBox
-                    id="pb-memail"
-                    checked={form.marketingEmail}
-                    onChange={(v) => setForm({ ...form, marketingEmail: v })}
-                    label={tb("marketingEmail")}
+                    id="pb-msms"
+                    checked={form.marketingSms}
+                    onChange={(v) => setForm({ ...form, marketingSms: v })}
+                    label={tb("marketingSms")}
                   />
-                )}
-                <p className="text-xs text-muted-foreground">{tb("marketingHint")}</p>
-              </fieldset>
+                  {form.email.trim() !== "" && (
+                    <ConsentBox
+                      id="pb-memail"
+                      checked={form.marketingEmail}
+                      onChange={(v) => setForm({ ...form, marketingEmail: v })}
+                      label={tb("marketingEmail")}
+                    />
+                  )}
+                  <p className="text-xs text-muted-foreground">{tb("marketingHint")}</p>
+                </fieldset>
+              )}
               <p className="text-xs text-muted-foreground">{tb("privacy", { business: business.name })}</p>
               {error && error.field !== "phone" && <FieldError code={error.code} />}
               <Button

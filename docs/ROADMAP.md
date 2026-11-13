@@ -21,7 +21,7 @@ Work one phase at a time. Claude Code ticks the boxes and updates `CHANGELOG.md`
 ✅ Done 2026-10-26 (built after the design foundation, see Phase 2 and decision 004)
 
 - [x] Business settings (details, opening hours, holidays/closed days, booking rules, staff visibility)
-- [x] Locations (data model; one primary location in UI, created with the business)
+- [x] Locations (data model; one primary location in UI, created with the business) — [x] several branches, Standard and above (decision 032, 2026-11-13)
 - [x] Service categories (reorder with buttons), services (fixed / from / range price), variants, add-ons, per-staff price/duration
 - [x] Price list import (paste or CSV/XLSX) with preview and error report — tested with two real Georgian price lists
 - [x] Staff profiles (photo, login link), weekly schedules (split shifts), date changes, time off, services per staff
@@ -77,13 +77,14 @@ Split into 3a and 3b with a report in between (Levan, 2026-10-26). Staff may cre
 - [x] Business photo gallery — done in Phase 6a
 
 ## Phase 5 — SMS (≈ 1 week) — SPEC 4.9 ✅ Done 2026-10-26 (without a real SMS company — Levan chooses later)
-- [x] SMS adapter interface + fake provider for tests — [x] first real provider: sender.ge (decision 018, 2026-11-01) — [ ] sender name "Visito" registered, test on a real phone
+- [x] SMS adapter interface + fake provider for tests — [x] first real provider: sender.ge (decision 018, 2026-11-01) — [x] SMS company changed to TNET: adapter, duplicate guard, signed delivery reports (decision 027, 2026-11-12) — [ ] TNET onboarding (credentials, sender titles, callback secret), answers to the open questions in `docs/plans/tnet-sms.md`, test on a real phone
 - [x] Templates (ka/en/ru) with variables, character & segment counter, live preview
 - [x] Sender name settings and status (approval set by the server only)
 - [x] Scheduled reminders job (idempotent), quiet hours — 2 h on by default, 24 h optional (Levan, 2026-10-26)
 - [x] Message log with filters — [ ] delivery reports from the real provider (webhook → `sms_delivery`)
 - [x] SMS credits ledger in SMS parts, 50 trial SMS (Levan, 2026-10-26), low-balance warning, top-up screen for the platform admin (done in Phase 6a)
-- [x] Manual SMS to a client; promotion to clients who agreed (optional tag), unsubscribe link and page
+- [x] Manual SMS to a client; promotion to clients who agreed (optional tag), unsubscribe link and page — hidden during the pilot (decision 033)
+- [x] Pilot: automatic SMS only, texts written by Visito in `/admin/sms-texts` (decision 033, 2026-11-13) — [ ] switch `SMS_SALON_TOOLS` on after the pilot
 
 ## Phase 6 — Reports, settings, polish, production (≈ 1–2 weeks) — SPEC 4.12–4.15
 Split into 6a (in the app) and 6b (production) with a report in between (Levan, 2026-10-26).

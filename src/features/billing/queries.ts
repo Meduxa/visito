@@ -15,6 +15,7 @@ export type BillingPage = {
     name: string;
     priceMinor: number;
     maxStaff: number | null;
+    maxLocations: number | null;
     smsPerMonth: number;
     payroll: boolean;
   }[];
@@ -37,7 +38,7 @@ export async function loadBilling(tenantId: string): Promise<BillingPage> {
     db.from("tenants").select("plan, status, trial_ends_at, paid_until, autopay").eq("id", tenantId).single(),
     db
       .from("plans")
-      .select("code, name, price_minor, max_staff, sms_per_month, features, active")
+      .select("code, name, price_minor, max_staff, max_locations, sms_per_month, features, active")
       .order("sort_order"),
     db
       .from("billing_payments")
@@ -73,6 +74,7 @@ export async function loadBilling(tenantId: string): Promise<BillingPage> {
         name: p.name,
         priceMinor: p.price_minor,
         maxStaff: p.max_staff,
+        maxLocations: p.max_locations,
         smsPerMonth: p.sms_per_month,
         payroll: p.features.includes("payroll"),
       })),

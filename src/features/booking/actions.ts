@@ -19,6 +19,8 @@ const picksSchema = z
   .min(1)
   .max(10);
 const dateSchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
+// the branch of the booking (decision 032); missing = the main branch
+const locationSchema = z.uuid().nullable().optional();
 
 function bookingError(error: { code?: string }): string {
   if (error.code === "23P01") return "slotTaken";
@@ -52,15 +54,19 @@ export async function findSlots(input: {
   date: string;
   staffId: string | "any";
   picks: { serviceId: string; variantId?: string | null }[];
+  locationId?: string | null;
 }): Promise<ActionResult<{ start: string; staffId: string; staffName: string }[]>> {
   const ctx = await memberContext({ read: true });
   const picks = picksSchema.safeParse(input.picks);
   if (!ctx || !picks.success || !dateSchema.safeParse(input.date).success) return fail("invalidInput");
   if (input.staffId !== "any" && !uuid.safeParse(input.staffId).success) return fail("invalidInput");
+  if (!locationSchema.safeParse(input.locationId).success) return fail("invalidInput");
   const staffId = ctx.isManager ? input.staffId : ctx.staffId;
   if (!staffId) return fail("notAllowed");
 
-  const data = await loadEngineData(ctx.supabase, ctx.tenant.tenantId, input.date, input.date);
+  const data = await loadEngineData(ctx.supabase, ctx.tenant.tenantId, input.date, input.date, {
+    locationId: input.locationId,
+  });
   const services = await loadServiceRequests(ctx.supabase, ctx.tenant.tenantId, picks.data);
   if (!services) return fail("notFound");
   const slots = getAvailableSlots({ dates: [input.date], services, staffId }, data);
@@ -88,6 +94,7 @@ const createSchema = z.object({
   note: z.string().max(2000).optional(),
   source: z.enum(["admin", "phone", "walk_in"]),
   force: z.boolean().optional(), // book outside working hours anyway (managers)
+  locationId: locationSchema,
 });
 
 export async function createBooking(
@@ -101,7 +108,7 @@ export async function createBooking(
   const { supabase, tenant } = ctx;
 
   const date = await localDate(ctx, v.start);
-  const fullData = await loadEngineData(supabase, tenant.tenantId, date, date);
+  const fullData = await loadEngineData(supabase, tenant.tenantId, date, date, { locationId: v.locationId });
   const services = await loadServiceRequests(supabase, tenant.tenantId, v.picks);
   if (!services) return fail("notFound");
 
@@ -148,6 +155,7 @@ export async function createBooking(
     p_note: v.note ?? "",
     p_status: "confirmed",
     p_locale: ctx.locale,
+    p_location: fullData.locationId || undefined,
   });
   if (error) return fail(bookingError(error));
   done(ctx);
@@ -183,7 +191,11 @@ export async function moveBooking(
   if (items.some((i) => !allowedStaff(ctx, i.staff_id))) return fail("notAllowed");
 
   const date = await localDate(ctx, v.start);
-  const data = await loadEngineData(supabase, tenant.tenantId, date, date, { excludeBookingId: v.bookingId });
+  const { data: own } = await supabase.from("bookings").select("location_id").eq("id", v.bookingId).single();
+  const data = await loadEngineData(supabase, tenant.tenantId, date, date, {
+    excludeBookingId: v.bookingId,
+    locationId: own?.location_id,
+  });
   const delta = new Date(v.start).getTime() - new Date(items[0].starts_at).getTime();
 
   // Validate with the durations agreed at booking time (snapshots), not the
@@ -306,6 +318,7 @@ const recurringSchema = z.object({
   start: z.iso.datetime({ offset: true }),
   everyWeeks: z.number().int().min(1).max(12),
   times: z.number().int().min(2).max(52),
+  locationId: locationSchema,
 });
 
 // Every date of the series with its problems (empty = fine), so the user can
@@ -325,7 +338,9 @@ export async function previewRecurring(
   );
   const first = await localDate(ctx, starts[0].toISOString());
   const last = await localDate(ctx, starts.at(-1)!.toISOString());
-  const data = await loadEngineData(ctx.supabase, ctx.tenant.tenantId, first, last);
+  const data = await loadEngineData(ctx.supabase, ctx.tenant.tenantId, first, last, {
+    locationId: v.locationId,
+  });
   const services = await loadServiceRequests(ctx.supabase, ctx.tenant.tenantId, v.picks);
   if (!services) return fail("notFound");
   return ok(
@@ -343,6 +358,7 @@ export async function createRecurring(input: {
   starts: string[];
   everyWeeks: number;
   note?: string;
+  locationId?: string | null;
 }): Promise<ActionResult<{ count: number }>> {
   const ctx = await memberContext();
   const parsed = z
@@ -356,6 +372,7 @@ export async function createRecurring(input: {
         .max(52),
       everyWeeks: z.number().int().min(1).max(12),
       note: z.string().max(2000).optional(),
+      locationId: locationSchema,
     })
     .safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
@@ -368,6 +385,7 @@ export async function createRecurring(input: {
     ctx.tenant.tenantId,
     await localDate(ctx, v.starts[0]),
     await localDate(ctx, v.starts.at(-1)!),
+    { locationId: v.locationId },
   );
   const services = await loadServiceRequests(ctx.supabase, ctx.tenant.tenantId, v.picks);
   const staff = data.staff.find((s) => s.id === v.staffId);
@@ -394,6 +412,7 @@ export async function createRecurring(input: {
     p_source: "admin",
     p_note: v.note ?? "",
     p_locale: ctx.locale,
+    p_location: data.locationId || undefined,
   });
   if (error) return fail(bookingError(error));
   done(ctx);

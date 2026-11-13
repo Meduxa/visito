@@ -2,6 +2,7 @@ import "server-only";
 import { fromZonedTime } from "date-fns-tz";
 import { addDaysStr, workingRanges } from "@/features/booking/engine/availability";
 import { loadEngineData } from "@/features/booking/load-data";
+import { getBranchInfo } from "@/features/branches/queries";
 import { ymdIn } from "@/lib/date-format";
 import { localized } from "@/lib/i18n-text";
 import type { createClient } from "@/lib/supabase/server";
@@ -15,25 +16,30 @@ type Db = Awaited<ReturnType<typeof createClient>>;
 export async function buildReport(
   db: Db,
   tenantId: string,
-  opts: { from: string; to: string; staffId?: string | null; locale: string },
+  // branchId: one branch only (decision 032); otherwise every branch together
+  opts: { from: string; to: string; staffId?: string | null; branchId?: string | null; locale: string },
 ) {
   const { data: tenant } = await db.from("tenants").select("timezone").eq("id", tenantId).single();
   const tz = tenant?.timezone ?? DEFAULT_TZ;
   const start = fromZonedTime(`${opts.from}T00:00`, tz).toISOString();
   const end = fromZonedTime(`${addDaysStr(opts.to, 1)}T00:00`, tz).toISOString();
+  const branches = (await getBranchInfo(db, tenantId)).usable;
+  const branch = branches.length > 1 ? branches.find((b) => b.id === opts.branchId) : undefined;
+  // bookings without a branch (made before branches existed) belong to the main one
+  const inBranch = (loc: string | null | undefined) => !branch || (loc ?? branches[0]?.id) === branch.id;
 
   const [bookings, payments, staffRows, categories, engine] = await Promise.all([
     db
       .from("bookings")
       .select(
-        "id, status, source, client_id, starts_at, booking_items(staff_id, service_id, name_snapshot, price_minor_snapshot, starts_at, ends_at, services(category_id))",
+        "id, status, source, client_id, location_id, starts_at, booking_items(staff_id, service_id, name_snapshot, price_minor_snapshot, starts_at, ends_at, services(category_id))",
       )
       .eq("tenant_id", tenantId)
       .gte("starts_at", start)
       .lt("starts_at", end),
     db
       .from("payments")
-      .select("booking_id, method, amount_minor, tip_minor, created_at")
+      .select("booking_id, method, amount_minor, tip_minor, created_at, bookings(location_id)")
       .eq("tenant_id", tenantId)
       .eq("status", "paid")
       .gte("created_at", start)
@@ -44,11 +50,17 @@ export async function buildReport(
       .eq("tenant_id", tenantId)
       .order("sort_order"),
     db.from("service_categories").select("id, name_i18n").eq("tenant_id", tenantId),
-    loadEngineData(db, tenantId, opts.from, opts.to),
+    // working time: per branch, so intervals in every branch count once
+    Promise.all(
+      (branch ? [branch] : branches.length > 1 ? branches : [undefined]).map((b) =>
+        loadEngineData(db, tenantId, opts.from, opts.to, { locationId: b?.id }),
+      ),
+    ),
   ]);
 
   const only = opts.staffId ?? null;
   const rBookings: RBooking[] = (bookings.data ?? [])
+    .filter((b) => inBranch(b.location_id))
     .map((b) => ({
       id: b.id,
       status: b.status,
@@ -71,6 +83,10 @@ export async function buildReport(
 
   const rPayments: RPayment[] = (payments.data ?? [])
     .filter((p) => !only || bookingIds.has(p.booking_id))
+    .filter(
+      (p) =>
+        !branch || inBranch((p.bookings as unknown as { location_id: string | null } | null)?.location_id),
+    )
     .map((p) => ({
       date: ymdIn(p.created_at, tz),
       method: p.method,
@@ -87,17 +103,19 @@ export async function buildReport(
         (s.active || rBookings.some((b) => b.items.some((i) => i.staffId === s.id))),
     )
     .map((s) => {
-      const data = engine.staff.find((x) => x.id === s.id);
       let minutes = 0;
-      if (data)
-        for (let d = opts.from; d <= opts.to; d = addDaysStr(d, 1))
-          for (const [a, b] of workingRanges(data, d, engine)) {
-            const off = data.timeOff.reduce(
-              (m, [x, y]) => m + Math.max(0, Math.min(b, y) - Math.max(a, x)),
-              0,
-            );
-            minutes += (b - a - off) / 60_000;
-          }
+      for (const e of engine) {
+        const data = e.staff.find((x) => x.id === s.id);
+        if (data)
+          for (let d = opts.from; d <= opts.to; d = addDaysStr(d, 1))
+            for (const [a, b] of workingRanges(data, d, e)) {
+              const off = data.timeOff.reduce(
+                (m, [x, y]) => m + Math.max(0, Math.min(b, y) - Math.max(a, x)),
+                0,
+              );
+              minutes += (b - a - off) / 60_000;
+            }
+      }
       return {
         id: s.id,
         name: s.display_name,

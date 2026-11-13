@@ -34,6 +34,9 @@ export default async function AdminLayout({ children, params }: LayoutProps<"/[l
             <Link href="/admin/sms" className="hover:underline">
               {t("nav.sms")}
             </Link>
+            <Link href="/admin/sms-texts" className="hover:underline">
+              {t("nav.smsTexts")}
+            </Link>
           </nav>
           <div className="ml-auto flex items-center gap-3">
             <Link href="/dashboard" className="text-sm text-muted-foreground hover:underline">

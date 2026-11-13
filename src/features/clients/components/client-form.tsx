@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
@@ -210,9 +211,14 @@ export function ClientForm({
       )}
 
       <fieldset className="flex flex-col gap-2">
-        <legend className="mb-1 text-sm font-medium">{t("clients.consent.title")}</legend>
-        <p className="mb-1 text-xs text-muted-foreground">{t("clients.consent.hint")}</p>
-        {(["consentSms", "consentEmail"] as const).map((name) => (
+        {/* marketing consent is not asked during the pilot (decision 033) */}
+        {SMS_SALON_TOOLS && (
+          <>
+            <legend className="mb-1 text-sm font-medium">{t("clients.consent.title")}</legend>
+            <p className="mb-1 text-xs text-muted-foreground">{t("clients.consent.hint")}</p>
+          </>
+        )}
+        {(SMS_SALON_TOOLS ? (["consentSms", "consentEmail"] as const) : []).map((name) => (
           <Controller
             key={name}
             control={form.control}

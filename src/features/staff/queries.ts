@@ -22,8 +22,15 @@ export type StaffMember = {
 
 export type StaffDetail = StaffMember & {
   services: { serviceId: string; priceMinorOverride: number | null; durationMinOverride: number | null }[];
-  week: Record<number, { start: string; end: string }[]>;
-  overrides: { id: string; date: string; dayOff: boolean; start: string | null; end: string | null }[];
+  week: Record<number, { start: string; end: string; locationId?: string }[]>;
+  overrides: {
+    id: string;
+    date: string;
+    dayOff: boolean;
+    start: string | null;
+    end: string | null;
+    locationId: string | null;
+  }[];
   timeOff: { id: string; startsAt: string; endsAt: string; reason: string; note: string | null }[];
 };
 
@@ -97,12 +104,12 @@ export async function getStaffDetail(tenantId: string, staffId: string): Promise
       .eq("staff_id", staffId),
     supabase
       .from("staff_schedules")
-      .select("weekday, start_time, end_time")
+      .select("weekday, start_time, end_time, location_id")
       .eq("staff_id", staffId)
       .order("start_time"),
     supabase
       .from("staff_schedule_overrides")
-      .select("id, date, is_day_off, start_time, end_time")
+      .select("id, date, is_day_off, start_time, end_time, location_id")
       .eq("staff_id", staffId)
       .gte("date", today)
       .order("date"),
@@ -118,7 +125,11 @@ export async function getStaffDetail(tenantId: string, staffId: string): Promise
 
   const weekMap: StaffDetail["week"] = {};
   for (const w of week.data ?? []) {
-    (weekMap[w.weekday] ??= []).push({ start: trimSeconds(w.start_time), end: trimSeconds(w.end_time) });
+    (weekMap[w.weekday] ??= []).push({
+      start: trimSeconds(w.start_time),
+      end: trimSeconds(w.end_time),
+      ...(w.location_id ? { locationId: w.location_id } : {}),
+    });
   }
 
   return {
@@ -138,6 +149,7 @@ export async function getStaffDetail(tenantId: string, staffId: string): Promise
       dayOff: o.is_day_off,
       start: o.start_time && trimSeconds(o.start_time),
       end: o.end_time && trimSeconds(o.end_time),
+      locationId: o.location_id,
     })),
     timeOff: (timeOff.data ?? []).map((t) => ({
       id: t.id,

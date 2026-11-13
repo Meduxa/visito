@@ -943,6 +943,8 @@ export type Database = {
           is_primary: boolean
           name: string
           phone: string | null
+          slug: string | null
+          sort_order: number
           tenant_id: string
           updated_at: string
         }
@@ -954,6 +956,8 @@ export type Database = {
           is_primary?: boolean
           name: string
           phone?: string | null
+          slug?: string | null
+          sort_order?: number
           tenant_id: string
           updated_at?: string
         }
@@ -965,6 +969,8 @@ export type Database = {
           is_primary?: boolean
           name?: string
           phone?: string | null
+          slug?: string | null
+          sort_order?: number
           tenant_id?: string
           updated_at?: string
         }
@@ -1354,6 +1360,7 @@ export type Database = {
           active: boolean
           code: string
           features: string[]
+          max_locations: number | null
           max_staff: number | null
           name: string
           price_minor: number
@@ -1365,6 +1372,7 @@ export type Database = {
           active?: boolean
           code: string
           features?: string[]
+          max_locations?: number | null
           max_staff?: number | null
           name: string
           price_minor?: number
@@ -1376,6 +1384,7 @@ export type Database = {
           active?: boolean
           code?: string
           features?: string[]
+          max_locations?: number | null
           max_staff?: number | null
           name?: string
           price_minor?: number
@@ -1734,6 +1743,64 @@ export type Database = {
           },
         ]
       }
+      service_locations: {
+        Row: {
+          created_at: string
+          id: string
+          location_id: string
+          offered: boolean
+          price_max_minor: number | null
+          price_minor: number | null
+          service_id: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          location_id: string
+          offered?: boolean
+          price_max_minor?: number | null
+          price_minor?: number | null
+          service_id: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          location_id?: string
+          offered?: boolean
+          price_max_minor?: number | null
+          price_minor?: number | null
+          service_id?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_locations_location_id_tenant_id_fkey"
+            columns: ["location_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "service_locations_service_id_tenant_id_fkey"
+            columns: ["service_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "services"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "service_locations_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       service_variants: {
         Row: {
           created_at: string
@@ -2039,6 +2106,30 @@ export type Database = {
         }
         Relationships: []
       }
+      sms_platform_templates: {
+        Row: {
+          body: string
+          locale: string
+          type: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          body: string
+          locale: string
+          type: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          body?: string
+          locale?: string
+          type?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       sms_templates: {
         Row: {
           body: string
@@ -2254,6 +2345,7 @@ export type Database = {
           end_time: string | null
           id: string
           is_day_off: boolean
+          location_id: string | null
           staff_id: string
           start_time: string | null
           tenant_id: string
@@ -2265,6 +2357,7 @@ export type Database = {
           end_time?: string | null
           id?: string
           is_day_off?: boolean
+          location_id?: string | null
           staff_id: string
           start_time?: string | null
           tenant_id: string
@@ -2276,12 +2369,20 @@ export type Database = {
           end_time?: string | null
           id?: string
           is_day_off?: boolean
+          location_id?: string | null
           staff_id?: string
           start_time?: string | null
           tenant_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "staff_schedule_overrides_location_id_tenant_id_fkey"
+            columns: ["location_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id", "tenant_id"]
+          },
           {
             foreignKeyName: "staff_schedule_overrides_staff_id_tenant_id_fkey"
             columns: ["staff_id", "tenant_id"]
@@ -2303,6 +2404,7 @@ export type Database = {
           created_at: string
           end_time: string
           id: string
+          location_id: string | null
           staff_id: string
           start_time: string
           tenant_id: string
@@ -2313,6 +2415,7 @@ export type Database = {
           created_at?: string
           end_time: string
           id?: string
+          location_id?: string | null
           staff_id: string
           start_time: string
           tenant_id: string
@@ -2323,6 +2426,7 @@ export type Database = {
           created_at?: string
           end_time?: string
           id?: string
+          location_id?: string | null
           staff_id?: string
           start_time?: string
           tenant_id?: string
@@ -2330,6 +2434,13 @@ export type Database = {
           weekday?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "staff_schedules_location_id_tenant_id_fkey"
+            columns: ["location_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id", "tenant_id"]
+          },
           {
             foreignKeyName: "staff_schedules_staff_id_tenant_id_fkey"
             columns: ["staff_id", "tenant_id"]
@@ -3058,6 +3169,10 @@ export type Database = {
           segments: number
         }[]
       }
+      booking_location: {
+        Args: { p_location: string; p_tenant: string }
+        Returns: string
+      }
       can_see_booking: {
         Args: { p_booking: string; p_tenant: string }
         Returns: boolean
@@ -3096,6 +3211,7 @@ export type Database = {
           p_client: string
           p_items: Json
           p_locale?: string
+          p_location?: string
           p_note?: string
           p_source?: string
           p_status?: string
@@ -3112,6 +3228,7 @@ export type Database = {
           p_client: string
           p_every_weeks: number
           p_locale?: string
+          p_location?: string
           p_note?: string
           p_occurrences: Json
           p_source?: string
@@ -3172,6 +3289,7 @@ export type Database = {
       item_snapshot: {
         Args: {
           p_locale: string
+          p_location?: string
           p_service: string
           p_staff: string
           p_tenant: string
@@ -3280,6 +3398,7 @@ export type Database = {
           p_items: Json
           p_last_name: string
           p_locale: string
+          p_location?: string
           p_manage_token_hash: string
           p_marketing_email: boolean
           p_marketing_sms: boolean
@@ -3333,6 +3452,10 @@ export type Database = {
         }
         Returns: string
       }
+      resource_at: {
+        Args: { p_location: string; p_resource: string }
+        Returns: boolean
+      }
       reviews_due: {
         Args: never
         Returns: {
@@ -3359,6 +3482,10 @@ export type Database = {
         Returns: undefined
       }
       set_location_hours: {
+        Args: { p_location: string; p_rows: Json }
+        Returns: undefined
+      }
+      set_location_services: {
         Args: { p_location: string; p_rows: Json }
         Returns: undefined
       }

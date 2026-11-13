@@ -102,7 +102,12 @@ export async function saveWeek(staffId: string, week: WeekInput): Promise<Action
   const parsed = weekSchema.safeParse(week);
   if (!parsed.success) return fail("scheduleInvalid");
   const rows = Object.entries(parsed.data).flatMap(([day, list]) =>
-    list.map((i) => ({ weekday: Number(day), start_time: i.start, end_time: i.end })),
+    list.map((i) => ({
+      weekday: Number(day),
+      start_time: i.start,
+      end_time: i.end,
+      location_id: i.locationId ?? null,
+    })),
   );
   const { error } = await ctx.supabase.rpc("set_staff_schedule", { p_staff: staffId, p_rows: rows });
   if (error) return fail(error.code === "23P01" ? "scheduleInvalid" : dbErrorCode(error));
@@ -138,6 +143,7 @@ export async function addOverride(staffId: string, input: OverrideInput): Promis
     is_day_off: v.dayOff,
     start_time: v.dayOff ? null : v.start,
     end_time: v.dayOff ? null : v.end,
+    location_id: v.dayOff ? null : (v.locationId ?? null),
   });
   if (error) return fail(dbErrorCode(error));
   done(ctx.locale, staffId);

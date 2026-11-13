@@ -1,5 +1,5 @@
 // The report's filters as they appear in the address
-// (?from=&to=&staff=&compare=&tab=). Default: this month up to today, no
+// (?from=&to=&staff=&branch=&compare=&tab=). Default: this month up to today, no
 // comparison, the overview tab. Ranges longer than a year are cut.
 const DATE = /^\d{4}-\d{2}-\d{2}$/;
 const UUID = /^[0-9a-f-]{36}$/;
@@ -21,13 +21,14 @@ export function reportParams(sp: Record<string, string | string[] | undefined>, 
   const maxFrom = shiftDays(to, -366);
   if (from < maxFrom) from = maxFrom;
   const staff = UUID.test(one("staff")) ? one("staff") : null;
+  const branch = UUID.test(one("branch")) ? one("branch") : null; // decision 032
   const compare = (COMPARE_MODES as readonly string[]).includes(one("compare"))
     ? (one("compare") as CompareMode)
     : "off";
   const tab = (REPORT_TABS as readonly string[]).includes(one("tab"))
     ? (one("tab") as ReportTab)
     : "overview";
-  return { from, to, staff, compare, tab };
+  return { from, to, staff, branch, compare, tab };
 }
 
 /** The same date one year earlier (29 February becomes 28 February). */

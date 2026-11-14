@@ -175,7 +175,13 @@ test("subscription: owner opens Flitt's card page; a signed Flitt notice activat
 
     // paying a plan opens Flitt's own (test) card page — no card data ever reaches Visito
     const { data: pro } = await db.from("plans").select("name, price_minor").eq("code", "pro").single();
-    await page.getByRole("button", { name: `${pro!.price_minor / 100} ₾ ყოველთვიურად ბარათით` }).click();
+    const payButton = page.getByRole("button", { name: `${pro!.price_minor / 100} ₾ ყოველთვიურად ბარათით` });
+    // no card page without agreeing to the monthly automatic charge
+    await payButton.click();
+    await expect(page.getByText("ყოველთვიურ გადახდაზე თანხმობისთვის მონიშნეთ ველი.")).toBeVisible();
+    await expect(page).toHaveURL(/\/settings\/subscription/);
+    await page.getByTestId("recurring-consent").getByRole("checkbox").check();
+    await payButton.click();
     await page.waitForURL(/https:\/\/pay\.flitt\.com\//, { timeout: 30_000 });
 
     // what Flitt sends Visito after the test card is paid (signed with the test secret)

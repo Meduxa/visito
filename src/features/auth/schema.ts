@@ -14,7 +14,14 @@ export const signUpSchema = z.object({
   password: z.string().min(8, "passwordMin").max(72, "tooLong"),
 });
 
+export const forgotSchema = z.object({ email: emailField });
+export const newPasswordSchema = z.object({
+  password: z.string().min(8, "passwordMin").max(72, "tooLong"),
+});
+
 export type SignInInput = z.input<typeof signInSchema>;
+export type ForgotInput = z.input<typeof forgotSchema>;
+export type NewPasswordInput = z.input<typeof newPasswordSchema>;
 export type SignUpInput = z.input<typeof signUpSchema>;
 
 // Only same-site relative paths, so a crafted ?next= cannot send users elsewhere.

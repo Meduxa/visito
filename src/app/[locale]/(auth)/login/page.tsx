@@ -13,7 +13,7 @@ export async function generateMetadata({ params }: PageProps<"/[locale]/login">)
 export default async function LoginPage({ params, searchParams }: PageProps<"/[locale]/login">) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const { next } = await searchParams;
+  const { next, link } = await searchParams;
   const target = safeNext(next, `/${locale}/dashboard`);
   if (await getCurrentUser()) redirect(target);
 
@@ -24,7 +24,7 @@ export default async function LoginPage({ params, searchParams }: PageProps<"/[l
         <CardTitle>
           <h1 className="text-xl">{t("title")}</h1>
         </CardTitle>
-        <CardDescription>{t("subtitle")}</CardDescription>
+        <CardDescription>{link === "expired" ? t("linkExpired") : t("subtitle")}</CardDescription>
       </CardHeader>
       <CardContent>
         <LoginForm next={target} />

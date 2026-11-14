@@ -70,7 +70,9 @@
       "subtitle": "Welcome back. Sign in to manage your bookings.",
       "submit": "Sign in",
       "noAccount": "No account yet?",
-      "signupLink": "Create one"
+      "signupLink": "Create one",
+      "forgot": "Forgot password?",
+      "linkExpired": "This link was already used or has expired. Sign in to continue, or ask for a new link."
     },
     "signup": {
       "title": "Create your account",
@@ -82,6 +84,21 @@
       "loginLink": "Sign in",
       "checkEmailTitle": "Check your email",
       "checkEmailBody": "We sent a confirmation link to {email}. Open it to continue."
+    },
+    "forgot": {
+      "title": "Forgot your password?",
+      "subtitle": "Enter your email and we'll send you a link to choose a new password.",
+      "expired": "That link was already used or has expired. Ask for a new one below.",
+      "submit": "Send the link",
+      "back": "Back to sign in",
+      "sentTitle": "Check your email",
+      "sentBody": "If {email} has an account, a link to choose a new password is on its way. It works for one hour."
+    },
+    "reset": {
+      "title": "Choose a new password",
+      "subtitle": "For {email}.",
+      "password": "New password",
+      "submit": "Save the new password"
     }
   },
   "onboarding": {
@@ -253,7 +270,10 @@
     "chooseRating": "Choose 1–5 stars.",
     "branchLimit": "Your plan allows no more branches. Change the plan or switch another branch off.",
     "branchHasBookings": "This branch has visits, so it cannot be deleted. Switch it off instead.",
-    "branchSlugInvalid": "2–40 characters: latin letters, digits and dashes"
+    "branchSlugInvalid": "2–40 characters: latin letters, digits and dashes",
+    "linkExpired": "The link has expired. Ask for a new one.",
+    "samePassword": "This is your current password. Choose a different one.",
+    "consentNeeded": "Please tick the box to agree to the monthly payment."
   },
   "email": {
     "invite": {
@@ -1762,7 +1782,8 @@
       "expired": "The payment page expired. Nothing was charged."
     },
     "branchesUpTo": "{count, plural, one {# branch} other {Up to # branches}}",
-    "branchesUnlimited": "Any number of branches"
+    "branchesUnlimited": "Any number of branches",
+    "consent": "I agree that the price of the chosen plan is charged to my card every month until I turn automatic payment off. I have read the <terms>Terms of service</terms> and <payments>Payments and refunds</payments>."
   },
   "auditLog": {
     "title": "Audit log",
@@ -1931,7 +1952,8 @@
     "links": {
       "privacy": "Privacy policy",
       "terms": "Terms of service",
-      "dpa": "Data processing agreement"
+      "dpa": "Data processing agreement",
+      "payments": "Payments and refunds"
     },
     "agree": "By creating an account you agree to the <terms>Terms of service</terms> and the <privacy>Privacy policy</privacy>.",
     "privacy": {
@@ -2038,6 +2060,43 @@
         {
           "h": "End of processing",
           "p": "The business can export all data at any time; on deletion, data is erased after 14 days, including from active systems."
+        }
+      ]
+    },
+    "payments": {
+      "title": "Payments, automatic renewal and refunds",
+      "sections": [
+        {
+          "h": "Plans and prices",
+          "p": "Plans and their monthly prices in Georgian lari (₾) are shown on visito.ge and in Settings → Subscription before you pay. New businesses start with a free trial; nothing is charged during the trial."
+        },
+        {
+          "h": "How you pay",
+          "p": "You pay by Visa or Mastercard on the secure payment page of Flitt (TBC Group). Visito never sees or stores your full card number; we only keep its last digits for your payment history."
+        },
+        {
+          "h": "Automatic monthly payment",
+          "p": "When you buy a plan you agree that the same amount is charged to the same card every month, on the day your paid month ends, until you turn automatic payment off. Every payment appears in Settings → Subscription → Payments."
+        },
+        {
+          "h": "Turning it off",
+          "p": "The business owner can turn automatic payment off at any time in Settings → Subscription. No further charges are made; the plan keeps working until the end of the month already paid. Your data stays and can be exported."
+        },
+        {
+          "h": "If a payment fails",
+          "p": "If a monthly charge does not go through, the plan keeps working for 3 more days. After that the account shows \"Payment due\"; your data is kept, and you can pay again from Settings → Subscription."
+        },
+        {
+          "h": "Refunds",
+          "p": "A month already started is not refunded, except when you were charged twice, charged by mistake, or Visito could not be used because of our fault. Approved refunds go back to the same card; banks usually show them within 5–10 working days. Write to us within 14 days of the charge."
+        },
+        {
+          "h": "Price changes",
+          "p": "We announce a price change at least 30 days in advance. If you do not agree, you can turn automatic payment off before the new price applies."
+        },
+        {
+          "h": "Contact",
+          "p": "Questions about a payment: write to us using the contact details at the bottom of this page. Please include the business name and the date of the payment."
         }
       ]
     }
@@ -2308,5 +2367,10 @@
       "left": "Your plan allows {max} branches: {left} more can be added.",
       "upgrade": "See plans"
     }
+  },
+  "company": {
+    "idCode": "ID code {code}",
+    "securePayment": "Secure card payment: Flitt (TBC Group)",
+    "legalNav": "Legal information"
   }
 }

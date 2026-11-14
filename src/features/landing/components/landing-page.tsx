@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { getTranslations } from "next-intl/server";
 import { BrandLogo } from "@/components/brand-logo";
+import { CompanyFooter } from "@/components/company-footer";
 import { LanguageSwitcher } from "@/components/language-switcher";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -36,7 +37,6 @@ const FAQ = ["card", "phone", "sms", "data", "switch", "dental"] as const;
 // prices and questions — with one action everywhere: start the free trial.
 export async function LandingPage({ plans, demoUrl }: { plans: LandingPlan[]; demoUrl: string | null }) {
   const t = await getTranslations("landing");
-  const tl = await getTranslations("legal.links");
   const start = (
     <Button asChild className="h-12 px-6 text-base">
       <Link href="/signup">{t("cta")}</Link>
@@ -215,18 +215,13 @@ export async function LandingPage({ plans, demoUrl }: { plans: LandingPlan[]; de
           <span className="mr-auto">
             © {new Date().getFullYear()} {APP_NAME}
           </span>
-          <Link href="/legal/privacy" className="underline">
-            {tl("privacy")}
-          </Link>
-          <Link href="/legal/terms" className="underline">
-            {tl("terms")}
-          </Link>
-          <Link href="/legal/dpa" className="underline">
-            {tl("dpa")}
-          </Link>
           <Link href="/login" className="underline">
             {t("signIn")}
           </Link>
+        </div>
+        {/* company details, card marks, legal links (card payment providers check these) */}
+        <div className="mx-auto mt-4 max-w-6xl px-4">
+          <CompanyFooter />
         </div>
       </footer>
     </div>

@@ -6,7 +6,22 @@ import { fail, type ActionResult } from "@/lib/action-result";
 import { publicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
 import { getMyTenants } from "@/lib/tenant";
-import { safeNext, signInSchema, signUpSchema, type SignInInput, type SignUpInput } from "./schema";
+import {
+  forgotSchema,
+  newPasswordSchema,
+  safeNext,
+  signInSchema,
+  signUpSchema,
+  type ForgotInput,
+  type NewPasswordInput,
+  type SignInInput,
+  type SignUpInput,
+} from "./schema";
+
+// Links in sign-in emails go through /api/auth/confirm, which signs the person in
+// on that device and then opens `next` (decision 034).
+const emailLink = (next: string) =>
+  `${publicEnv.NEXT_PUBLIC_APP_URL}/api/auth/confirm?next=${encodeURIComponent(next)}`;
 
 export async function signIn(input: SignInInput, next?: string): Promise<ActionResult> {
   const parsed = signInSchema.safeParse(input);
@@ -35,7 +50,7 @@ export async function signUp(
     password: parsed.data.password,
     options: {
       data: { full_name: parsed.data.fullName, locale },
-      emailRedirectTo: `${publicEnv.NEXT_PUBLIC_APP_URL}${target}`,
+      emailRedirectTo: emailLink(target),
     },
   });
   if (error) {
@@ -49,6 +64,45 @@ export async function signUp(
 
   if (!data.session) return { ok: true, data: { needsConfirmation: true } };
   redirect(target);
+}
+
+// "Forgot password": always the same answer, so nobody can find out which
+// addresses have an account. Supabase limits how often emails go out.
+export async function requestPasswordReset(input: ForgotInput): Promise<ActionResult> {
+  const parsed = forgotSchema.safeParse(input);
+  if (!parsed.success) return fail("email", "email");
+  const locale = await getLocale();
+  const supabase = await createClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: emailLink(`/${locale}/reset-password`),
+  });
+  if (error && error.code !== "user_not_found") console.error("password reset email failed", error.code);
+  return { ok: true, data: undefined };
+}
+
+// The new password, after the person opened the link from the email (signed in by it).
+export async function setNewPassword(input: NewPasswordInput): Promise<ActionResult> {
+  const parsed = newPasswordSchema.safeParse(input);
+  if (!parsed.success) return fail(parsed.error.issues[0]?.message ?? "invalidInput", "password");
+  const supabase = await createClient();
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) return fail("linkExpired");
+  const { error } = await supabase.auth.updateUser({ password: parsed.data.password });
+  if (error) {
+    if (error.code === "same_password") return fail("samePassword", "password");
+    if (error.code === "weak_password") return fail("passwordWeak", "password");
+    console.error("password update failed", error.code);
+    return fail("generic");
+  }
+  for (const t of await getMyTenants()) {
+    await supabase.rpc("log_audit", {
+      p_tenant: t.tenantId,
+      p_action: "auth.password_changed",
+      p_entity: "user",
+    });
+  }
+  const locale = await getLocale();
+  redirect(`/${locale}/dashboard`);
 }
 
 export async function signOut() {

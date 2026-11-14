@@ -15,7 +15,7 @@ Work one phase at a time. Claude Code ticks the boxes and updates `CHANGELOG.md`
 - [x] Seed: demo salon + demo dental clinic (`npm.cmd run db:seed`)
 - [x] `APP_NAME` constant
 - [ ] Production Supabase project (separate from dev) — create before the pilot
-- [x] Transactional email provider: Resend wired (Phase 6b, decision 011) — [ ] switch on with the domain and key
+- [x] Transactional email provider: Resend wired (Phase 6b, decision 011) — [x] forgot password, sign-in links, ka/en/ru email templates (decision 034) — [ ] switch on with the domain and key (`docs/email-setup.md`)
 
 ## Phase 1 — Services, staff, clients (≈ 1 week) — SPEC 4.1–4.4
 ✅ Done 2026-10-26 (built after the design foundation, see Phase 2 and decision 004)
@@ -130,7 +130,8 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [x] Payroll step 1 (Levan, 2026-11-11), only on plans with the Payroll feature (Pro/Standard, Clinic, trial): pay schemes (salary + % with category/service rates), tips, bonuses/deductions, monthly payslip + payouts, Excel, upgrade view — decision 025, plan `docs/plans/payroll.md`
 - [ ] Payroll step 2: staff see their own payslip, other pay periods, closing a month, product commission
 - [x] From the Rezervo review (Levan, 2026-11-12): ready services by business type (028), staff time-off requests with approval (029), reviews after a visit (030), owners pay their plan by card via Flitt (031)
-- [ ] Card billing go-live: Visito's Flitt merchant + subscriptions enabled, terms (recurring charges, refunds)
+- [x] Website ready for Flitt's review: payments & refunds page, company footer with card marks, recurring-charge agreement (2026-11-14)
+- [ ] Card billing go-live: Flitt merchant approved (Levan applied 2026-11-14) + recurring payments enabled, company details in `src/lib/company.ts`, keys on Netlify, lawyer's texts
 - [ ] SMS packs for sale (database ready, decision 031) — after deciding how marketing SMS reach clients
 
 ## 🚀 Pilot with 2–3 salons + 1 dental clinic (2–4 weeks of real use, fix feedback)

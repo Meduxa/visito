@@ -27,8 +27,10 @@ async function ownerContext() {
 export async function startPayment(
   kind: "plan", // SMS packs are not offered yet (Levan, 2026-11-12)
   code: string,
+  agreed: boolean, // ticked "monthly automatic charge" (card provider requirement)
 ): Promise<ActionResult<{ url: string }>> {
   const ctx = await ownerContext();
+  if (agreed !== true) return fail("consentNeeded");
   const p = z
     .object({ kind: z.literal("plan"), code: z.string().regex(/^[a-z0-9_-]{2,30}$/) })
     .safeParse({ kind, code });
@@ -49,6 +51,14 @@ export async function startPayment(
   });
   if (error || !data?.[0]) return fail(error ? dbErrorCode(error) : "generic");
   const row = data[0];
+  // evidence of the agreement: who, when, which plan and amount
+  await ctx.supabase.rpc("log_audit", {
+    p_tenant: ctx.tenant.tenantId,
+    p_action: "billing.recurring_consent",
+    p_entity: "billing_payment",
+    p_entity_id: row.id,
+    p_meta: { plan: p.data.code, amount_minor: row.amount_minor },
+  });
   const base = publicEnv.NEXT_PUBLIC_APP_URL;
   const r = await provider.createCheckout({
     orderId: row.id,

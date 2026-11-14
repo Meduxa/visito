@@ -7,9 +7,11 @@ import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { FieldError } from "@/components/field-error";
 import { StatusPill } from "@/components/status-pill";
+import { CardMarks } from "@/components/card-marks";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card } from "@/components/ui/card";
-import { useRouter } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { formatMoney } from "@/lib/money";
 import { useDates } from "@/lib/use-dates";
 import { cn } from "@/lib/utils";
@@ -33,12 +35,15 @@ export function SubscriptionView({ data, returned }: { data: BillingPage; return
   const [pending, start] = useTransition();
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string>();
+  // agreement to the monthly automatic charge, asked before every card payment
+  const [agreed, setAgreed] = useState(false);
 
   const pay = (kind: "plan", code: string) =>
     start(async () => {
       setError(undefined);
+      if (!agreed) return setError("consentNeeded"); // before "opening…", so the button stays as it was
       setBusy(`${kind}:${code}`);
-      const r = await startPayment(kind, code);
+      const r = await startPayment(kind, code, agreed);
       if (!r.ok) {
         setBusy(null);
         return setError(r.error);
@@ -161,10 +166,40 @@ export function SubscriptionView({ data, returned }: { data: BillingPage; return
             );
           })}
         </ul>
+        {data.cardPayments && (
+          <label
+            className="flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm"
+            data-testid="recurring-consent"
+          >
+            <Checkbox
+              checked={agreed}
+              onCheckedChange={(v) => {
+                setAgreed(v === true);
+                setError(undefined);
+              }}
+              className="mt-0.5"
+            />
+            <span>
+              {t.rich("consent", {
+                terms: (c) => (
+                  <Link href="/legal/terms" target="_blank" className="underline">
+                    {c}
+                  </Link>
+                ),
+                payments: (c) => (
+                  <Link href="/legal/payments" target="_blank" className="underline">
+                    {c}
+                  </Link>
+                ),
+              })}
+            </span>
+          </label>
+        )}
         <p className="flex items-start gap-2 text-xs text-muted-foreground">
           <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden />
           {t("cardNote")}
         </p>
+        <CardMarks className="flex gap-1.5" />
       </section>
 
       {/* SMS packs: not offered yet (Levan, 2026-11-12) — the database is ready (decision 031) */}

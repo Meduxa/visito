@@ -2,6 +2,20 @@
 
 All notable changes per phase. Newest on top.
 
+## Ready for Flitt's website review (2026-11-14)
+
+- New legal page **Payments and refunds** (`/legal/payments`, ka/en/ru, marked draft): prices, card payment via Flitt, monthly automatic charge, turning it off, failed payments (3 days), refunds, price changes, contact.
+- **Footer on the main page and legal pages**: company details (from `src/lib/company.ts`, empty = not shown), Visa/Mastercard marks, "Secure card payment: Flitt (TBC Group)", links to all legal pages.
+- **Settings → Subscription**: the owner ticks "I agree that the plan price is charged monthly until I turn it off" before Flitt's card page opens; the server refuses without it and records the agreement in the action log (`billing.recurring_consent`).
+- Tests: `e2e/payments-pages.spec.ts`; the subscription test ticks the box.
+
+## Email from visito.ge: forgot password, links that sign in (2026-11-14)
+
+- **Forgot password?** on the sign-in page → email with a link → **Choose a new password** (decision 034).
+- Links in sign-in emails now sign the person in directly (`/api/auth/confirm`), instead of only confirming the address.
+- Email templates in Georgian, English and Russian (`supabase/templates/`), chosen by the account's language.
+- Step-by-step setup of Resend + Netlify + Supabase for Levan: `docs/email-setup.md`.
+
 ## Foldable sidebar (2026-11-13)
 
 - **Desktop sidebar folds to a slim icon rail**: a round button on its edge (or Ctrl/⌘+B) folds and unfolds it with a smooth width animation. Icons stay in place, labels fade, group titles turn into thin lines, the logo shrinks to its mark; hovering an icon shows its name. The choice is remembered (cookie), so pages open the same way without a flash. Phones keep the bottom menu.

@@ -34,4 +34,6 @@
   - `rls_rezervo_features.test.ts`: only the owner starts payments, a mismatch grants nothing, packs add SMS once, monthly charges extend the plan
   - `e2e/rezervo-features.spec.ts`: Flitt's real test card page, a signed notice
 
+**Added (2026-11-14), for Flitt's merchant review:** a Payments and refunds page, company details and card marks in the footer (`src/lib/company.ts`), and an explicit tick box agreeing to the monthly charge before the card page opens (checked on the server, kept in the audit log).
+
 **Changed (Levan, 2026-11-12): SMS packs are not offered yet.** Levan first wants to decide how marketing SMS will reach clients. The owner's page and `/admin/plans` show no packs, and `startPayment` accepts only plans. The database part stays (`sms_packs` with placeholder rows, `billing_start` / `billing_apply` support), because an applied migration is never edited. Switching packs on later is UI work only.

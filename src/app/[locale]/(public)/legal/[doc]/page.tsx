@@ -1,13 +1,14 @@
 import { TriangleAlert } from "lucide-react";
 import { notFound } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { CompanyFooter } from "@/components/company-footer";
 import { Card } from "@/components/ui/card";
 import { Link } from "@/i18n/navigation";
 import { fullDate } from "@/lib/date-format";
 
-// Privacy policy, terms of service, data processing agreement. Drafts until the
+// Privacy policy, terms of service, payments and refunds, data processing agreement. Drafts until the
 // lawyer's texts arrive (ROADMAP 6b); the texts live in messages/*.json → legal.
-const DOCS = ["privacy", "terms", "dpa"] as const;
+const DOCS = ["privacy", "terms", "payments", "dpa"] as const;
 type Doc = (typeof DOCS)[number];
 const UPDATED = "2026-10-26";
 
@@ -53,6 +54,7 @@ export default async function LegalPage({ params }: PageProps<"/[locale]/legal/[
           </Link>
         ))}
       </nav>
+      <CompanyFooter />
     </Card>
   );
 }

@@ -47,15 +47,7 @@ export function LoginForm({ next }: { next: string }) {
         <FieldError id="email-error" code={errors.email?.message} />
       </div>
       <div className="flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-2">
-          <Label htmlFor="password">{t("password")}</Label>
-          <Link
-            href="/forgot-password"
-            className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-          >
-            {t("login.forgot")}
-          </Link>
-        </div>
+        <Label htmlFor="password">{t("password")}</Label>
         <Input
           id="password"
           type="password"
@@ -66,6 +58,13 @@ export function LoginForm({ next }: { next: string }) {
           {...form.register("password")}
         />
         <FieldError id="password-error" code={errors.password?.message} />
+        {/* after the field, so Tab goes email → password → this link */}
+        <Link
+          href="/forgot-password"
+          className="self-end text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+        >
+          {t("login.forgot")}
+        </Link>
       </div>
       <FieldError code={formError} />
       <Button type="submit" className="h-11 md:h-9" disabled={pending}>

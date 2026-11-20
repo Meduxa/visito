@@ -24,6 +24,9 @@ import { STATUS_TONE } from "../status-tone";
 import type { CalBooking, CalStaff } from "../queries";
 import { CheckoutPanel } from "./checkout-panel";
 import { DentalNotes } from "./dental-notes";
+import { FollowUpAdder } from "./followup-adder";
+import type { CatalogEntry } from "./new-booking-panel";
+import { missingFollowUp } from "../followup";
 
 export { STATUS_TONE };
 
@@ -60,6 +63,8 @@ export function BookingPanel({
   isDental,
   onClose,
   onCancelled,
+  catalog = [],
+  locationId,
 }: {
   booking: CalBooking | null;
   staff: CalStaff[];
@@ -69,6 +74,9 @@ export function BookingPanel({
   isDental: boolean;
   onClose: () => void;
   onCancelled?: (bookingId: string) => void;
+  /** to see whether an additional service is missing (decision 037) */
+  catalog?: CatalogEntry[];
+  locationId?: string | null;
 }) {
   const t = useTranslations();
   const dates = useDates();
@@ -151,6 +159,20 @@ export function BookingPanel({
           </span>
         </div>
 
+        {(() => {
+          const missing = missingFollowUp(booking, catalog);
+          return missing ? (
+            <FollowUpAdder
+              bookingId={booking.id}
+              missing={missing}
+              staff={staff}
+              timeZone={timeZone}
+              locationId={locationId}
+              canEdit={canEdit}
+              onAdded={onClose}
+            />
+          ) : null;
+        })()}
         {booking.client?.importantNote && (
           <div role="note" className="flex gap-2 rounded-lg bg-warning-soft p-3 text-sm text-warning-ink">
             <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />

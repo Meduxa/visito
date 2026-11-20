@@ -31,12 +31,15 @@ export function ServiceForm({
   categoryName,
   isDental,
   onSaved,
+  otherServices = [],
 }: {
   service: Service | null;
   categories: Category[];
   categoryName: (c: Category) => string;
   isDental: boolean;
   onSaved: (id: string) => void;
+  /** services that can be the additional one (decision 037) */
+  otherServices?: { id: string; name: string }[];
 }) {
   const t = useTranslations();
   const locale = useLocale() as (typeof LANGS)[number];
@@ -61,10 +64,14 @@ export function ServiceForm({
       bookableOnline: service?.bookableOnline ?? true,
       color: service?.color ?? null,
       resourceType: service?.resourceType ?? null,
+      followUpServiceId: service?.followUpServiceId ?? null,
+      followUpAfterMin: service?.followUpAfterMin ?? 120,
     } as ServiceInput,
   });
   const { errors } = form.formState;
   const priceType = useWatch({ control: form.control, name: "priceType" });
+  const followUpId = useWatch({ control: form.control, name: "followUpServiceId" });
+  const [needsFollowUp, setNeedsFollowUp] = useState(!!service?.followUpServiceId);
 
   const onSubmit = form.handleSubmit(() => {
     setFormError(undefined);
@@ -238,6 +245,59 @@ export function ServiceForm({
             </SwitchRow>
           )}
         />
+        {/* "Requires an additional service" (decision 037) */}
+        <SwitchRow label={t("services.followUp.title")} hint={t("services.followUp.hint")}>
+          <Switch
+            checked={needsFollowUp}
+            onCheckedChange={(on) => {
+              setNeedsFollowUp(on);
+              if (!on) form.setValue("followUpServiceId", null);
+            }}
+            aria-label={t("services.followUp.title")}
+          />
+        </SwitchRow>
+        {needsFollowUp && (
+          <div
+            className="grid gap-3 rounded-xl border p-3 sm:grid-cols-[1fr_9rem]"
+            data-testid="followup-settings"
+          >
+            <FormField id="svc-followup" label={t("services.followUp.service")}>
+              <Controller
+                control={form.control}
+                name="followUpServiceId"
+                render={({ field }) => (
+                  <Select value={field.value ?? undefined} onValueChange={field.onChange}>
+                    <SelectTrigger id="svc-followup" className="h-11 w-full md:h-9">
+                      <SelectValue placeholder={t("services.followUp.choose")} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {otherServices.map((o) => (
+                        <SelectItem key={o.id} value={o.id}>
+                          {o.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </FormField>
+            <FormField id="svc-followup-after" label={t("services.followUp.after")}>
+              <Input
+                id="svc-followup-after"
+                inputMode="numeric"
+                className="h-11 md:h-9"
+                {...form.register("followUpAfterMin")}
+              />
+            </FormField>
+            <p className="text-xs text-muted-foreground sm:col-span-2">
+              {otherServices.length === 0
+                ? t("services.followUp.none")
+                : followUpId
+                  ? t("services.followUp.explain")
+                  : t("services.followUp.pick")}
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-2">

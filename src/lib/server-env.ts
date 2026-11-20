@@ -14,6 +14,8 @@ const serverSchema = z.object({
   TNET_SECRET_HASH: z.string().optional(),
   TNET_SENDER: z.string().optional(), // default sender title, exact spelling and case
   TNET_WEBHOOK_SECRET: z.string().optional(), // delivery-report signing secret (not the login secret)
+  // Test mode (decision 038): real SMS only to these numbers, comma-separated E.164. Empty = everyone.
+  SMS_ONLY_TO: z.string().optional(),
   // Visito's own card payments (decision 031): Flitt merchant of Visito
   PAYMENTS_PROVIDER: z.enum(["none", "flitt"]).default("none"),
   FLITT_MERCHANT_ID: z
@@ -21,6 +23,8 @@ const serverSchema = z.object({
     .regex(/^\d{1,12}$/)
     .optional(),
   FLITT_SECRET_KEY: z.string().optional(),
+  // Cloudflare Turnstile (decision 036): bot check off until set
+  TURNSTILE_SECRET_KEY: z.string().optional(),
 });
 
 let cached: z.infer<typeof serverSchema> | undefined;
@@ -39,9 +43,11 @@ export function serverEnv() {
     TNET_SECRET_HASH: process.env.TNET_SECRET_HASH || undefined,
     TNET_SENDER: process.env.TNET_SENDER || undefined,
     TNET_WEBHOOK_SECRET: process.env.TNET_WEBHOOK_SECRET || undefined,
+    SMS_ONLY_TO: process.env.SMS_ONLY_TO || undefined,
     PAYMENTS_PROVIDER: process.env.PAYMENTS_PROVIDER || undefined,
     FLITT_MERCHANT_ID: process.env.FLITT_MERCHANT_ID || undefined,
     FLITT_SECRET_KEY: process.env.FLITT_SECRET_KEY || undefined,
+    TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY || undefined,
   });
   return cached;
 }

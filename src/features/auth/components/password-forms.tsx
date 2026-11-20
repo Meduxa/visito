@@ -4,10 +4,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { EmptyState } from "@/components/empty-state";
 import { FieldError } from "@/components/field-error";
+import { Turnstile, type TurnstileHandle } from "@/components/turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,16 +20,21 @@ export function ForgotPasswordForm() {
   const t = useTranslations("auth");
   const [pending, startTransition] = useTransition();
   const [sentTo, setSentTo] = useState<string>();
+  const human = useRef<TurnstileHandle>(null); // bot check before the email (decision 036)
   const form = useForm<ForgotInput>({ resolver: zodResolver(forgotSchema), defaultValues: { email: "" } });
   const { errors } = form.formState;
 
-  const onSubmit = form.handleSubmit((values) =>
-    startTransition(async () => {
-      const r = await requestPasswordReset(values);
-      if (r.ok) setSentTo(values.email);
-      else form.setError("email", { message: r.error });
-    }),
-  );
+  // handleSubmit is called in the event, so the bot-check handle is read only then
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) =>
+    form.handleSubmit((values) =>
+      startTransition(async () => {
+        const captcha = (await human.current?.token()) ?? "";
+        human.current?.reset();
+        const r = await requestPasswordReset(values, captcha);
+        if (r.ok) setSentTo(values.email);
+        else form.setError("email", { message: r.error });
+      }),
+    )(e);
 
   if (sentTo)
     return (
@@ -56,6 +62,7 @@ export function ForgotPasswordForm() {
         />
         <FieldError id="email-error" code={errors.email?.message} />
       </div>
+      <Turnstile ref={human} />
       <Button type="submit" className="h-11 md:h-9" disabled={pending}>
         {t("forgot.submit")}
       </Button>

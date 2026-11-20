@@ -22,11 +22,13 @@ const dev = process.env.NODE_ENV !== "production";
 const cspFor = (frameAncestors: string) =>
   [
     "default-src 'self'",
-    `script-src 'self' 'unsafe-inline'${dev ? " 'unsafe-eval'" : ""}`,
+    // challenges.cloudflare.com: the Turnstile bot check (decision 036)
+    `script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com${dev ? " 'unsafe-eval'" : ""}`,
+    "frame-src https://challenges.cloudflare.com",
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob: ${supabase}`,
     "font-src 'self'",
-    `connect-src 'self' ${supabase} ${supabase.replace(/^https/, "wss")} ${sentryHost}${dev ? " ws:" : ""}`,
+    `connect-src 'self' ${supabase} ${supabase.replace(/^https/, "wss")} https://challenges.cloudflare.com ${sentryHost}${dev ? " ws:" : ""}`,
     "worker-src 'self'",
     "manifest-src 'self'",
     `frame-ancestors ${frameAncestors}`,

@@ -8,7 +8,10 @@ test.describe.configure({ timeout: 120_000 });
 
 async function scan(page: Page, path: string) {
   await page.goto(path);
-  await page.waitForLoadState("networkidle");
+  // Cloudflare's bot-check widget keeps talking to its server, so the page never goes
+  // fully quiet: wait for our own requests instead (decision 036)
+  await page.waitForLoadState("load");
+  await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => undefined);
   const r = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"]).analyze();
   return r.violations.map(
     (v) =>

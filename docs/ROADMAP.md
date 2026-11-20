@@ -102,7 +102,7 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [x] Performance pass on the production build (all main pages < 1 s, `docs/performance.md`)
 - [x] Security review (`docs/security-review.md`): security headers, package audit, Excel formula-injection fix
 - [x] Accessibility: automatic WCAG 2.1 AA checks on 16 screens, fixes; keyboard-only check (see Before the pilot) — [ ] a screen-reader pass by a person
-- [x] Legal pages as marked drafts (ka/en/ru) — [ ] lawyer's texts
+- [x] Legal pages as marked drafts (ka/en/ru) — [x] full documents ka/en + PDFs (decision 035, 2026-11-14) — [ ] `info@visito.ge` mailbox, Russian translation, review by a Georgian lawyer, record acceptance per version
 - [x] Sentry and Resend wired, switched on by keys (decision 011)
 - [x] Netlify config, scheduled jobs, CI on GitHub, encrypted nightly backup workflow (decision 012)
 - [x] GitHub repo (Meduxa/visito, private) — code pushed, CI green (2026-10-26)
@@ -114,7 +114,8 @@ Split into 6a (in the app) and 6b (production) with a report in between (Levan, 
 - [x] Waitlist: offer a freed time to waiting clients by SMS, one tap per client (2026-10-28)
 - [x] Support access, view only (Levan, 2026-10-28): owner allows 24 h / 3 days and can end it; enforced by the database; every visit audit-logged — SPEC 4.15, decision 014
 - [x] Keyboard-only check: every control on the booking page, dashboard, calendar, clients and settings shows focus; sign-in and booking work without a mouse (e2e `keyboard.spec.ts`, 2026-10-28)
-- [ ] Cloudflare Turnstile on the booking page (when Levan has the key); a screen-reader pass by a person (e.g. NVDA)
+- [x] Requires additional service (Levan, 2026-11-15): a service names the one that follows it and after how many minutes; staff booking reminds and saves both as one visit with a free gap; online visits missing it are marked in the calendar and the bell, and staff add it from the visit — decision 037
+- [x] Cloudflare Turnstile on booking codes, sign-up and forgot password (decision 036, 2026-11-15) — [ ] real keys on Netlify — [ ] a screen-reader pass by a person (e.g. NVDA)
 - [x] Short salon addresses `name.visito.ge` (code done 2026-10-28, decision 016; on this laptop: `orchidea.localhost:3000`); old `/book/...` links keep working; reserved names refused — [ ] at go-live: register visito.ge, wildcard domain on Netlify, `SITE_DOMAIN=visito.ge` (`docs/go-live.md`)
 - [x] A small, beautiful website for every business, where clients book online (Levan, 2026-10-28): cover, logo, about (ka/en/ru), Instagram/Facebook, gallery, team, map, hours, "Book a visit" button; booking by service or by specialist; 5 colour themes picked in Settings → Your website; share preview — decision 015. Moves to the short address when visito.ge is registered
 - [x] In-app notifications (Levan, 2026-11-07): bell next to the logo with unread count — new online bookings, and visits whose time is over but still have no status (they clear once a status is set); owner/admin see all, staff their own; mark read / mark all; opens the booking in the calendar — decision 019. Later: client cancelled/moved via the manage link, push

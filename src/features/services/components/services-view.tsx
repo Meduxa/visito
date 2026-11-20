@@ -272,6 +272,9 @@ export function ServicesView({
                   categoryName={catName}
                   isDental={isDental}
                   onSaved={(id) => setOpenId(id)}
+                  otherServices={services
+                    .filter((x) => x.active && x.id !== open?.id)
+                    .map((x) => ({ id: x.id, name: localized(x.name, locale) }))}
                 />
                 {open ? (
                   <>

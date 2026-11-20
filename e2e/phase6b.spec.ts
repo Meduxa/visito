@@ -72,11 +72,12 @@ test("legal pages are reachable from sign-up and the booking page, in every lang
     page.getByRole("contentinfo").getByRole("link", { name: "მომსახურების პირობები" }).click(),
   ]);
   await expect(terms.getByRole("heading", { level: 1, name: "მომსახურების პირობები" })).toBeVisible();
-  await expect(terms.getByRole("note")).toContainText("სამუშაო ვერსია");
+  // the final texts (decision 035) carry no "draft" note any more
+  await expect(terms.getByText("სამუშაო ვერსია")).toHaveCount(0);
   await terms.close();
   for (const [l, title] of [
     ["en", "Data processing agreement"],
-    ["ru", "Политика конфиденциальности"],
+    ["ru", "Privacy Policy"], // Russian shows the English text for now (decision 035)
   ] as const) {
     await page.goto(`/${l}/legal/${l === "en" ? "dpa" : "privacy"}`);
     await expect(page.getByRole("heading", { level: 1, name: title })).toBeVisible();

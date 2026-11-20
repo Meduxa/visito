@@ -2,6 +2,37 @@
 
 All notable changes per phase. Newest on top.
 
+## SMS test mode (2026-11-19)
+
+- New server setting `SMS_ONLY_TO`: while testing with real TNET SMS, only the listed numbers receive SMS; all others are logged as "test mode" and not sent (decision 038). Must be empty at launch.
+- `docs/test-plan.md`: full step-by-step test of a salon with three branches, with real SMS to Levan's phone (and a section for testing without SMS).
+- **Fix:** a business created after the branches update had a main branch without a link name, so once a second branch was added the main branch vanished from the client's branch choice. New main branches now get "main", existing ones were fixed (migration `20261120090000_main_branch_slug.sql`, test in `rls_branches.test.ts`).
+- Next.js 16.4.3 → 16.4.6 (fixes seven moderate security advisories).
+- Browser tests updated for the final legal texts (no "draft" note; Russian shows the English text).
+
+## Requires additional service (2026-11-15)
+
+- Service settings: new switch **"Requires additional service"** under Active; when on, choose the service (e.g. blow-dry after colouring) and "after (minutes)" (decision 037).
+- New booking: picking such a service shows a reminder with "Add to this visit" on, the suggested time and the specialist; both are saved as one visit (one SMS, moved and cancelled together). The specialist is free in the gap.
+- The reminder also shows **free times for the additional service** (only after the first part, incl. its preparation time); tap one or type a time.
+- Calendar: a visit with a gap shows two blocks, each naming only its own services; dragging either moves the whole visit.
+- **Additional service not added:** online booking stays as it is. A visit that has such a service but not its additional one gets a mark in the calendar; the booking panel explains it and **adds the service to the visit** (time, free times, specialist). Online visits still to come also show a bell notice, which disappears once it is added (follows the "new online booking" notification settings).
+- Migrations `20261115090000_service_followup.sql`, `20261115120000_followup_missing.sql` (`add_booking_item`, notice `needs_followup`); tests `e2e/followup-service.spec.ts`, `supabase/tests/rls_followup.test.ts`.
+
+## Bot protection: Cloudflare Turnstile (2026-11-15)
+
+- An invisible "are you a person?" check (decision 036) before: online-booking SMS codes, online bookings without a code, sign-up and "forgot password". Most people never see it; a small check box appears only when Cloudflare is unsure.
+- Checked on the server; off until `NEXT_PUBLIC_TURNSTILE_SITE_KEY` and `TURNSTILE_SECRET_KEY` are set. If Cloudflare is unreachable, requests are allowed (rate limits still apply).
+- Sign-in: "Forgot password?" now comes after the password field (keyboard order).
+- Tests: `turnstile.test.ts`; booking, sign-up, accessibility and keyboard tests run with Cloudflare's test keys.
+
+## Legal documents for Visito (2026-11-14)
+
+- New **Terms of Service, Privacy Policy, Data Processing Agreement and Payments & Refunds**, written for how Visito works, in Georgian and English (decision 035). Version 2026-11-14; the "draft" banner is gone. Russian pages show the English text with a note.
+- Pages show headings, paragraphs and lists, the date and the version; sign-up links all three agreements.
+- Source: `docs/legal/visito-legal.{ka,en}.json`; PDFs: `node scripts/legal-pdf.mjs` → `docs/legal/pdf/` (FiraGO, no logo).
+- Test: `e2e/payments-pages.spec.ts` opens all four documents.
+
 ## Ready for Flitt's website review (2026-11-14)
 
 - New legal page **Payments and refunds** (`/legal/payments`, ka/en/ru, marked draft): prices, card payment via Flitt, monthly automatic charge, turning it off, failed payments (3 days), refunds, price changes, contact.

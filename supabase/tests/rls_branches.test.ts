@@ -27,6 +27,15 @@ beforeAll(async () => {
 afterAll(cleanup, 60_000);
 
 describe("branches (032)", () => {
+  it("a new business's main branch has the link name 'main' (so it stays choosable)", async () => {
+    const { data } = await admin()
+      .from("locations")
+      .select("slug")
+      .eq("tenant_id", a.id)
+      .eq("is_primary", true);
+    expect(data).toEqual([{ slug: "main" }]);
+  });
+
   it("owner adds branches up to the plan's limit", async () => {
     const r = await a.owner.db
       .from("locations")

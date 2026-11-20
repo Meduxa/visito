@@ -273,7 +273,8 @@
     "branchSlugInvalid": "2–40 characters: latin letters, digits and dashes",
     "linkExpired": "The link has expired. Ask for a new one.",
     "samePassword": "This is your current password. Choose a different one.",
-    "consentNeeded": "Please tick the box to agree to the monthly payment."
+    "consentNeeded": "Please tick the box to agree to the monthly payment.",
+    "captchaFailed": "We couldn't confirm that you are a person. Refresh the page and try again."
   },
   "email": {
     "invite": {
@@ -345,7 +346,17 @@
     "addVariant": "Add variant",
     "addAddon": "Add add-on",
     "saveFirst": "Save the service first, then add variants and add-ons.",
-    "deleteConfirm": "Delete “{name}”? Bookings made earlier keep their price."
+    "deleteConfirm": "Delete “{name}”? Bookings made earlier keep their price.",
+    "followUp": {
+      "title": "Requires additional service",
+      "hint": "When booking, the system reminds staff to add the next service (e.g. hair wash after colouring).",
+      "service": "Additional service",
+      "choose": "Choose a service",
+      "after": "After (minutes)",
+      "explain": "The additional service starts this many minutes after this service ends. The specialist is free in between.",
+      "pick": "Choose which service follows this one.",
+      "none": "First add the additional service (e.g. blow-dry) as its own active service, then choose it here."
+    }
   },
   "serviceTemplates": {
     "button": "Ready services",
@@ -1123,7 +1134,21 @@
     "cancelThis": "Only this one",
     "cancelFollowing": "This and all following",
     "series": "Part of a series",
-    "clientComment": "Client's comment"
+    "clientComment": "Client's comment",
+    "followUp": {
+      "title": "“{service}” requires an additional service",
+      "add": "Add to this visit: {service} ({minutes} min)",
+      "time": "Time",
+      "staff": "Specialist",
+      "hint": "Suggested time: {minutes} minutes after the first service ends. You can change it.",
+      "freeTimes": "Free times for the additional service",
+      "noFreeTimes": "No free time after the first service this day — type a time or choose another specialist.",
+      "notAdded": "Additional service not added",
+      "missing": "“{main}” requires an additional service — “{service}” is not added yet.",
+      "addNow": "Add “{service}”",
+      "addConfirm": "Add to visit",
+      "added": "Additional service added"
+    }
   },
   "myDay": {
     "title": "My day",
@@ -1465,6 +1490,7 @@
       "no_consent": "no marketing consent",
       "exception": "provider error",
       "no_provider": "no SMS company connected",
+      "test_mode": "test mode — this number is not on the test list",
       "uncertain": "no answer from the SMS company — not resent, to avoid a double SMS",
       "sender": "sender name not registered with the SMS company",
       "rejected": "rejected by the SMS company",
@@ -1947,159 +1973,264 @@
     "iosHint": "To install on your phone: Share → “Add to Home Screen”."
   },
   "legal": {
-    "draft": "Draft — this text will be replaced by the version prepared by our lawyer. It describes how Visito works today but is not yet legally binding.",
     "updated": "Last updated: {date}",
     "links": {
-      "privacy": "Privacy policy",
-      "terms": "Terms of service",
-      "dpa": "Data processing agreement",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service",
+      "dpa": "Data Processing Agreement",
       "payments": "Payments and refunds"
     },
-    "agree": "By creating an account you agree to the <terms>Terms of service</terms> and the <privacy>Privacy policy</privacy>.",
+    "agree": "By creating an account you agree to the <terms>Terms of Service</terms>, the <privacy>Privacy Policy</privacy> and the <dpa>Data Processing Agreement</dpa>.",
     "privacy": {
-      "title": "Privacy policy",
+      "title": "Privacy Policy",
       "sections": [
         {
-          "h": "Who we are",
-          "p": "Visito is an online booking and client management service for beauty salons and dental clinics in Georgia. Operator details (company name, address, identification number) will be added here."
+          "h": "1. Who we are and what this policy covers",
+          "p": "Visito is online software for salons and dental clinics, provided by an individual entrepreneur registered in Georgia (\"Visito\", \"we\"). This policy explains how we collect, use, share and protect personal data and what rights you have, in line with the Law of Georgia on Personal Data Protection.\nWe are the data controller for the data of the people who use Visito (business owners, administrators and specialists), of visitors to visito.ge, and for the security data we need to protect online booking.\nFor the data that businesses keep about their own clients and staff in Visito (bookings, client cards, visit history and similar), the business is the controller and Visito is its data processor. If you are a client of a salon or clinic, please contact that business about your data; section 4 explains what happens when you book online."
         },
         {
-          "h": "Two roles",
-          "p": "Each salon or clinic decides what it stores about its clients and why — it is the data controller. Visito processes that data only on the business's behalf, as a data processor. For the accounts of business owners and their teams, Visito itself is the controller."
+          "h": "2. Data we collect about our users",
+          "p": "- Account data: name, email address, phone number if you give it, chosen language, and your password, which our sign-in provider stores only in protected (hashed) form.\n- Business data: business name and type, address, phone, branches, opening hours, the plan and its status.\n- Payment data: plan, amount, date and status of payments, the payment provider's transaction number and the masked card number (for example •••• 1234). We never receive or store the full card number or the CVV code.\n- Usage and security data: sign-in times, IP address and browser information in technical logs, and the action log of your business (who changed what and when).\n- Communication: messages you send us and the emails we send you."
         },
         {
-          "h": "What data is stored",
-          "p": "Accounts: name, email, language. Clients of a business: name, phone, optional email and birthday, notes, booking history, payments, marketing consents with date and source. Clients who book online also give a comment if they wish. Dental clinics may keep treatment notes — health data that only the clinic's doctors and owner can open, and every opening is logged."
+          "h": "3. Data we process for businesses",
+          "p": "Businesses enter data about their clients and staff: names, phone numbers, email addresses, birthdays, visit and payment history, notes, consents, reviews and, for dental clinics, treatment notes. We process this data only on the business's instructions and only to provide Visito, as described in the Data Processing Agreement. We do not use it for our own purposes, do not sell it and do not use it for advertising."
         },
         {
-          "h": "Where it is kept",
-          "p": "In the European Union: the database is hosted by Supabase in Frankfurt (Germany); the application runs on Netlify. Text messages and emails are sent through providers listed in the data processing agreement."
+          "h": "4. When you book online",
+          "p": "When you book on a business's booking page, the business receives your name, phone number, email address if you give it, your comment, your chosen services and time, and any consents you give. The business is the controller of this data.\nTo protect online booking, Visito:\n- may send you a one-time SMS code to confirm your phone number; codes are stored only in protected form and deleted within a day\n- uses protected (hashed) forms of your phone number and IP address to limit repeated requests; they are not stored in clear\n- sends you a private link to change or cancel your booking; this link is stored only in protected form\nYou can ask the business to see, correct or delete your data at any time."
         },
         {
-          "h": "Messages",
-          "p": "Booking confirmations and reminders are service messages. Promotions are sent only with separate, recorded consent and always contain an unsubscribe link."
+          "h": "5. Why we use the data and on what legal basis",
+          "p": "- To provide the service and your account (performance of the contract): sign-in, your workspace, bookings, messages and support.\n- To take payments (performance of the contract): billing, invoices, managing your subscription.\n- To meet legal obligations (law): accounting and tax records, answering lawful requests of public authorities.\n- To keep Visito secure and improve it (our legitimate interests): preventing fraud and abuse, monitoring performance, fixing errors and developing features. We balance these interests with your rights, and you can object as described below.\n- Optional communication (consent): we will ask for your consent before we send you any marketing."
         },
         {
-          "h": "How long",
-          "p": "Data is kept while the business uses Visito. When a business deletes its account, everything is removed after 14 days. A business can delete a single client's personal data at any time."
+          "h": "6. How long we keep data",
+          "p": "- Account and business data: for as long as the account is active.\n- When an owner deletes a business: the business and its data are permanently deleted 14 days after the request; backups containing them are overwritten within 30 days.\n- Billing and tax records: for the period required by Georgian law, currently up to 6 years.\n- One-time codes: deleted within one day; anti-abuse counters: kept only for their short time window.\n- Technical and security logs: kept only as long as needed for security, unless an incident must be investigated."
         },
         {
-          "h": "Your rights",
-          "p": "You can ask the salon or clinic for a copy of your data, a correction or deletion, and you can withdraw marketing consent at any time with the link in any promotional message. Businesses can export or delete a client's data in Visito in one step."
+          "h": "7. Where data is stored",
+          "p": "Data is stored in the European Union in our database provider's EU region and is encrypted in transit and at rest. Some providers that help us run Visito are located in Georgia (SMS delivery and card payments). Until our database provider's backups replace it, an encrypted copy of the database (AES-256, the key held only by Visito) may be kept for up to 30 days with GitHub in the United States. When data leaves Georgia or the EU, we use providers that protect it with appropriate contractual and technical safeguards, and we share only what each provider needs."
         },
         {
-          "h": "Security",
-          "p": "Strict separation between businesses in the database, encrypted connections, access by role, and an audit log of sensitive actions."
+          "h": "8. Who we share data with",
+          "p": "We do not sell or rent personal data. We share it only with providers that help us run Visito, each bound by a contract to protect it:\n- Supabase: database, sign-in and file storage (European Union)\n- Netlify: hosting of the website and app\n- Resend: email delivery (European Union)\n- TNET: SMS delivery (Georgia)\n- Flitt (TBC Group): card payments (Georgia)\n- Sentry: error reports, when switched on\n- Cloudflare (Turnstile): checking that forms are used by people, not bots\n- GitHub: encrypted temporary backups (United States)\nWe may also disclose data when the law requires it, to establish or defend legal claims, or as part of a transfer of the business, in which case the data stays protected. We will publish changes to this list."
         },
         {
-          "h": "Contact",
-          "p": "Contact details for privacy questions will be added here."
+          "h": "9. Your rights",
+          "p": "Under the Law of Georgia on Personal Data Protection you have the right to:\n- know whether we process your data and receive a copy of it\n- have inaccurate or incomplete data corrected\n- have your data deleted or its processing stopped, where there is no overriding reason to keep it\n- have processing restricted (blocked) in certain cases\n- receive your data in a structured, machine-readable format (portability)\n- object to processing based on our legitimate interests and to direct marketing at any time\n- withdraw consent at any time, without affecting earlier processing\n- not be subject to a decision based solely on automated processing that significantly affects you; we make no such decisions\nTo use a right, write to info@visito.ge. We will answer within the time set by law, generally 10 working days, and may first need to confirm your identity. You may also complain to the Personal Data Protection Service of Georgia."
+        },
+        {
+          "h": "10. How we protect data",
+          "p": "- Encryption in transit (HTTPS) and at rest\n- Strict separation of every business's data at the database level (row-level security), so one business can never see another's data\n- Roles and access rights inside each business; dental treatment notes visible only to doctors and the owner\n- Passwords, one-time codes and private links stored only in protected (hashed) form\n- Limits on repeated sign-in and booking attempts\n- An action log of important changes, and regular backups\n- Access for our team only on a need-to-know basis\nNo system is perfectly secure, but we work to prevent incidents and to detect and respond to them quickly."
+        },
+        {
+          "h": "11. Data breaches",
+          "p": "If a breach of personal data occurs that is likely to put people's rights at risk, we will notify the Personal Data Protection Service of Georgia within 72 hours where the law requires it, and inform the people affected where required. Where we act as a processor for a business, we will inform that business without undue delay so it can meet its own obligations."
+        },
+        {
+          "h": "12. Children",
+          "p": "Visito accounts are for businesses and people aged 18 or over. We do not knowingly collect children's data through account registration. When a business records a child as its client, the business is responsible for obtaining a parent's or guardian's permission where required."
+        },
+        {
+          "h": "13. Cookies and storage in your browser",
+          "p": "We use only cookies and browser storage that are necessary for Visito to work:\n- keeping you signed in and protecting your session\n- remembering your language and the business you are working in\n- remembering display choices, such as a folded side menu, the columns of the client list, the colour theme and calendar colours\n- support access, when an owner allows it\nWe do not use analytics, advertising or tracking cookies. Because these cookies are necessary, they do not require consent; you can delete them in your browser settings, but Visito will then sign you out."
+        },
+        {
+          "h": "14. Changes to this policy",
+          "p": "We may update this policy. We will announce material changes by email or in the app. The version and date at the top of this page always show the current version."
+        },
+        {
+          "h": "15. Contact",
+          "p": "Data controller: Visito, individual entrepreneur registered in Georgia. For privacy questions or to use your rights: info@visito.ge"
         }
       ]
     },
     "terms": {
-      "title": "Terms of service",
+      "title": "Terms of Service",
       "sections": [
         {
-          "h": "The service",
-          "p": "Visito provides online booking, a calendar, client records, SMS reminders and reports to salons and clinics (\"businesses\")."
+          "h": "1. About these terms",
+          "p": "These Terms of Service (the \"Terms\") are an agreement between the provider of the Visito service (\"Visito\", \"we\", \"us\") and the business that creates a Visito account (\"you\"). They govern your access to and use of Visito at visito.ge, in the app and on the booking pages it creates.\nBy creating an account, ticking the agreement box or otherwise using Visito, you confirm that you have read and accept these Terms, the Privacy Policy, the Data Processing Agreement and the Payments and Refunds policy. Together they form one agreement.\nIf you accept these Terms for a business (for example a salon, a clinic or an individual entrepreneur), you confirm that you are authorised to bind that business, and \"you\" means that business. If you do not agree, please do not use Visito."
         },
         {
-          "h": "Trial and plans",
-          "p": "New businesses start with a 14-day free trial. Plans, prices and included SMS are shown before payment and may change with notice."
+          "h": "2. Who provides Visito",
+          "p": "Visito is provided by an individual entrepreneur registered in Georgia. Our full legal details are stated on invoices and are available on request at info@visito.ge."
         },
         {
-          "h": "The business's responsibilities",
-          "p": "The business is responsible for the client data it enters, for having a lawful reason to process it, and for clients' consent to promotional messages."
+          "h": "3. The service",
+          "p": "Visito is online software for beauty salons, barbershops, cosmetology centres and dental clinics. Depending on your plan, it includes:\n- an online booking page and a small website for your business, with its own link and QR code\n- a calendar, bookings, a waitlist and staff schedules, also across several branches\n- your list of services and prices, ready-made service templates\n- a client base with visit history, notes and consents\n- automatic SMS and email messages about bookings, and reminders\n- reviews after a visit, reports, a cash summary and payroll\n- for dental clinics, rooms and chairs and separate treatment notes\nVisito is a software tool only. We do not provide beauty or medical services and we are not a party to the relationship between you and your clients. You decide your services, prices, cancellation rules and how you treat your clients."
         },
         {
-          "h": "Acceptable use",
-          "p": "No spam, no unlawful content, no attempts to access other businesses' data or to disrupt the service."
+          "h": "4. Your account and your team",
+          "p": "You need an account to use Visito. You are responsible for:\n- giving correct and complete information and keeping it up to date\n- keeping passwords secret and signing out on shared devices\n- everyone you invite to your business and the role you give them (owner, administrator or specialist)\n- all actions taken with your account and your team's accounts\n- telling us without delay at info@visito.ge if you suspect unauthorised use\nYou must be at least 18 years old and able to enter into contracts to create an account."
         },
         {
-          "h": "Availability",
-          "p": "We aim for high availability and back up data, but cannot promise uninterrupted service."
+          "h": "5. Your clients' personal data",
+          "p": "When you enter information about your clients or staff into Visito, you are the data controller and Visito processes that data on your behalf as a data processor. The Data Processing Agreement describes this in detail and is part of these Terms.\nYou are responsible for:\n- having a lawful basis to collect and use your clients' and staff members' data\n- telling your clients how their data is used (for example in your own privacy notice or at your reception)\n- asking for and recording consent where the law requires it, especially before sending promotions\n- answering your clients' requests about their data; Visito gives you tools to export, correct and delete a client's data\n- entering only the data you need; health information may be recorded only by dental clinics, only in the treatment notes, and only within the law"
         },
         {
-          "h": "Ending",
-          "p": "A business can export its data and delete its account at any time; data is removed 14 days later. We may suspend accounts for unpaid invoices or misuse; data stays available for export."
+          "h": "6. SMS and email messages",
+          "p": "Visito can send your clients service messages about their bookings (confirmation, change, cancellation, reminders, review requests) and one-time codes. You can switch each type of automatic message on or off in Settings.\n- Messages are sent under Visito's sender name or, where offered, a sender name registered for your business.\n- Promotional messages may be sent only to clients who gave recorded consent; every promotion contains an unsubscribe link, and you must not contact clients who unsubscribed.\n- SMS are counted in SMS parts and use your plan's included SMS or purchased credits.\n- Delivery depends on mobile operators and is not guaranteed; Visito is not liable for messages that are delayed or not delivered for reasons outside our control.\nWe may limit or pause the kinds of messages available (for example during a pilot period) and will tell you in the app."
         },
         {
-          "h": "Liability and law",
-          "p": "Limitation of liability, dispute resolution and governing law (Georgia) will be set out here by our lawyer."
+          "h": "7. Your booking page, content and reviews",
+          "p": "You are responsible for the content you publish through Visito: business name, texts, prices, photos, logos and links. You confirm that you have the right to use it and that it is lawful and accurate.\nClients may leave reviews after a visit. You may reply to reviews and hide them from your booking page, but you must not write or buy fake reviews. We may remove content that is unlawful, misleading or infringes the rights of others."
+        },
+        {
+          "h": "8. Acceptable use",
+          "p": "You must not:\n- use Visito for unlawful, fraudulent or harmful purposes\n- access or try to access another business's account or data\n- upload viruses or malicious code, or disrupt or overload Visito or its infrastructure\n- copy, resell, decompile or reverse engineer Visito, except where the law expressly allows it\n- collect data from Visito automatically (scraping) without our written permission\n- send spam or messages to people who did not agree to receive them\nIf we reasonably believe this section has been breached, we may investigate and take action, including suspending the account."
+        },
+        {
+          "h": "9. Plans, trial and payment",
+          "p": "- New businesses start with a free trial of 14 days. Nothing is charged during the trial.\n- Plans, their monthly prices and their limits (number of specialists, branches, included SMS and features) are shown on visito.ge and in Settings → Subscription before you pay.\n- Prices are in Georgian lari (GEL) and include VAT where it applies.\n- Plans are paid monthly in advance, by card through our payment provider or by bank transfer against an invoice. Card payments renew automatically every month until you turn automatic payment off.\n- Automatic renewal, cancellation, failed payments and refunds are described in the Payments and Refunds policy.\n- We announce price changes at least 30 days in advance.\n- If a payment is overdue or an account is suspended, Visito may limit the account to viewing and exporting data until the payment is made."
+        },
+        {
+          "h": "10. Support and access by the Visito team",
+          "p": "To help you, the Visito team may view your business's data only after the owner allows it in Settings → Data and security (for 24 hours or 3 days). This access is view-only, the owner can end it at any time, and every visit is recorded in your action log. Without such permission, our team accesses business data only when strictly necessary to operate, secure or repair the service, or when the law requires it."
+        },
+        {
+          "h": "11. Intellectual property",
+          "p": "Visito, including its software, design, texts, the name \"Visito\" and its logo, belongs to us and is protected by law. We grant you a limited, non-exclusive, non-transferable and revocable right to use Visito for your own business during your subscription.\nThe data and content you and your clients enter remain yours. You give us only the rights needed to host, process, display and protect them in order to provide the service. If you send us suggestions, we may use them to improve Visito without obligation to you."
+        },
+        {
+          "h": "12. Availability and changes to the service",
+          "p": "We work to keep Visito available and secure and we back up data regularly, but we cannot guarantee that it will be uninterrupted or error-free. We may carry out maintenance, preferably outside busy hours. We may improve, change or remove features; we will tell you in reasonable time before any material reduction of what your plan includes."
+        },
+        {
+          "h": "13. Limitation of liability",
+          "p": "To the maximum extent permitted by law:\n- Visito is provided \"as is\" and \"as available\"\n- we are not liable for indirect or consequential losses, such as lost profit, lost revenue, missed bookings or damage to reputation\n- our total liability to you for all claims in any 12-month period is limited to the fees you paid us in the three months before the event that caused the claim\nNothing in these Terms limits liability that cannot be limited under Georgian law, including liability for intentional harm or gross negligence."
+        },
+        {
+          "h": "14. Your responsibility to others",
+          "p": "You are responsible for claims made by your clients, staff or third parties that arise from your services, your content, the data you enter or your breach of these Terms, and you will compensate us for reasonable costs caused by such claims."
+        },
+        {
+          "h": "15. Suspension and ending",
+          "p": "- You can stop using Visito at any time. The owner can export all data and delete the business in Settings → Data and security; the business is permanently deleted 14 days later, and you can cancel the deletion during those 14 days.\n- We may suspend or end your account if you materially breach these Terms, do not pay, if the law requires it, or if your use creates a security or legal risk. Where practical, we will warn you first and give you a chance to fix the problem.\n- After the account ends, data is deleted as described in the Privacy Policy and the Data Processing Agreement."
+        },
+        {
+          "h": "16. Changes to these Terms",
+          "p": "We may update these Terms. We will announce material changes by email or in the app at least 14 days before they take effect. If you continue to use Visito after that date, you accept the updated Terms; if you do not agree, you may stop using Visito and delete your account."
+        },
+        {
+          "h": "17. Governing law and disputes",
+          "p": "These Terms are governed by the laws of Georgia. We will first try to resolve any dispute informally; please write to info@visito.ge. If that fails, disputes are decided by Tbilisi City Court, without prejudice to any mandatory rights you have under the law."
+        },
+        {
+          "h": "18. Contact",
+          "p": "Questions about these Terms: info@visito.ge"
         }
       ]
     },
     "dpa": {
-      "title": "Data processing agreement",
+      "title": "Data Processing Agreement",
       "sections": [
         {
-          "h": "Parties and roles",
-          "p": "The business (controller) instructs Visito (processor) to process its clients' personal data to provide the service."
+          "h": "1. Parties and purpose",
+          "p": "This Data Processing Agreement (\"DPA\") is concluded between the business that uses Visito (the \"Controller\") and the provider of Visito (the \"Processor\"). It is part of the Terms of Service and applies from the moment the business accepts them, without a separate signature.\nIt sets out how Visito processes personal data on the Controller's behalf, in line with the Law of Georgia on Personal Data Protection."
         },
         {
-          "h": "Subject and purpose",
-          "p": "Bookings, reminders, client records, payments records and reports, for as long as the business uses Visito."
+          "h": "2. Subject, duration and nature of processing",
+          "p": "- Subject: providing the Visito service: online booking, calendar, client base, staff schedules, messages, reviews, reports, payroll and related functions.\n- Duration: for as long as the Controller uses Visito, plus the deletion periods in section 11.\n- Nature: storing, organising, displaying, changing, sending (SMS and email), exporting and deleting data, as triggered by the Controller and its users through the app."
         },
         {
-          "h": "Categories of data",
-          "p": "Contact data, booking and payment history, consents, notes; for dental clinics, treatment notes (health data, special category)."
+          "h": "3. Categories of people and data",
+          "p": "- People: the Controller's clients and patients, people who book online, and the Controller's staff.\n- Clients: name, phone number, email address, birthday, visit and booking history, payments recorded by the Controller, notes, tags and own fields, marketing consents and their history, reviews.\n- Staff: name, contact details, schedules, services they perform, pay settings and payouts.\n- Special category (dental clinics only): treatment notes, which may contain health data."
         },
         {
-          "h": "Sub-processors",
-          "p": "Supabase (database, EU — Frankfurt), Netlify (hosting), Resend (email), an SMS provider in Georgia (to be named), Sentry (error reports, without client data). The business is informed before new sub-processors are added."
+          "h": "4. Processing only on the Controller's instructions",
+          "p": "The Processor processes personal data only to provide Visito and only on the Controller's documented instructions, which are given through the settings and functions of the app and through these terms. The Processor does not use the data for its own purposes, does not sell it, does not combine one business's data with another's and does not use it for advertising or profiling. If the Processor believes that an instruction breaks the law, it will inform the Controller. Anonymous, aggregated statistics that do not identify anyone may be used to monitor and improve the service."
         },
         {
-          "h": "Security measures",
-          "p": "Row-level separation of businesses, encryption in transit and at rest, role-based access, logging of sensitive actions, regular backups."
+          "h": "5. Confidentiality",
+          "p": "Everyone at Visito who may access the data is bound to keep it confidential and accesses it only as needed. The Visito team views a business's data only when the owner allows support access (view only, time-limited, recorded in the action log), or when strictly necessary to operate, secure or repair the service, or when the law requires it."
         },
         {
-          "h": "Personal data breaches",
-          "p": "Visito informs the business without undue delay after becoming aware of a breach."
+          "h": "6. Security",
+          "p": "The Processor applies technical and organisational measures appropriate to the risk, listed in the annex. It may improve these measures over time, but will not lower the overall level of protection."
         },
         {
-          "h": "End of processing",
-          "p": "The business can export all data at any time; on deletion, data is erased after 14 days, including from active systems."
+          "h": "7. Sub-processors",
+          "p": "The Controller authorises the Processor to use the following sub-processors, each bound by a contract with at least the same level of data protection:\n- Supabase: database, sign-in and file storage (European Union)\n- Netlify: hosting of the app\n- Resend: email delivery (European Union)\n- TNET: SMS delivery (Georgia)\n- Flitt (TBC Group): card payments for Visito's plans (Georgia); it does not receive clients' data\n- Sentry: error reports, when switched on\n- GitHub: encrypted temporary backups, up to 30 days (United States)\nThe Processor will announce a new or replaced sub-processor at least 14 days in advance in the app or by email. The Controller may object for reasonable data protection reasons; if no solution is found, the Controller may end the use of Visito."
+        },
+        {
+          "h": "8. Transfers outside Georgia",
+          "p": "Data is stored in the European Union. Where data is transferred to a country without an adequate level of protection, the Processor relies on appropriate safeguards, such as contractual clauses and encryption, and shares only what the provider needs."
+        },
+        {
+          "h": "9. Helping the Controller",
+          "p": "The Processor helps the Controller to meet its obligations, in particular:\n- requests from clients and staff: the app lets the Controller view, correct, export (Excel or JSON) and delete or anonymise a person's data, and shows the history of marketing consents\n- security, breach notification and, where required, data protection impact assessments\n- providing the information reasonably needed to demonstrate compliance with this DPA, and allowing reasonable checks with advance notice, while protecting other businesses' data"
+        },
+        {
+          "h": "10. Personal data breaches",
+          "p": "The Processor will inform the Controller without undue delay, and where possible within 48 hours, after becoming aware of a breach affecting the Controller's data. It will describe what happened, which data may be affected, the likely consequences and the measures taken, so that the Controller can notify the Personal Data Protection Service and the affected people where required."
+        },
+        {
+          "h": "11. Return and deletion of data",
+          "p": "- The Controller can export all of its data at any time: client lists and reports in Excel, and the full business data in Excel or JSON.\n- When the owner deletes the business, the data is permanently deleted 14 days after the request (the deletion can be cancelled during that time); backups are overwritten within 30 days.\n- A client's data can be anonymised at any time; the visit history then remains without personal details.\n- Records that the law requires the Processor to keep (for example its own billing records) are kept for the legally required period only."
+        },
+        {
+          "h": "12. Health data of dental clinics",
+          "p": "Treatment notes are kept separately from the client card. Only the clinic's doctors and owner can read and write them; administrators and other staff cannot. Every action on treatment notes is recorded in the action log. Treatment notes are never used for messages or marketing and are not included in client list exports. The clinic must not record health data anywhere else in Visito, and remains responsible for the lawful basis of processing it."
+        },
+        {
+          "h": "13. The Controller's obligations",
+          "p": "The Controller is responsible for the lawfulness of the data it enters and of its instructions, for informing its clients and staff, for obtaining and recording consents where required (in particular for promotional messages), for keeping data accurate, and for giving its staff only the access rights they need."
+        },
+        {
+          "h": "14. Liability and duration",
+          "p": "Each party's liability under this DPA follows the Terms of Service. This DPA applies for as long as Visito processes the Controller's data. If this DPA and the Terms conflict on data protection, this DPA prevails."
+        },
+        {
+          "h": "Annex: security measures",
+          "p": "- Encryption in transit (HTTPS) and at rest\n- Separation of each business's data at the database level (row-level security), covered by automated tests for every table\n- Roles inside each business (owner, administrator, specialist); specialists see only what the owner allows\n- Passwords, one-time codes and private links stored only in protected (hashed) form; secret keys kept only on the server\n- Limits on repeated sign-in, code and booking requests; protection against automated misuse\n- An action log of sensitive actions, including every support access\n- Regular backups; old backups are overwritten within 30 days\n- Access for the Visito team only on a need-to-know basis, with personal accounts"
         }
       ]
     },
     "payments": {
-      "title": "Payments, automatic renewal and refunds",
+      "title": "Payments, Automatic Renewal and Refunds",
       "sections": [
         {
-          "h": "Plans and prices",
-          "p": "Plans and their monthly prices in Georgian lari (₾) are shown on visito.ge and in Settings → Subscription before you pay. New businesses start with a free trial; nothing is charged during the trial."
+          "h": "1. Plans and prices",
+          "p": "Plans and their monthly prices in Georgian lari (GEL) are shown on visito.ge and in Settings → Subscription before you pay. Prices include VAT where it applies. New businesses start with a free trial of 14 days; nothing is charged during the trial."
         },
         {
-          "h": "How you pay",
-          "p": "You pay by Visa or Mastercard on the secure payment page of Flitt (TBC Group). Visito never sees or stores your full card number; we only keep its last digits for your payment history."
+          "h": "2. How you pay",
+          "p": "You can pay by Visa or Mastercard on the secure payment page of Flitt (TBC Group), or by bank transfer against an invoice. Visito never sees or stores your full card number or CVV code; we keep only the masked number (for example •••• 1234) for your payment history."
         },
         {
-          "h": "Automatic monthly payment",
-          "p": "When you buy a plan you agree that the same amount is charged to the same card every month, on the day your paid month ends, until you turn automatic payment off. Every payment appears in Settings → Subscription → Payments."
+          "h": "3. Automatic monthly payment",
+          "p": "When you buy a plan by card, you agree by ticking a box that the same amount is charged to the same card every month, on the day your paid month ends, until you turn automatic payment off. Your agreement is recorded with the date, the plan and the amount. Every payment appears in Settings → Subscription → Payments."
         },
         {
-          "h": "Turning it off",
-          "p": "The business owner can turn automatic payment off at any time in Settings → Subscription. No further charges are made; the plan keeps working until the end of the month already paid. Your data stays and can be exported."
+          "h": "4. Turning automatic payment off",
+          "p": "The business owner can turn automatic payment off at any time in Settings → Subscription. No further charges are made; the plan keeps working until the end of the month already paid. Your data stays, and you can export it at any time."
         },
         {
-          "h": "If a payment fails",
-          "p": "If a monthly charge does not go through, the plan keeps working for 3 more days. After that the account shows \"Payment due\"; your data is kept, and you can pay again from Settings → Subscription."
+          "h": "5. If a payment fails",
+          "p": "If a monthly charge does not go through, the plan keeps working for 3 more days. After that the account shows \"Payment due\"; your data is kept, and you can pay again in Settings → Subscription."
         },
         {
-          "h": "Refunds",
-          "p": "A month already started is not refunded, except when you were charged twice, charged by mistake, or Visito could not be used because of our fault. Approved refunds go back to the same card; banks usually show them within 5–10 working days. Write to us within 14 days of the charge."
+          "h": "6. Refunds",
+          "p": "A month already started is not refunded, except when you were charged twice, charged by mistake, or Visito could not be used through our fault. Write to us within 14 days of the charge. Approved refunds go back to the same card; banks usually show them within 5–10 working days. Your statutory rights under Georgian law are not affected."
         },
         {
-          "h": "Price changes",
+          "h": "7. Price changes",
           "p": "We announce a price change at least 30 days in advance. If you do not agree, you can turn automatic payment off before the new price applies."
         },
         {
-          "h": "Contact",
-          "p": "Questions about a payment: write to us using the contact details at the bottom of this page. Please include the business name and the date of the payment."
+          "h": "8. Disputed charges",
+          "p": "If you do not recognise a charge, please write to us before contacting your bank; we will check it and, where it was our mistake, refund it quickly."
+        },
+        {
+          "h": "9. Contact",
+          "p": "Questions about payments: info@visito.ge. Please include the business name and the date of the payment."
         }
       ]
-    }
+    },
+    "version": "Version: {version}",
+    "englishOnly": "The Russian version of this document is being prepared. Until it is published, the English text below applies."
   },
   "supportAccess": {
     "title": "Visito support access",
@@ -2311,7 +2442,8 @@
     "onlineBooking": "New online booking",
     "needsAction": "Booking needs a status",
     "noClient": "No client",
-    "when": "{date}, {time}"
+    "when": "{date}, {time}",
+    "needsFollowUp": "Additional service not added"
   },
   "branches": {
     "branch": "Branch",

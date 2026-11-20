@@ -3,10 +3,11 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { MailCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { EmptyState } from "@/components/empty-state";
 import { FieldError } from "@/components/field-error";
+import { Turnstile, type TurnstileHandle } from "@/components/turnstile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,24 +21,29 @@ export function SignupForm({ next, defaultEmail }: { next: string; defaultEmail?
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string>();
   const [sentTo, setSentTo] = useState<string>();
+  const human = useRef<TurnstileHandle>(null); // bot check before the confirmation email (decision 036)
   const form = useForm<SignUpInput>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { fullName: "", email: defaultEmail ?? "", password: "" },
   });
   const { errors } = form.formState;
 
-  const onSubmit = form.handleSubmit((values) => {
-    setFormError(undefined);
-    startTransition(async () => {
-      const result = await signUp(values, next);
-      if (!result) return;
-      if (!result.ok) {
-        if (result.field === "email" || result.field === "password") {
-          form.setError(result.field, { message: result.error });
-        } else setFormError(result.error);
-      } else if (result.data.needsConfirmation) setSentTo(values.email);
-    });
-  });
+  // handleSubmit is called in the event, so the bot-check handle is read only then
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) =>
+    form.handleSubmit((values) => {
+      setFormError(undefined);
+      startTransition(async () => {
+        const captcha = (await human.current?.token()) ?? "";
+        human.current?.reset();
+        const result = await signUp(values, next, captcha);
+        if (!result) return;
+        if (!result.ok) {
+          if (result.field === "email" || result.field === "password") {
+            form.setError(result.field, { message: result.error });
+          } else setFormError(result.error);
+        } else if (result.data.needsConfirmation) setSentTo(values.email);
+      });
+    })(e);
 
   if (sentTo) {
     return (
@@ -79,6 +85,7 @@ export function SignupForm({ next, defaultEmail }: { next: string; defaultEmail?
         </div>
       ))}
       <FieldError code={formError} />
+      <Turnstile ref={human} />
       <p className="text-xs text-muted-foreground">
         {tl.rich("agree", {
           terms: (chunks) => (
@@ -96,6 +103,11 @@ export function SignupForm({ next, defaultEmail }: { next: string; defaultEmail?
               target="_blank"
               className="text-foreground underline underline-offset-4"
             >
+              {chunks}
+            </Link>
+          ),
+          dpa: (chunks) => (
+            <Link href="/legal/dpa" target="_blank" className="text-foreground underline underline-offset-4">
               {chunks}
             </Link>
           ),

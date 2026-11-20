@@ -141,9 +141,18 @@ test("support access: owner allows, support views (read-only), owner ends", asyn
     await page.getByLabel("ელფოსტა").fill(email);
     await page.getByLabel("პაროლი").fill(PASSWORD);
     await page.getByRole("button", { name: "შესვლა" }).click();
-    await page.waitForURL(/\/ka\/(dashboard|admin)/, { waitUntil: "commit" });
+    // the demo platform admin owns no business after a fresh seed: it lands on onboarding
+    await page.waitForURL(/\/ka\/(dashboard|admin|onboarding)/, { waitUntil: "commit" });
     return page;
   };
+  // a run that was cut off by a timeout may have left access granted
+  const revokeAll = () =>
+    db
+      .from("support_grants")
+      .update({ revoked_at: new Date().toISOString() })
+      .eq("tenant_id", tenant!.id)
+      .is("revoked_at", null);
+  await revokeAll();
   try {
     const owner = await signIn("salon.owner@demo.test");
     await owner.goto("/ka/settings/data");
@@ -181,11 +190,7 @@ test("support access: owner allows, support views (read-only), owner ends", asyn
     await support.goto(`/ka/admin/t/${tenant!.id}`);
     await expect(support.getByRole("button", { name: "გახსნა (მხოლოდ ნახვა)" })).toHaveCount(0);
   } finally {
-    await db
-      .from("support_grants")
-      .update({ revoked_at: new Date().toISOString() })
-      .eq("tenant_id", tenant!.id)
-      .is("revoked_at", null);
+    await revokeAll();
   }
 });
 

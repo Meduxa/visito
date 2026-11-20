@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, CalendarPlus, RotateCw, TriangleAlert, X } from "lucide-react";
+import { Bell, CalendarPlus, RotateCw, TriangleAlert, X, ListPlus } from "lucide-react";
 import { useFormatter, useNow, useTranslations } from "next-intl";
 import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
@@ -217,7 +217,8 @@ function Row({ n, onOpen }: { n: NotificationItem; onOpen: () => void }) {
   const format = useFormatter();
   const now = useNow({ updateInterval: POLL_MS });
   const online = n.kind === "online_booking";
-  const Icon = online ? CalendarPlus : TriangleAlert;
+  const followUp = n.kind === "needs_followup"; // decision 037
+  const Icon = online ? CalendarPlus : followUp ? ListPlus : TriangleAlert;
   const details = [
     n.client ?? t("noClient"),
     t("when", { date: n.dayMonth, time: n.time }),
@@ -243,7 +244,7 @@ function Row({ n, onOpen }: { n: NotificationItem; onOpen: () => void }) {
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={cn("text-sm", n.read ? "font-medium" : "font-semibold")}>
-          {online ? t("onlineBooking") : t("needsAction")}
+          {online ? t("onlineBooking") : followUp ? t("needsFollowUp") : t("needsAction")}
         </span>
         <span className="text-sm text-muted-foreground">{details.join(" · ")}</span>
         <span className="text-xs text-muted-foreground">

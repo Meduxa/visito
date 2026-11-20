@@ -20,6 +20,8 @@ export type Service = {
   bookableOnline: boolean;
   color: string | null;
   resourceType: string | null;
+  followUpServiceId: string | null; // decision 037
+  followUpAfterMin: number;
   variants: Extra[];
   addons: Extra[];
   staffCount: number;
@@ -67,6 +69,8 @@ export async function getCatalog(tenantId: string): Promise<{ categories: Catego
       bookableOnline: s.bookable_online,
       color: s.color,
       resourceType: s.resource_type,
+      followUpServiceId: s.followup_service_id,
+      followUpAfterMin: s.followup_after_min,
       variants: [...s.service_variants].sort((x, y) => x.sort_order - y.sort_order).map(extra),
       addons: [...s.service_addons].sort((x, y) => x.sort_order - y.sort_order).map(extra),
       staffCount: (s.staff_services as unknown as { count: number }[])[0]?.count ?? 0,

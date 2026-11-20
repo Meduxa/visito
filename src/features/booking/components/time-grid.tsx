@@ -1,7 +1,7 @@
 "use client";
 
 import { fromZonedTime } from "date-fns-tz";
-import { TriangleAlert } from "lucide-react";
+import { ListPlus, TriangleAlert } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
@@ -10,7 +10,28 @@ import type { CalBooking } from "../queries";
 export const PX_PER_MIN = 1.2; // 72 px per hour
 
 export type GridColumn = { key: string; staffId: string; date: string; header: ReactNode };
-export type GridBlock = { booking: CalBooking; columnKey: string; start: number; end: number; color: string };
+/** the services inside this block only (a visit with a gap shows each part on its own) */
+function blockNames(b: GridBlock) {
+  const own = b.booking.items.filter((i) => {
+    const t = new Date(i.start).getTime();
+    return t >= b.start && t < b.end && (!b.staffId || i.staffId === b.staffId);
+  });
+  return (own.length ? own : b.booking.items).map((i) => i.name).join(", ");
+}
+
+export type GridBlock = {
+  booking: CalBooking;
+  columnKey: string;
+  start: number;
+  end: number;
+  color: string;
+  /** how far this block starts after the visit's first part (a later part of a visit with a gap) */
+  offsetMs?: number;
+  /** the specialist this block belongs to */
+  staffId?: string;
+  /** a service of the visit misses its additional service (decision 037) */
+  needsFollowUp?: boolean;
+};
 
 // Static class names per colour (Tailwind must see them): outline, tint and the left stripe.
 const BLOCK: Record<string, string> = {
@@ -119,7 +140,8 @@ export function TimeGrid({
     }
     const fromCol = columns.find((c) => c.key === block.columnKey)!;
     const startMin = (block.start - midnight(fromCol.date)) / 60_000 + d.dyMin;
-    onMove(block.booking.id, col, new Date(midnight(col.date) + startMin * 60_000));
+    // a later part moves the whole visit: hand over where the first part goes
+    onMove(block.booking.id, col, new Date(midnight(col.date) + startMin * 60_000 - (block.offsetMs ?? 0)));
   };
 
   return (
@@ -237,10 +259,10 @@ export function TimeGrid({
                   });
                   return (
                     <div
-                      key={b.booking.id + b.columnKey}
+                      key={b.booking.id + b.columnKey + b.start}
                       role="button"
                       tabIndex={0}
-                      aria-label={`${startLocal}–${endLocal} ${b.booking.client?.name ?? ""} ${b.booking.items.map((i) => i.name).join(", ")}`}
+                      aria-label={`${startLocal}–${endLocal} ${b.booking.client?.name ?? ""} ${blockNames(b)}${b.needsFollowUp ? ` · ${t("booking.followUp.notAdded")}` : ""}`}
                       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onBlockClick(b.booking.id)}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -310,17 +332,29 @@ export function TimeGrid({
                           {h < 44 && (
                             <span className="font-medium text-foreground/70">
                               {" · "}
-                              {b.booking.items.map((i) => i.name).join(", ")}
+                              {blockNames(b)}
                             </span>
                           )}
                         </span>
                         {b.booking.client?.importantNote && (
                           <TriangleAlert className="size-3 shrink-0 text-warning-ink" aria-hidden />
                         )}
+                        {b.needsFollowUp && (
+                          <span
+                            title={t("booking.followUp.notAdded")}
+                            className="shrink-0"
+                            data-testid="followup-flag"
+                          >
+                            <ListPlus className="size-3.5 text-warning-ink" aria-hidden />
+                          </span>
+                        )}
                       </div>
                       {h >= 44 && (
-                        <div className="truncate font-medium text-foreground/70">
-                          {b.booking.items.map((i) => i.name).join(", ")}
+                        <div className="truncate font-medium text-foreground/70">{blockNames(b)}</div>
+                      )}
+                      {b.needsFollowUp && h >= 64 && (
+                        <div className="mt-0.5 truncate text-xs font-medium text-warning-ink">
+                          {t("booking.followUp.notAdded")}
                         </div>
                       )}
                       {draggable && (

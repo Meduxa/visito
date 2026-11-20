@@ -38,6 +38,7 @@ export async function saveService(
   const parsed = serviceSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
+  if (id && v.followUpServiceId === id) return fail("invalidInput");
 
   const row = {
     category_id: v.categoryId,
@@ -52,6 +53,8 @@ export async function saveService(
     bookable_online: v.bookableOnline,
     color: v.color,
     resource_type: v.resourceType,
+    followup_service_id: v.followUpServiceId ?? null,
+    followup_after_min: v.followUpAfterMin ?? 120,
   };
 
   const { supabase, tenant } = ctx;

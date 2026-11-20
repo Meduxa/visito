@@ -1865,6 +1865,8 @@ export type Database = {
           deposit_value: number
           description_i18n: Json
           duration_min: number
+          followup_after_min: number
+          followup_service_id: string | null
           id: string
           name_i18n: Json
           price_max_minor: number | null
@@ -1887,6 +1889,8 @@ export type Database = {
           deposit_value?: number
           description_i18n?: Json
           duration_min: number
+          followup_after_min?: number
+          followup_service_id?: string | null
           id?: string
           name_i18n: Json
           price_max_minor?: number | null
@@ -1909,6 +1913,8 @@ export type Database = {
           deposit_value?: number
           description_i18n?: Json
           duration_min?: number
+          followup_after_min?: number
+          followup_service_id?: string | null
           id?: string
           name_i18n?: Json
           price_max_minor?: number | null
@@ -1925,6 +1931,13 @@ export type Database = {
             columns: ["category_id", "tenant_id"]
             isOneToOne: false
             referencedRelation: "service_categories"
+            referencedColumns: ["id", "tenant_id"]
+          },
+          {
+            foreignKeyName: "services_followup_fk"
+            columns: ["followup_service_id", "tenant_id"]
+            isOneToOne: false
+            referencedRelation: "services"
             referencedColumns: ["id", "tenant_id"]
           },
           {
@@ -3072,6 +3085,17 @@ export type Database = {
     }
     Functions: {
       accept_invitation: { Args: { p_token: string }; Returns: string }
+      add_booking_item: {
+        Args: {
+          p_booking: string
+          p_locale?: string
+          p_service: string
+          p_staff: string
+          p_starts_at: string
+          p_tenant: string
+        }
+        Returns: string
+      }
       add_dental_note: {
         Args: { p_body: string; p_booking: string; p_client: string }
         Returns: string

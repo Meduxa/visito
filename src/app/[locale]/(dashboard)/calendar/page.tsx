@@ -95,11 +95,13 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
       name: s.name,
       categoryName: (s.categoryId && catName.get(s.categoryId)) || "—",
       durationMin: s.durationMin,
+      bufferMin: s.bufferAfterMin,
       priceType: s.priceType,
       priceMinor: atBranch.get(s.id)?.price_minor ?? s.priceMinor,
       priceMaxMinor:
         atBranch.get(s.id)?.price_minor != null ? atBranch.get(s.id)!.price_max_minor : s.priceMaxMinor,
       staffIds: (links.data ?? []).filter((l) => l.service_id === s.id).map((l) => l.staff_id),
+      followUp: s.followUpServiceId ? { serviceId: s.followUpServiceId, afterMin: s.followUpAfterMin } : null,
     }));
 
   return (

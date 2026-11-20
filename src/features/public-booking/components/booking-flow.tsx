@@ -4,6 +4,7 @@ import { CalendarPlus, Check, ChevronDown, ChevronLeft, MapPin, Search, UserRoun
 import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
 import { FieldError } from "@/components/field-error";
+import { Turnstile, type TurnstileHandle } from "@/components/turnstile";
 import { describedBy, FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -76,6 +77,13 @@ export function BookingFlow({
   const [pending, startTransition] = useTransition();
 
   const heading = useRef<HTMLHeadingElement>(null);
+  // bot check before an SMS code, or before booking when the business asks for no code (decision 036)
+  const human = useRef<TurnstileHandle>(null);
+  const humanToken = async () => {
+    const t = (await human.current?.token()) ?? "";
+    human.current?.reset(); // a token works once
+    return t;
+  };
   // move focus to the new step's heading — but not on page load, so a visitor
   // first sees the business (cover, about), not the middle of the page
   const shownStep = useRef(step);
@@ -118,7 +126,7 @@ export function BookingFlow({
     setStep(next);
   };
 
-  const book = (proof: string | null) =>
+  const book = (proof: string | null, captcha?: string) =>
     bookOnline({
       slug: business.slug,
       picks,
@@ -127,6 +135,7 @@ export function BookingFlow({
       ...form,
       pass: proof,
       branch: business.branch,
+      captcha,
     }).then((r) => {
       if (r.ok) {
         setBooked(r.data);
@@ -142,9 +151,14 @@ export function BookingFlow({
   const submitDetails = () =>
     startTransition(async () => {
       setError(undefined);
-      if (!business.otpRequired) return book(null);
+      if (!business.otpRequired) return book(null, await humanToken());
       if (pass) return go("verify"); // already verified this phone
-      const r = await sendCode({ slug: business.slug, phone: form.phone, website: form.website });
+      const r = await sendCode({
+        slug: business.slug,
+        phone: form.phone,
+        website: form.website,
+        captcha: await humanToken(),
+      });
       if (r.ok) go("verify");
       else setError({ code: r.error, field: r.field });
     });
@@ -513,6 +527,8 @@ export function BookingFlow({
               </Button>
             </form>
           )}
+
+          {(step === "details" || step === "verify") && <Turnstile ref={human} />}
 
           {step === "verify" && (
             <form

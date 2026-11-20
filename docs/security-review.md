@@ -25,7 +25,7 @@ What was checked, what was found and fixed, what remains. Re-check this list bef
 
 1. **CSP allows inline scripts** (`'unsafe-inline'`), needed by Next.js without per-request nonces. It still blocks scripts from other sites. Later: nonce-based CSP in the proxy.
 2. **Read-only (suspended) is enforced in the app's entry points**, not in every database policy (decision 009). New server actions must use the context helpers.
-3. **No CAPTCHA yet** on the booking page — trap field, rate limits and SMS codes only. Cloudflare Turnstile before launch (Levan, 2026-10-26).
+3. ~~No CAPTCHA yet~~ — **Cloudflare Turnstile** added (decision 036, 2026-11-15) on booking codes, bookings without a code, sign-up and forgot password, on top of the trap field and rate limits. Switch on with the real keys on Netlify.
 4. **Supabase free plan: no automatic backups** and the project pauses after 7 days without activity (Levan's choice to start, 2026-10-26). Our own nightly backup (see `docs/go-live.md`) until the upgrade.
 5. **Fake SMS provider** until an SMS company is chosen: no real SMS codes, so online booking with codes cannot go live yet.
 

@@ -4,7 +4,9 @@ import { z } from "zod";
 import { dbErrorCode, memberContext } from "@/lib/action-context";
 
 const items = z
-  .array(z.object({ kind: z.enum(["online_booking", "needs_action"]), bookingId: z.uuid() }))
+  .array(
+    z.object({ kind: z.enum(["online_booking", "needs_action", "needs_followup"]), bookingId: z.uuid() }),
+  )
   .max(100)
   .nullable();
 

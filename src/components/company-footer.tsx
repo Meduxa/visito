@@ -1,15 +1,15 @@
 import { ShieldCheck } from "lucide-react";
-import { getTranslations } from "next-intl/server";
+import { getLocale, getTranslations } from "next-intl/server";
 import { CardMarks } from "@/components/card-marks";
 import { Link } from "@/i18n/navigation";
-import { COMPANY } from "@/lib/company";
+import { COMPANY, legalName } from "@/lib/company";
 
 // Company details, card marks and the legal links: what card payment providers
 // (Flitt) look for on the website. On the main page and the legal pages.
 export async function CompanyFooter() {
   const t = await getTranslations();
   const lines = [
-    COMPANY.legalName,
+    legalName(await getLocale()),
     COMPANY.idCode && t("company.idCode", { code: COMPANY.idCode }),
     COMPANY.address,
   ].filter(Boolean);

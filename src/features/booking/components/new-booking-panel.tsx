@@ -27,7 +27,11 @@ export type CatalogEntry = PriceShape & {
   name: I18nText;
   categoryName: string;
   durationMin: number;
+  /** preparation time after the service (blocks the same specialist) */
+  bufferMin?: number;
   staffIds: string[];
+  /** "requires an additional service" (decision 037) */
+  followUp?: { serviceId: string; afterMin: number } | null;
 };
 type ClientHit = Awaited<ReturnType<typeof findClients>>[number];
 
@@ -80,6 +84,12 @@ export function NewBookingPanel({
   const [otherTime, setOtherTime] = useState(initial.time ?? "");
   const [note, setNote] = useState("");
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
+  // the additional service (decision 037): on by default, time and person can be changed
+  const [fuOn, setFuOn] = useState(true);
+  const [fuTime, setFuTime] = useState(""); // "" = the suggested time
+  const [fuStaff, setFuStaff] = useState(""); // "" = the same specialist
+  const [fuSlots, setFuSlots] = useState<string[] | null>(null); // free starts for the additional service
+  const [fuConflicts, setFuConflicts] = useState<Conflict[]>([]);
   const [error, setError] = useState<string>();
   const dates = useDates();
   const [repeat, setRepeat] = useState(false);
@@ -124,10 +134,55 @@ export function NewBookingPanel({
     };
   }, [open, picked, staffId, date, initial.time, timeZone, locationId]);
 
+  // which picked service needs an additional one, and when it would start
+  const needs = picked
+    .map((id) => catalog.find((c) => c.id === id))
+    .find((c) => c?.followUp && catalog.some((x) => x.id === c.followUp!.serviceId));
+  const fuService = needs ? catalog.find((x) => x.id === needs.followUp!.serviceId) : undefined;
+  const mainStart =
+    chosen?.start ??
+    (otherTime && staffId !== ANY ? fromZonedTime(`${date}T${otherTime}`, timeZone).toISOString() : null);
+  const mainStaff = chosen?.staffId ?? (staffId !== ANY ? staffId : null);
+  const mainMin = picked.reduce((sum, id) => sum + (catalog.find((c) => c.id === id)?.durationMin ?? 0), 0);
+  const fuSuggested =
+    mainStart && needs
+      ? hhmm(
+          new Date(
+            new Date(mainStart).getTime() + (mainMin + needs.followUp!.afterMin) * 60_000,
+          ).toISOString(),
+          timeZone,
+        )
+      : "";
+  const fuAt = fuTime || fuSuggested;
+  const fuPeople = fuService ? staff.filter((p) => fuService.staffIds.includes(p.id)) : [];
+  const fuWho =
+    fuStaff || (mainStaff && fuPeople.some((p) => p.id === mainStaff) ? mainStaff : (fuPeople[0]?.id ?? ""));
+  const withFollowUp = !!(needs && fuService && fuOn && !repeat && fuAt && fuWho);
+
+  // free times for the additional service: same day, its specialist, after the first part ends
+  const lastBuffer = catalog.find((c) => c.id === picked.at(-1))?.bufferMin ?? 0;
+  const fuFrom = mainStart
+    ? new Date(mainStart).getTime() + (mainMin + (fuWho === mainStaff ? lastBuffer : 0)) * 60_000
+    : null;
+  const fuServiceId = fuService?.id;
+  const fuShow = !!(fuServiceId && fuOn && !repeat && fuWho && fuFrom);
+  useEffect(() => {
+    if (!fuShow) return;
+    let live = true;
+    findSlots({ date, staffId: fuWho, picks: [{ serviceId: fuServiceId! }], locationId }).then((r) => {
+      if (live)
+        setFuSlots(r.ok ? r.data.map((x) => x.start).filter((x) => new Date(x).getTime() >= fuFrom!) : []);
+    });
+    return () => {
+      live = false;
+    };
+  }, [fuShow, date, fuWho, fuServiceId, fuFrom, locationId]);
+
   const submit = (force = false) =>
     startTransition(async () => {
       setError(undefined);
       setConflicts([]);
+      setFuConflicts([]);
       const target =
         chosen ??
         (otherTime && staffId !== ANY
@@ -160,9 +215,19 @@ export function NewBookingPanel({
         source: walkIn ? "walk_in" : "admin",
         force,
         locationId,
+        followUp: withFollowUp
+          ? {
+              serviceId: fuService!.id,
+              staffId: fuWho,
+              start: fromZonedTime(`${date}T${fuAt}`, timeZone).toISOString(),
+            }
+          : null,
       });
       if (!r.ok) {
-        if (r.error === "conflicts" && "conflicts" in r) return setConflicts(r.conflicts);
+        if (r.error === "conflicts" && "conflicts" in r)
+          return "part" in r && r.part === "followUp"
+            ? setFuConflicts(r.conflicts)
+            : setConflicts(r.conflicts);
         return setError(r.error);
       }
       toast.success(t("booking.created"));
@@ -460,6 +525,98 @@ export function NewBookingPanel({
             </div>
           )}
         </section>
+
+        {needs && fuService && mainStart && !repeat && (
+          <section
+            className="flex flex-col gap-3 rounded-lg border border-primary/40 bg-accent/40 p-3"
+            data-testid="followup-reminder"
+            aria-live="polite"
+          >
+            <p className="text-sm font-medium">
+              {t("booking.followUp.title", { service: localized(needs.name, locale) })}
+            </p>
+            <label className="flex items-center gap-2 text-sm">
+              <Checkbox checked={fuOn} onCheckedChange={(v) => setFuOn(v === true)} />
+              {t("booking.followUp.add", {
+                service: localized(fuService.name, locale),
+                minutes: fuService.durationMin,
+              })}
+            </label>
+            {fuOn && (
+              <div className="flex flex-wrap items-end gap-3">
+                <FormField id="nb-fu-time" label={t("booking.followUp.time")} className="w-32">
+                  <Input
+                    id="nb-fu-time"
+                    type="time"
+                    step={300}
+                    value={fuAt}
+                    onChange={(e) => setFuTime(e.target.value)}
+                    className="h-11 md:h-9"
+                  />
+                </FormField>
+                {fuPeople.length > 1 && (
+                  <FormField id="nb-fu-staff" label={t("booking.followUp.staff")} className="min-w-40 flex-1">
+                    <Select value={fuWho} onValueChange={setFuStaff}>
+                      <SelectTrigger id="nb-fu-staff" className="h-11 w-full md:h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {fuPeople.map((p) => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormField>
+                )}
+                <p className="w-full text-xs text-muted-foreground">
+                  {t("booking.followUp.hint", { minutes: needs.followUp!.afterMin })}
+                </p>
+                {fuSlots && fuSlots.length > 0 && (
+                  <div
+                    role="radiogroup"
+                    aria-label={t("booking.followUp.freeTimes")}
+                    className="flex max-h-32 w-full flex-wrap gap-1.5 overflow-y-auto"
+                    data-testid="followup-slots"
+                  >
+                    {fuSlots.map((st) => {
+                      const hm = hhmm(st, timeZone);
+                      const on = hm === fuAt;
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          role="radio"
+                          aria-checked={on}
+                          onClick={() => setFuTime(hm)}
+                          className={cn(
+                            "min-h-9 rounded-md border px-2.5 text-sm tabular-nums outline-none focus-visible:ring-3 focus-visible:ring-ring/50",
+                            on
+                              ? "border-primary bg-primary text-primary-foreground"
+                              : "bg-card hover:bg-muted",
+                          )}
+                        >
+                          {hm}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+                {fuSlots && fuSlots.length === 0 && (
+                  <p className="w-full text-xs text-muted-foreground">{t("booking.followUp.noFreeTimes")}</p>
+                )}
+              </div>
+            )}
+            {fuConflicts.length > 0 && (
+              <ul role="alert" className="flex flex-col gap-1 text-sm text-destructive">
+                {fuConflicts.map((c) => (
+                  <li key={c}>{t(`booking.conflicts.${c}`)}</li>
+                ))}
+              </ul>
+            )}
+          </section>
+        )}
 
         {(chosen || (otherTime && staffId !== ANY)) && client && (
           <section className="flex flex-col gap-3 rounded-lg border p-3">

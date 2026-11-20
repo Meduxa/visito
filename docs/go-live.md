@@ -98,6 +98,7 @@ After the push, GitHub runs the automatic checks (typecheck, lint, unit tests) o
    | `TNET_SECRET_HASH` | secret_hash from TNET — **mark as secret** |
    | `TNET_SENDER` | the default sender title exactly as TNET registered it (e.g. `Visito`; case matters) |
    | `TNET_WEBHOOK_SECRET` | the 64-character signing secret for delivery reports — **mark as secret** |
+   | `SMS_ONLY_TO` | **Test mode only** (decision 038): your own number(s), comma-separated, so only they get real SMS. **Empty at real launch** — otherwise salons' clients get nothing |
    | `PAYMENTS_PROVIDER` | `flitt` once Visito's own Flitt merchant is ready (decision 031); `none` until then (owners pay by transfer) |
    | `FLITT_MERCHANT_ID` | Visito's Flitt merchant ID (not the test 1549901) |
    | `FLITT_SECRET_KEY` | its payment key — **mark as secret** |
@@ -170,4 +171,11 @@ daily, but check it during quiet test weeks.
   `smtp.resend.com`, port 465, user `resend`, password = the API key) so sign-up emails arrive.
 - **SMS company**: TNET (decision 027) — give TNET the sender titles and the callback address `https://visito.ge/api/webhooks/sms/tnet`, receive base_url, client_id, secret_hash and the webhook signing secret, set the `TNET_*` values and `SMS_PROVIDER=tnet` on Netlify, then send a test SMS from Settings → SMS, **Cloudflare Turnstile** on the booking page, **lawyer's texts**
   for the legal pages, **plan prices** in `/admin/plans`, **Supabase Pro**.
+- **Bot protection (Cloudflare Turnstile, free)** — decision 036:
+  1. dash.cloudflare.com → sign up (free) → left menu **Turnstile** → **Add widget**.
+  2. Name `Visito`; Hostnames: `visito.ge` (add `localhost` only if you want to test real keys on the laptop); Widget mode: **Managed**; pre-clearance: No → **Create**.
+  3. Copy the **Site key** and the **Secret key**.
+  4. Netlify → Environment variables: `NEXT_PUBLIC_TURNSTILE_SITE_KEY` = site key (not secret), `TURNSTILE_SECRET_KEY` = secret key (**mark as secret**) → Trigger deploy.
+  5. Check: on visito.ge, book online and ask for an SMS code; Cloudflare → Turnstile → Analytics shows the checks.
+  (No DNS change is needed: visito.ge stays on Netlify DNS.)
 - Go through `docs/security-review.md` → "Before go-live".

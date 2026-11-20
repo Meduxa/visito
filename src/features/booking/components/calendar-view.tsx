@@ -21,6 +21,7 @@ import { NewBookingPanel, type CatalogEntry } from "./new-booking-panel";
 import { TimeGrid, type GridColumn } from "./time-grid";
 import { setWaitlistStatus, waitlistMatches, type WaitlistEntry } from "../waitlist-actions";
 import { WaitlistPanel } from "./waitlist-panel";
+import { missingFollowUp } from "../followup";
 
 export type CalendarView = "day" | "week" | "list" | "month";
 export type DayBy = "staff" | "chair";
@@ -263,13 +264,38 @@ export function CalendarScreen({
                 ]
               : [];
           }
-          const its = b.items.filter((i) => i.staffId === sid);
-          const start = Math.min(...its.map((i) => new Date(i.start).getTime()));
-          const end = Math.max(...its.map((i) => new Date(i.end).getTime()));
-          const col = columns.find(
-            (c) => c.staffId === sid && c.date === localDate(new Date(start).toISOString(), tz),
-          );
-          return col ? [{ booking: b, columnKey: col.key, start, end, color: blockColor(b, sid) }] : [];
+          // one block per continuous part: a visit with a gap (decision 037) shows two
+          // blocks, and the specialist is free in between
+          const its = b.items
+            .filter((i) => i.staffId === sid)
+            .map((i) => ({ s: new Date(i.start).getTime(), e: new Date(i.end).getTime() }))
+            .sort((x, y) => x.s - y.s);
+          const runs: { s: number; e: number }[] = [];
+          for (const it of its) {
+            const last = runs.at(-1);
+            if (last && it.s <= last.e) last.e = Math.max(last.e, it.e);
+            else runs.push({ ...it });
+          }
+          const first = new Date(b.items[0].start).getTime();
+          return runs.flatMap((r) => {
+            const col = columns.find(
+              (c) => c.staffId === sid && c.date === localDate(new Date(r.s).toISOString(), tz),
+            );
+            return col
+              ? [
+                  {
+                    booking: b,
+                    columnKey: col.key,
+                    start: r.s,
+                    end: r.e,
+                    color: blockColor(b, sid),
+                    offsetMs: r.s - first,
+                    staffId: sid,
+                    needsFollowUp: !!missingFollowUp(b, catalog),
+                  },
+                ]
+              : [];
+          });
         }),
       );
 
@@ -642,6 +668,8 @@ export function CalendarScreen({
         canEdit={!!booking && canEdit(booking)}
         isManager={isManager}
         isDental={isDental}
+        catalog={catalog}
+        locationId={branchId}
         onClose={() => {
           setOpenBooking(null);
           if (openBookingId) {

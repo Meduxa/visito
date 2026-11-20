@@ -111,3 +111,33 @@ I will then check, with real addresses you give me in the chat (only addresses, 
   is listed with its error).
 - **Email arrives, link says "expired"**: the link was already used or is older than one hour —
   ask for a new one. With our templates (step 5.4) the link works on any device.
+
+---
+
+## 7. Receiving email: info@visito.ge → your Gmail (free, ImprovMX)
+
+The legal pages name `info@visito.ge` as the contact. Resend only *sends*; to *receive*, forward
+the address to your Gmail.
+
+1. **improvmx.com** → enter `visito.ge` and your Gmail → create the free account (your own
+   password; not in the chat).
+2. ImprovMX shows records to add. In **Netlify → Domains → visito.ge → DNS settings → Add new
+   record** (Name: leave `@`, which means visito.ge itself):
+
+   | Type | Name | Value | Priority |
+   |---|---|---|---|
+   | MX | `@` | `mx1.improvmx.com` | 10 |
+   | MX | `@` | `mx2.improvmx.com` | 20 |
+   | TXT | `@` | `v=spf1 include:spf.improvmx.com ~all` | — |
+
+   These are on visito.ge itself and do not touch Resend's records (`send`, `rsend`,
+   `resend._domainkey`, `_dmarc`).
+3. In ImprovMX, add the alias **`info`** → your Gmail (the free plan forwards every address,
+   `*@visito.ge`, by default — keep `info` at least).
+4. ImprovMX → **Check again** until both turn green. Then send a test email to info@visito.ge
+   from another address.
+
+**Optional — reply as info@visito.ge from Gmail:** Gmail → Settings → Accounts → **Send mail as**
+→ add `info@visito.ge`, SMTP server `smtp.resend.com`, port `465`, username `resend`, password:
+a Resend API key with sending access (a separate key, e.g. `gmail-send`). Gmail sends a
+confirmation code to info@visito.ge, which arrives in your Gmail through the forwarding.

@@ -8,7 +8,7 @@ import { DEFAULT_TZ } from "@/lib/time";
 // Served by GET /api/notifications so polling never queues behind buttons
 // (decision 006).
 
-export type NotificationKind = "online_booking" | "needs_action";
+export type NotificationKind = "online_booking" | "needs_action" | "needs_followup";
 
 export type NotificationItem = {
   kind: NotificationKind;

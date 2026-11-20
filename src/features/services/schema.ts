@@ -57,6 +57,9 @@ export const serviceSchema = z
     bookableOnline: z.boolean(),
     color: z.enum(staffColors).nullable(),
     resourceType: z.enum(resourceTypes).nullable(),
+    // "requires an additional service" (decision 037): which one, and minutes after this one ends
+    followUpServiceId: z.uuid().nullable().optional(),
+    followUpAfterMin: minutes(0, 720).optional(),
   })
   .transform((v, ctx) => {
     let priceMaxMinor: number | null = null;

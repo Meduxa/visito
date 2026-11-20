@@ -2,6 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
+import { isHuman } from "@/integrations/captcha";
+import { clientIp } from "@/features/public-booking/security";
 import { fail, type ActionResult } from "@/lib/action-result";
 import { publicEnv } from "@/lib/env";
 import { createClient } from "@/lib/supabase/server";
@@ -38,9 +40,11 @@ export async function signIn(input: SignInInput, next?: string): Promise<ActionR
 export async function signUp(
   input: SignUpInput,
   next?: string,
+  captcha?: string,
 ): Promise<ActionResult<{ needsConfirmation: boolean }>> {
   const parsed = signUpSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
+  if (!(await isHuman(captcha, await clientIp()))) return fail("captchaFailed"); // decision 036
 
   const locale = await getLocale();
   const target = safeNext(next, `/${locale}/onboarding`);
@@ -68,9 +72,10 @@ export async function signUp(
 
 // "Forgot password": always the same answer, so nobody can find out which
 // addresses have an account. Supabase limits how often emails go out.
-export async function requestPasswordReset(input: ForgotInput): Promise<ActionResult> {
+export async function requestPasswordReset(input: ForgotInput, captcha?: string): Promise<ActionResult> {
   const parsed = forgotSchema.safeParse(input);
   if (!parsed.success) return fail("email", "email");
+  if (!(await isHuman(captcha, await clientIp()))) return fail("captchaFailed"); // decision 036
   const locale = await getLocale();
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {

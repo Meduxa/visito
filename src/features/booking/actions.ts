@@ -8,7 +8,7 @@ import { memberContext, type MemberContext } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { normalizePhone } from "@/lib/phone";
 import { DEFAULT_TZ } from "@/lib/time";
-import { getAvailableSlots, validateBooking, type Conflict } from "./engine/availability";
+import { getAvailableSlots, totalFor, validateBooking, type Conflict } from "./engine/availability";
 import { notifyBooking } from "../sms/booking-sms";
 import { buildItems } from "./build-items";
 import { loadEngineData, loadServiceRequests } from "./load-data";
@@ -95,11 +95,18 @@ const createSchema = z.object({
   source: z.enum(["admin", "phone", "walk_in"]),
   force: z.boolean().optional(), // book outside working hours anyway (managers)
   locationId: locationSchema,
+  // the additional service of decision 037, as part of the same visit, at its own time
+  followUp: z
+    .object({ serviceId: z.uuid(), staffId: z.uuid(), start: z.iso.datetime({ offset: true }) })
+    .nullable()
+    .optional(),
 });
 
 export async function createBooking(
   input: z.input<typeof createSchema>,
-): Promise<ActionResult<{ id: string }> | { ok: false; error: "conflicts"; conflicts: Conflict[] }> {
+): Promise<
+  ActionResult<{ id: string }> | { ok: false; error: "conflicts"; conflicts: Conflict[]; part?: "followUp" }
+> {
   const ctx = await memberContext();
   const parsed = createSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
@@ -117,6 +124,49 @@ export async function createBooking(
     fullData,
   ).filter((c) => !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")));
   if (conflicts.length) return { ok: false, error: "conflicts", conflicts };
+
+  // The additional service (decision 037): checked on its own time; the specialist
+  // is free in the gap, so only its own minutes must fit.
+  let followUpItem: {
+    service_id: string;
+    variant_id: null;
+    staff_id: string;
+    resource_id: null;
+    starts_at: string;
+  } | null = null;
+  if (v.followUp) {
+    if (!allowedStaff(ctx, v.followUp.staffId)) return fail("notAllowed");
+    const fuStart = new Date(v.followUp.start);
+    const fuDate = await localDate(ctx, v.followUp.start);
+    const fuData =
+      fuDate === date
+        ? fullData
+        : await loadEngineData(supabase, tenant.tenantId, fuDate, fuDate, { locationId: v.locationId });
+    const fuServices = await loadServiceRequests(supabase, tenant.tenantId, [
+      { serviceId: v.followUp.serviceId },
+    ]);
+    if (!fuServices) return fail("notFound");
+    const fuConflicts = validateBooking(
+      { staffId: v.followUp.staffId, start: fuStart, services: fuServices },
+      fuData,
+    ).filter((c) => !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")));
+    // it must start after the first service ends (same visit, in order)
+    const mainStaff = fullData.staff.find((s) => s.id === v.staffId);
+    const mainTotal = mainStaff ? totalFor(mainStaff, services) : null;
+    // the same person also needs the first part's preparation time (buffer) first
+    const mainMin =
+      (mainTotal?.durationMin ?? 0) + (v.followUp.staffId === v.staffId ? (mainTotal?.bufferMin ?? 0) : 0);
+    if (fuStart.getTime() < new Date(v.start).getTime() + mainMin * 60_000) fuConflicts.push("overlap");
+    if (fuConflicts.length)
+      return { ok: false, error: "conflicts", conflicts: [...new Set(fuConflicts)], part: "followUp" };
+    followUpItem = {
+      service_id: v.followUp.serviceId,
+      variant_id: null,
+      staff_id: v.followUp.staffId,
+      resource_id: null,
+      starts_at: fuStart.toISOString(),
+    };
+  }
 
   // A new client is created first (staff: as their own preferred client).
   let clientId = v.clientId;
@@ -140,12 +190,15 @@ export async function createBooking(
     clientId = c.id;
   }
 
-  const items = buildItems(fullData, {
-    staffId: v.staffId,
-    start: new Date(v.start),
-    services,
-    picks: v.picks,
-  });
+  const items = [
+    ...buildItems(fullData, {
+      staffId: v.staffId,
+      start: new Date(v.start),
+      services,
+      picks: v.picks,
+    }),
+    ...(followUpItem ? [followUpItem] : []),
+  ];
 
   const { data: id, error } = await supabase.rpc("create_booking", {
     p_tenant: tenant.tenantId,
@@ -161,6 +214,55 @@ export async function createBooking(
   done(ctx);
   if (v.source !== "walk_in") after(() => notifyBooking(id, "confirmed"));
   return ok({ id });
+}
+
+const addFollowUpSchema = z.object({
+  bookingId: z.uuid(),
+  serviceId: z.uuid(),
+  staffId: z.uuid(),
+  start: z.iso.datetime({ offset: true }),
+  force: z.boolean().optional(),
+});
+
+// "Additional service not added" (decision 037): staff add it to an existing
+// visit (typically an online booking), at its own time.
+export async function addFollowUp(
+  input: z.input<typeof addFollowUpSchema>,
+): Promise<ActionResult | { ok: false; error: "conflicts"; conflicts: Conflict[] }> {
+  const ctx = await memberContext();
+  const parsed = addFollowUpSchema.safeParse(input);
+  if (!ctx || !parsed.success) return fail("invalidInput");
+  const v = parsed.data;
+  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  const { supabase, tenant } = ctx;
+
+  const { data: b } = await supabase
+    .from("bookings")
+    .select("location_id")
+    .eq("id", v.bookingId)
+    .eq("tenant_id", tenant.tenantId)
+    .maybeSingle();
+  if (!b) return fail("notFound");
+  const date = await localDate(ctx, v.start);
+  const data = await loadEngineData(supabase, tenant.tenantId, date, date, { locationId: b.location_id });
+  const services = await loadServiceRequests(supabase, tenant.tenantId, [{ serviceId: v.serviceId }]);
+  if (!services) return fail("notFound");
+  const conflicts = validateBooking({ staffId: v.staffId, start: new Date(v.start), services }, data).filter(
+    (c) => !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")),
+  );
+  if (conflicts.length) return { ok: false, error: "conflicts", conflicts };
+
+  const { error } = await supabase.rpc("add_booking_item", {
+    p_tenant: tenant.tenantId,
+    p_booking: v.bookingId,
+    p_service: v.serviceId,
+    p_staff: v.staffId,
+    p_starts_at: new Date(v.start).toISOString(),
+    p_locale: ctx.locale,
+  });
+  if (error) return fail(bookingError(error));
+  done(ctx);
+  return ok(undefined);
 }
 
 const moveSchema = z.object({
@@ -205,7 +307,25 @@ export async function moveBooking(
     tenant.tenantId,
     items.filter((i) => i.service_id).map((i) => ({ serviceId: i.service_id! })),
   );
-  if (services && services.length === items.length) {
+  // parts with a gap between them (decision 037) are checked one by one
+  const gapped = items.some(
+    (it, k) =>
+      k > 0 &&
+      new Date(it.starts_at).getTime() >
+        new Date(items[k - 1].starts_at).getTime() + items[k - 1].duration_min_snapshot * 60_000,
+  );
+  if (gapped && services && services.length === items.length) {
+    const all: Conflict[] = [];
+    for (const [k, it] of items.entries()) {
+      const one = [{ ...services[k], durationMin: it.duration_min_snapshot }];
+      const at = new Date(new Date(it.starts_at).getTime() + delta);
+      for (const c of validateBooking({ staffId: v.staffId, start: at, services: one }, data)) all.push(c);
+    }
+    const conflicts = [...new Set(all)].filter(
+      (c) => c !== "cannotPerform" && !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")),
+    );
+    if (conflicts.length) return { ok: false, error: "conflicts", conflicts };
+  } else if (services && services.length === items.length) {
     const snap = services.map((s, k) => ({
       ...s,
       durationMin: items.length === 1 && v.durationMin ? v.durationMin : items[k].duration_min_snapshot,

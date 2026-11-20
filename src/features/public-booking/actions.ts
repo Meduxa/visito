@@ -3,6 +3,7 @@
 import { formatInTimeZone } from "date-fns-tz";
 import { getLocale, getTranslations } from "next-intl/server";
 import { z } from "zod";
+import { isHuman } from "@/integrations/captcha";
 import { getEmailProvider } from "@/integrations/email";
 import { notifyBooking } from "@/features/sms/booking-sms";
 import { sendNow } from "@/features/sms/send";
@@ -92,8 +93,11 @@ export async function sendCode(input: {
   slug: string;
   phone: string;
   website?: string;
+  captcha?: string;
 }): Promise<ActionResult> {
   if (input.website) return ok(undefined); // honeypot: bots fill every field; pretend it worked
+  // every code is a paid SMS: a person must be asking (decision 036)
+  if (!(await isHuman(input.captcha, await clientIp()))) return fail("captchaFailed");
   const business = slugSchema.safeParse(input.slug).success
     ? await getPublicBusiness(input.slug, "ka")
     : null;
@@ -160,6 +164,7 @@ const bookSchema = z.object({
   marketingEmail: z.boolean(),
   pass: z.string().max(64).nullable(),
   website: z.string().optional(),
+  captcha: z.string().max(4096).optional(),
   branch: branchSchema,
 });
 
@@ -184,6 +189,8 @@ export async function bookOnline(input: z.input<typeof bookSchema>): Promise<Act
   const business = await getPublicBusiness(v.slug, locale, v.branch);
   if (!business || (business.branches.length && !business.branch)) return fail("notFound");
   if (business.otpRequired && !v.pass) return fail("phoneNotVerified");
+  // without an SMS code, the bot check stands in for it (decision 036)
+  if (!business.otpRequired && !(await isHuman(v.captcha, await clientIp()))) return fail("captchaFailed");
 
   // The chosen time must be one the engine offers right now, online rules included.
   const date = formatInTimeZone(v.start, business.timeZone, "yyyy-MM-dd");

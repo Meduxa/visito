@@ -1,5 +1,6 @@
 import "server-only";
 import { serverEnv } from "@/lib/server-env";
+import { onlyTo, parseOnlyTo } from "./only-to";
 import { fakeSmsProvider } from "./providers/fake";
 import { senderGeProvider } from "./providers/senderge";
 import { tnetProvider } from "./providers/tnet";
@@ -10,6 +11,10 @@ import type { SmsProvider } from "./types";
 let tnet: SmsProvider | undefined;
 
 export function getSmsProvider(): SmsProvider {
+  return onlyTo(baseProvider(), parseOnlyTo(serverEnv().SMS_ONLY_TO));
+}
+
+function baseProvider(): SmsProvider {
   const env = serverEnv();
   switch (env.SMS_PROVIDER) {
     case "tnet": {

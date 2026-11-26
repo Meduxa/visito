@@ -20,12 +20,15 @@ export function ConfirmDialog({
   title,
   description,
   confirmLabel,
+  cancelLabel,
   onConfirm,
 }: {
   trigger: ReactNode;
   title?: string;
   description: string;
   confirmLabel?: string;
+  /** the button that closes without doing anything (default: "Cancel") */
+  cancelLabel?: string;
   onConfirm: () => void;
 }) {
   const t = useTranslations("common");
@@ -35,10 +38,13 @@ export function ConfirmDialog({
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title ?? t("confirm")}</AlertDialogTitle>
-          <AlertDialogDescription>{description}</AlertDialogDescription>
+          {/* the same words twice read as a mistake: keep it for screen readers only */}
+          <AlertDialogDescription className={description === (title ?? t("confirm")) ? "sr-only" : undefined}>
+            {description}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel ?? t("dialogNo")}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm}>
             {confirmLabel ?? t("delete")}
           </AlertDialogAction>

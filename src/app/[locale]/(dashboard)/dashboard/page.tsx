@@ -55,7 +55,9 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
     <>
       <PageHeader
         title={firstName ? t("dashboard.welcome", { name: firstName }) : t("dashboard.welcomeNoName")}
-        description={t("dashboard.subtitle", { business: tenant?.name ?? "" })}
+        description={t(manager ? "dashboard.subtitle" : "dashboard.subtitleStaff", {
+          business: tenant?.name ?? "",
+        })}
         actions={
           manager ? (
             <Button asChild variant="outline" className="h-11 md:h-9">
@@ -74,7 +76,35 @@ export default async function DashboardPage({ params }: PageProps<"/[locale]/das
           <Numbers tenantId={tenant.tenantId} role={tenant.role} locale={locale} />
         </Suspense>
       )}
+      {!manager && tenant && <StaffHome tenantId={tenant.tenantId} />}
     </>
+  );
+}
+
+// Staff: where to go — or, before the owner links them to a profile, why the
+// calendar is still empty and what to ask for.
+async function StaffHome({ tenantId }: { tenantId: string }) {
+  const t = await getTranslations("dashboard.staffHome");
+  const { data: staffId } = await (await createClient()).rpc("current_staff_id", { p_tenant: tenantId });
+  return (
+    <Card className="max-w-2xl">
+      <CardHeader>
+        <CardTitle>{staffId ? t("title") : t("notLinkedTitle")}</CardTitle>
+      </CardHeader>
+      <CardContent className="flex flex-col items-start gap-4 text-sm text-muted-foreground">
+        <p>{staffId ? t("body") : t("notLinkedBody")}</p>
+        {staffId && (
+          <div className="flex flex-wrap gap-2">
+            <Button asChild className="h-11 md:h-9">
+              <Link href="/my-day">{t("myDay")}</Link>
+            </Button>
+            <Button asChild variant="outline" className="h-11 md:h-9">
+              <Link href="/calendar">{t("calendar")}</Link>
+            </Button>
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

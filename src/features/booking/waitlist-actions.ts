@@ -202,6 +202,7 @@ export async function sendWaitlistOffer(entryId: string, bookingId: string): Pro
   const t = await getTranslations({ locale });
   const text = renderSms(t.raw("smsTemplates.waitlistOffer") as string, {
     business_name: tenant.name,
+    place: tenant.name,
     service: localized((w.services as unknown as { name_i18n: never }).name_i18n, locale),
     date: shortDate(t, ymdIn(b.starts_at, tenant.timezone)),
     time: formatInTimeZone(b.starts_at, tenant.timezone, "HH:mm"),

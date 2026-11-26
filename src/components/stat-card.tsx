@@ -32,7 +32,8 @@ export function StatCard({
 }) {
   return (
     <Card className="gap-3 p-4">
-      <div className="flex items-center gap-3">
+      {/* the label has its own line: long Georgian words do not fit next to the icon and the arrow */}
+      <div className="flex items-center justify-between gap-3">
         <span
           className={cn(
             "flex size-9 shrink-0 items-center justify-center rounded-lg [&_svg]:size-4.5",
@@ -41,7 +42,6 @@ export function StatCard({
         >
           {icon}
         </span>
-        <span className="min-w-0 flex-1 text-sm font-medium">{label}</span>
         {href && (
           <Link
             href={href}
@@ -52,6 +52,7 @@ export function StatCard({
           </Link>
         )}
       </div>
+      <span className="-mb-2 text-sm font-medium [overflow-wrap:anywhere]">{label}</span>
       <div className="text-2xl font-semibold tabular-nums">{value}</div>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       {extra}

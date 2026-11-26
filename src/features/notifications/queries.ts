@@ -8,13 +8,20 @@ import { DEFAULT_TZ } from "@/lib/time";
 // Served by GET /api/notifications so polling never queues behind buttons
 // (decision 006).
 
-export type NotificationKind = "online_booking" | "needs_action" | "needs_followup";
+export type NotificationKind =
+  | "online_booking"
+  | "needs_action"
+  | "needs_followup"
+  | "client_moved" // the client moved the visit with the manage link
+  | "client_cancelled";
 
 export type NotificationItem = {
   kind: NotificationKind;
   bookingId: string;
   at: string;
   read: boolean;
+  /** the booking's status now (a new online booking may be cancelled since) */
+  cancelled: boolean;
   /** booking start, tenant-local */
   date: string;
   dayMonth: string;
@@ -47,6 +54,7 @@ export async function loadNotifications(): Promise<NotificationFeed | null> {
       bookingId: n.booking_id,
       at: n.at,
       read: n.is_read,
+      cancelled: n.status.startsWith("cancelled"),
       date: formatInTimeZone(n.starts_at, tz, "yyyy-MM-dd"),
       dayMonth: formatInTimeZone(n.starts_at, tz, "dd.MM"),
       time: formatInTimeZone(n.starts_at, tz, "HH:mm"),

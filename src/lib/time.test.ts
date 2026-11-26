@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { intervalProblem, utcToZoned, zonedToUtcIso } from "./time";
+import { intervalProblem, outsideHours, utcToZoned, zonedToUtcIso } from "./time";
 
 describe("intervalProblem", () => {
   it("accepts a split shift with a lunch break", () => {
@@ -44,5 +44,20 @@ describe("Tbilisi time", () => {
   it("a time late in the evening stays on the same local day", () => {
     expect(utcToZoned("2027-02-01T19:30:00Z")).toEqual({ date: "2027-02-01", time: "23:30" });
     expect(utcToZoned("2027-02-01T20:30:00Z")).toEqual({ date: "2027-02-02", time: "00:30" });
+  });
+});
+
+describe("outsideHours", () => {
+  const open = [{ start: "11:00", end: "19:00" }];
+  it("fits inside opening hours", () => {
+    expect(outsideHours({ start: "11:00", end: "19:00" }, open)).toBe(false);
+    expect(outsideHours({ start: "12:00", end: "15:00" }, open)).toBe(false);
+  });
+  it("starts before opening or ends after closing", () => {
+    expect(outsideHours({ start: "10:00", end: "18:00" }, open)).toBe(true);
+    expect(outsideHours({ start: "12:00", end: "20:00" }, open)).toBe(true);
+  });
+  it("closed day", () => {
+    expect(outsideHours({ start: "12:00", end: "13:00" }, [])).toBe(true);
   });
 });

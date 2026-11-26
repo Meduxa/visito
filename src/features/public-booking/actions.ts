@@ -17,6 +17,7 @@ import { buildItems } from "../booking/build-items";
 import { getAvailableSlots } from "../booking/engine/availability";
 import { loadEngineData, loadServiceRequests } from "../booking/load-data";
 import { getPublicBusiness } from "./queries";
+import { pickText } from "@/lib/translations";
 import { allow, clientIp, hmac, newCode, newToken } from "./security";
 
 // The public booking page (no sign-in). Every step re-checks on the server:
@@ -106,6 +107,10 @@ export async function sendCode(input: {
   if (!phone) return fail("phoneInvalid", "phone");
   if (!(await allow("codePerPhone", phone)) || !(await allow("codePerIp", await clientIp())))
     return fail("tooMany");
+  // a blocked number or one over the future-visits limit would be refused after
+  // the code anyway: refuse now, so the business does not pay for the SMS. One
+  // neutral message — before the code nobody has proved the number is theirs.
+  if (await refusedOnline(business.tenantId, phone)) return fail("onlineNotPossible", "phone");
 
   const code = newCode();
   const { error } = await createAdminClient().rpc("otp_issue", {
@@ -125,6 +130,37 @@ export async function sendCode(input: {
     key: `otp:${phone}:${hmac(code).slice(0, 16)}`,
   });
   return sent ? ok(undefined) : fail("smsFailed");
+}
+
+/** The same refusals public_create_booking makes (blocked, too many upcoming visits). */
+async function refusedOnline(tenantId: string, phone: string): Promise<boolean> {
+  const db = createAdminClient();
+  const { data: client } = await db
+    .from("clients")
+    .select("id, blocked_online")
+    .eq("tenant_id", tenantId)
+    .eq("phone_e164", phone)
+    .is("anonymized_at", null)
+    .order("created_at")
+    .limit(1)
+    .maybeSingle();
+  if (!client) return false;
+  if (client.blocked_online) return true;
+  const { data: s } = await db
+    .from("tenant_settings")
+    .select("online_max_upcoming")
+    .eq("tenant_id", tenantId)
+    .single();
+  const max = s?.online_max_upcoming ?? 0;
+  if (max <= 0) return false;
+  const { count } = await db
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId)
+    .eq("client_id", client.id)
+    .in("status", ["pending", "confirmed"])
+    .gt("starts_at", new Date().toISOString());
+  return (count ?? 0) >= max;
 }
 
 // Returns a one-off pass proving the phone; the booking spends it.
@@ -279,7 +315,9 @@ export type ManageView = {
   phone: string | null;
   address: string | null;
   locationId: string | null;
-  branch: string | null; // the branch's name when not the main one
+  branch: string | null; // the branch's name when the business has several
+  showPrices: boolean;
+  priceFrom: boolean; // a "from" or range price: the total is the lowest
   items: {
     serviceId: string | null;
     variantId: string | null;
@@ -293,6 +331,7 @@ export async function manageView(token: string): Promise<ManageView | null> {
   if (!tokenSchema.safeParse(token).success) return null;
   const { data } = await createAdminClient().rpc("public_manage_view", { p_token_hash: hmac(token) });
   if (!data) return null;
+  const locale = await getLocale();
   const d = data as Record<string, unknown> & { items: Record<string, string>[] | null };
   return {
     bookingId: d.booking_id as string,
@@ -310,9 +349,11 @@ export async function manageView(token: string): Promise<ManageView | null> {
       ["pending", "confirmed"].includes(d.status as string) &&
       Date.now() < new Date(d.starts_at as string).getTime() - (d.cancel_window_min as number) * 60_000,
     phone: (d.phone as string) ?? null,
-    address: (d.address as string) ?? null,
+    address: pickText(d.location_translations, locale, "address", (d.address as string) ?? null),
     locationId: (d.location_id as string) ?? null,
-    branch: (d.branch as string) ?? null,
+    branch: pickText(d.location_translations, locale, "name", (d.branch as string) ?? null),
+    showPrices: d.show_prices !== false,
+    priceFrom: d.price_from === true,
     items: (d.items ?? []).map((i) => ({
       serviceId: i.service_id,
       variantId: i.variant_id,

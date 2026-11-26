@@ -946,6 +946,7 @@ export type Database = {
           slug: string | null
           sort_order: number
           tenant_id: string
+          translations: Json
           updated_at: string
         }
         Insert: {
@@ -959,6 +960,7 @@ export type Database = {
           slug?: string | null
           sort_order?: number
           tenant_id: string
+          translations?: Json
           updated_at?: string
         }
         Update: {
@@ -972,6 +974,7 @@ export type Database = {
           slug?: string | null
           sort_order?: number
           tenant_id?: string
+          translations?: Json
           updated_at?: string
         }
         Relationships: [
@@ -2196,6 +2199,7 @@ export type Database = {
           position_type: string
           sort_order: number
           tenant_id: string
+          translations: Json
           updated_at: string
         }
         Insert: {
@@ -2215,6 +2219,7 @@ export type Database = {
           position_type?: string
           sort_order?: number
           tenant_id: string
+          translations?: Json
           updated_at?: string
         }
         Update: {
@@ -2234,6 +2239,7 @@ export type Database = {
           position_type?: string
           sort_order?: number
           tenant_id?: string
+          translations?: Json
           updated_at?: string
         }
         Relationships: [
@@ -3623,6 +3629,10 @@ export type Database = {
       staff_has_client: {
         Args: { p_client: string; p_tenant: string }
         Returns: boolean
+      }
+      staff_location_at: {
+        Args: { p_at: string; p_staff: string; p_tenant: string }
+        Returns: string
       }
       start_support_view: { Args: { p_tenant: string }; Returns: string }
       support_view: { Args: { p_tenant: string }; Returns: boolean }

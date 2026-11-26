@@ -1,6 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { slugify } from "@/lib/slug";
+import { buildTranslations } from "@/lib/translations";
 import { z } from "zod";
 import { weekSchema, type WeekInput } from "@/features/staff/schema";
 import { dbErrorCode, managerContext, type ManagerContext } from "@/lib/action-context";
@@ -42,6 +44,10 @@ export async function saveBranch(
   }
   const v = parsed.data;
   const { supabase, tenant } = ctx;
+  const translations = buildTranslations({
+    en: { name: v.nameEn, address: v.addressEn },
+    ru: { name: v.nameRu, address: v.addressRu },
+  });
 
   if (id) {
     const { error } = await supabase
@@ -50,6 +56,7 @@ export async function saveBranch(
         name: v.name,
         address: v.address || null,
         phone: v.phone,
+        translations,
         ...(v.slug ? { slug: v.slug } : {}),
       })
       .eq("id", id)
@@ -65,8 +72,11 @@ export async function saveBranch(
     .select("slug, sort_order")
     .eq("tenant_id", tenant.tenantId);
   const taken = new Set((existing ?? []).map((l) => l.slug));
-  let slug = v.slug;
-  for (let n = (existing?.length ?? 0) + 1; !slug || taken.has(slug); n++) slug = `branch-${n}`;
+  // from the name (საბურთალო → saburtalo); a number is added if it is taken
+  const base = v.slug || slugify(v.name).slice(0, 36).replace(/-+$/, "");
+  let slug = base.length >= 2 ? base : "";
+  for (let n = 2; !slug || taken.has(slug); n++)
+    slug = base.length >= 2 ? `${base}-${n}` : `branch-${(existing?.length ?? 0) + n - 1}`;
   const { data, error } = await supabase
     .from("locations")
     .insert({
@@ -74,6 +84,7 @@ export async function saveBranch(
       name: v.name,
       address: v.address || null,
       phone: v.phone,
+      translations,
       slug,
       sort_order: Math.max(0, ...(existing ?? []).map((l) => l.sort_order)) + 1,
     })

@@ -2,6 +2,7 @@ import "server-only";
 import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { getSmsProvider } from "@/integrations/sms";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isSandboxTenant } from "./sandbox";
 import { countSegments } from "./segments";
 
 // Every SMS goes through the queue in the database (sms_messages): one key =
@@ -86,6 +87,18 @@ async function deliver(m: Claimed, text?: string): Promise<boolean> {
       p_provider: "none",
       p_ref: "",
       p_error: "no_provider",
+      p_retry: false,
+    });
+    return false;
+  }
+  // demo and test businesses: never a real SMS (the fake provider sends nothing anyway)
+  if (provider.name !== "fake" && (await isSandboxTenant(m.tenant_id))) {
+    await db.rpc("sms_finish", {
+      p_id: m.id,
+      p_ok: false,
+      p_provider: provider.name,
+      p_ref: "",
+      p_error: "demo_business",
       p_retry: false,
     });
     return false;

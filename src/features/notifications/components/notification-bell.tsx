@@ -1,7 +1,16 @@
 "use client";
 
-import { Bell, CalendarPlus, RotateCw, TriangleAlert, X, ListPlus } from "lucide-react";
-import { useFormatter, useNow, useTranslations } from "next-intl";
+import {
+  Bell,
+  CalendarPlus,
+  CalendarX,
+  CalendarClock,
+  RotateCw,
+  TriangleAlert,
+  X,
+  ListPlus,
+} from "lucide-react";
+import { useNow, useTranslations } from "next-intl";
 import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -212,13 +221,37 @@ function Body({
   );
 }
 
+const ICONS = {
+  online_booking: CalendarPlus,
+  needs_action: TriangleAlert,
+  needs_followup: ListPlus, // decision 037
+  client_moved: CalendarClock,
+  client_cancelled: CalendarX,
+} as const;
+const TITLES = {
+  online_booking: "onlineBooking",
+  needs_action: "needsAction",
+  needs_followup: "needsFollowUp",
+  client_moved: "clientMoved",
+  client_cancelled: "clientCancelled",
+} as const;
+
+// Our own words, not the browser's: many browsers have no Georgian built in and
+// would say "7 minutes ago" in English.
+function ago(t: ReturnType<typeof useTranslations<"notifications">>, at: Date, now: Date) {
+  const min = Math.max(0, Math.floor((now.getTime() - at.getTime()) / 60_000));
+  if (min < 1) return t("ago.now");
+  if (min < 60) return t("ago.minutes", { n: min });
+  const h = Math.floor(min / 60);
+  if (h < 24) return t("ago.hours", { n: h });
+  return t("ago.days", { n: Math.floor(h / 24) });
+}
+
 function Row({ n, onOpen }: { n: NotificationItem; onOpen: () => void }) {
   const t = useTranslations("notifications");
-  const format = useFormatter();
   const now = useNow({ updateInterval: POLL_MS });
   const online = n.kind === "online_booking";
-  const followUp = n.kind === "needs_followup"; // decision 037
-  const Icon = online ? CalendarPlus : followUp ? ListPlus : TriangleAlert;
+  const Icon = ICONS[n.kind];
   const details = [
     n.client ?? t("noClient"),
     t("when", { date: n.dayMonth, time: n.time }),
@@ -237,18 +270,23 @@ function Row({ n, onOpen }: { n: NotificationItem; onOpen: () => void }) {
       <span
         className={cn(
           "flex size-9 shrink-0 items-center justify-center rounded-lg",
-          online ? "bg-success-soft text-success-ink" : "bg-warning-soft text-warning-ink",
+          online || n.kind === "client_moved"
+            ? "bg-success-soft text-success-ink"
+            : "bg-warning-soft text-warning-ink",
         )}
       >
         <Icon className="size-4.5" aria-hidden />
       </span>
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className={cn("text-sm", n.read ? "font-medium" : "font-semibold")}>
-          {online ? t("onlineBooking") : followUp ? t("needsFollowUp") : t("needsAction")}
+          {t(TITLES[n.kind])}
+          {n.cancelled && n.kind !== "client_cancelled" && (
+            <span className="font-normal text-destructive"> · {t("cancelledNow")}</span>
+          )}
         </span>
         <span className="text-sm text-muted-foreground">{details.join(" · ")}</span>
         <span className="text-xs text-muted-foreground">
-          <time dateTime={n.at}>{format.relativeTime(new Date(n.at), now)}</time>
+          <time dateTime={n.at}>{ago(t, new Date(n.at), now)}</time>
         </span>
       </span>
       {!n.read && (

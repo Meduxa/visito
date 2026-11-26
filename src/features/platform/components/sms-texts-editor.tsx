@@ -76,6 +76,7 @@ function TextEditor({
   const sample = {
     client_name: t("sample.client_name"),
     business_name: tp("sampleBusiness"),
+    place: tp("sampleBusiness"),
     service: t("sample.service"),
     staff: t("sample.staff"),
     date: t("sample.date"),

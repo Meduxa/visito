@@ -3,7 +3,8 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Check, Copy } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { INVITE_REVOKED } from "./revoke-invite-button";
 import { Controller, useForm } from "react-hook-form";
 import { FieldError } from "@/components/field-error";
 import { Button } from "@/components/ui/button";
@@ -25,6 +26,14 @@ export function InviteForm() {
   });
   const { errors } = form.formState;
 
+  // a cancelled invitation's link no longer works: stop showing it
+  useEffect(() => {
+    const onRevoked = (e: Event) =>
+      setCreated((c) => (c && c.email === (e as CustomEvent<string>).detail ? undefined : c));
+    window.addEventListener(INVITE_REVOKED, onRevoked);
+    return () => window.removeEventListener(INVITE_REVOKED, onRevoked);
+  }, []);
+
   const onSubmit = form.handleSubmit((values) => {
     setFormError(undefined);
     setCreated(undefined);
@@ -37,14 +46,19 @@ export function InviteForm() {
       }
       setCreated({ email: values.email, link: result.data.link });
       setCopied(false);
-      form.reset({ email: "", role: values.role });
+      // back to "staff" each time, so nobody is made an administrator by accident
+      form.reset({ email: "", role: "staff" });
     });
   });
 
   return (
     <div className="flex flex-col gap-4">
-      <form onSubmit={onSubmit} noValidate className="flex flex-col gap-4 sm:flex-row sm:items-start">
-        <div className="flex flex-1 flex-col gap-2">
+      <form
+        onSubmit={onSubmit}
+        noValidate
+        className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start"
+      >
+        <div className="flex flex-1 flex-col gap-2 sm:min-w-64">
           <Label htmlFor="invite-email">{t("auth.email")}</Label>
           <Input
             id="invite-email"
@@ -66,7 +80,8 @@ export function InviteForm() {
             render={({ field }) => (
               <Select value={field.value} onValueChange={field.onChange}>
                 <SelectTrigger id="invite-role" className="h-11 w-full md:h-9">
-                  <SelectValue />
+                  {/* text given here, so it shows before the page finishes loading too */}
+                  <SelectValue>{t(`roles.${field.value}`)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {inviteRoles.map((r) => (

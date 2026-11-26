@@ -262,7 +262,7 @@ export function TimeGrid({
                       key={b.booking.id + b.columnKey + b.start}
                       role="button"
                       tabIndex={0}
-                      aria-label={`${startLocal}–${endLocal} ${b.booking.client?.name ?? ""} ${blockNames(b)}${b.needsFollowUp ? ` · ${t("booking.followUp.notAdded")}` : ""}`}
+                      aria-label={`${startLocal}–${endLocal} ${b.booking.client?.name ?? t("calendar.walkIn")} ${blockNames(b)} · ${t(`booking.status.${b.booking.status as "confirmed"}`)}${b.needsFollowUp ? ` · ${t("booking.followUp.notAdded")}` : ""}`}
                       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onBlockClick(b.booking.id)}
                       onClick={(e) => {
                         e.stopPropagation();

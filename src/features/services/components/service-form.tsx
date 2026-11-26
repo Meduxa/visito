@@ -2,13 +2,12 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useLocale, useTranslations } from "next-intl";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
 import { ColorSwatches } from "@/components/color-swatches";
 import { FieldError } from "@/components/field-error";
 import { describedBy, FormField, SwitchRow } from "@/components/form-field";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
@@ -32,6 +31,7 @@ export function ServiceForm({
   isDental,
   onSaved,
   otherServices = [],
+  onPendingChange,
 }: {
   service: Service | null;
   categories: Category[];
@@ -40,11 +40,14 @@ export function ServiceForm({
   onSaved: (id: string) => void;
   /** services that can be the additional one (decision 037) */
   otherServices?: { id: string; name: string }[];
+  /** the Save button lives in the panel's bottom bar (form="service-form") */
+  onPendingChange?: (pending: boolean) => void;
 }) {
   const t = useTranslations();
   const locale = useLocale() as (typeof LANGS)[number];
   const [pending, startTransition] = useTransition();
   const [formError, setFormError] = useState<string>();
+  useEffect(() => onPendingChange?.(pending), [pending, onPendingChange]);
   const form = useForm<ServiceInput>({
     resolver: zodResolver(serviceSchema) as never,
     defaultValues: {
@@ -349,9 +352,6 @@ export function ServiceForm({
       </FormField>
 
       <FieldError code={formError} />
-      <Button type="submit" className="h-11 md:h-9" disabled={pending}>
-        {t("common.save")}
-      </Button>
     </form>
   );
 }

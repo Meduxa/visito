@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { DetailPanel } from "@/components/detail-panel";
+import { TimeInput } from "@/components/time-input";
 import { FieldError } from "@/components/field-error";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
@@ -84,6 +85,8 @@ export function NewBookingPanel({
   const [otherTime, setOtherTime] = useState(initial.time ?? "");
   const [note, setNote] = useState("");
   const [conflicts, setConflicts] = useState<Conflict[]>([]);
+  // bumped when a save is refused because someone just took the time: reload the free times
+  const [slotsVersion, setSlotsVersion] = useState(0);
   // the additional service (decision 037): on by default, time and person can be changed
   const [fuOn, setFuOn] = useState(true);
   const [fuTime, setFuTime] = useState(""); // "" = the suggested time
@@ -99,10 +102,18 @@ export function NewBookingPanel({
     null,
   );
 
-  // client search, debounced
+  // client search, debounced; hitsFor = the words the shown results belong to
+  const [hitsFor, setHitsFor] = useState("");
   useEffect(() => {
     if (q.trim().length < 2) return;
-    const id = setTimeout(() => findClients(q).then(setHits), 250);
+    const id = setTimeout(
+      () =>
+        findClients(q).then((h) => {
+          setHits(h);
+          setHitsFor(q);
+        }),
+      250,
+    );
     return () => clearTimeout(id);
   }, [q]);
 
@@ -132,7 +143,7 @@ export function NewBookingPanel({
     return () => {
       live = false;
     };
-  }, [open, picked, staffId, date, initial.time, timeZone, locationId]);
+  }, [open, picked, staffId, date, initial.time, timeZone, locationId, slotsVersion]);
 
   // which picked service needs an additional one, and when it would start
   const needs = picked
@@ -224,10 +235,12 @@ export function NewBookingPanel({
           : null,
       });
       if (!r.ok) {
-        if (r.error === "conflicts" && "conflicts" in r)
-          return "part" in r && r.part === "followUp"
-            ? setFuConflicts(r.conflicts)
-            : setConflicts(r.conflicts);
+        if (r.error === "conflicts" && "conflicts" in r) {
+          if ("part" in r && r.part === "followUp") return setFuConflicts(r.conflicts);
+          if (r.conflicts.includes("overlap")) setSlotsVersion((v) => v + 1);
+          return setConflicts(r.conflicts);
+        }
+        if (r.error === "slotTaken") setSlotsVersion((v) => v + 1);
         return setError(r.error);
       }
       toast.success(t("booking.created"));
@@ -235,10 +248,42 @@ export function NewBookingPanel({
       onClose();
     });
 
-  const softOnly = conflicts.length > 0 && conflicts.every((c) => c === "outsideHours" || c === "closed");
+  const softOnly =
+    conflicts.length > 0 && conflicts.every((c) => c === "outsideHours" || c === "closed" || c === "timeOff");
   const hasClient = !!client || walkIn || (newClient && newClient.firstName.trim());
   const ready =
     hasClient && picked.length > 0 && (chosen || (otherTime && staffId !== ANY)) && (!repeat || !!series);
+
+  // the client wants a time that is taken (or a day with no free time): wait for it
+  const waitlistButton = client && (
+    <Button
+      variant="outline"
+      size="sm"
+      className="h-9"
+      disabled={pending}
+      onClick={() =>
+        startTransition(async () => {
+          const until = new Date(`${date}T12:00:00Z`);
+          until.setUTCDate(until.getUTCDate() + 7);
+          const r = await addToWaitlist({
+            clientId: client.id,
+            serviceId: picked[0],
+            staffId: staffId === ANY ? null : staffId,
+            dateFrom: date,
+            dateTo: until.toISOString().slice(0, 10),
+            timeFrom: null,
+            timeTo: null,
+            note,
+          });
+          if (!r.ok) return setError(r.error);
+          toast.success(t("waitlist.added"));
+          onClose();
+        })
+      }
+    >
+      {t("waitlist.add")}
+    </Button>
+  );
 
   return (
     <DetailPanel open={open} onOpenChange={(o) => !o && onClose()} title={t("calendar.newBooking")}>
@@ -320,7 +365,13 @@ export function NewBookingPanel({
                 disabled={walkIn}
                 className="h-11 md:h-9"
               />
-              {q.trim().length >= 2 && hits.length > 0 && !walkIn && (
+              {/* say it is still looking, so nobody clicks "new client" before the results arrive (#40) */}
+              {q.trim().length >= 2 && !walkIn && (hitsFor !== q || hits.length === 0) && (
+                <p className="text-xs text-muted-foreground" role="status">
+                  {hitsFor !== q ? t("booking.searching") : t("booking.noClientFound")}
+                </p>
+              )}
+              {q.trim().length >= 2 && hitsFor === q && hits.length > 0 && !walkIn && (
                 <ul className="flex flex-col divide-y rounded-lg border">
                   {hits.map((h) => (
                     <li key={h.id}>
@@ -444,35 +495,7 @@ export function NewBookingPanel({
               ) : slots.length === 0 ? (
                 <div className="flex flex-col items-start gap-2">
                   <p className="text-sm text-muted-foreground">{t("booking.noFreeTimes")}</p>
-                  {client && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9"
-                      disabled={pending}
-                      onClick={() =>
-                        startTransition(async () => {
-                          const until = new Date(`${date}T12:00:00Z`);
-                          until.setUTCDate(until.getUTCDate() + 7);
-                          const r = await addToWaitlist({
-                            clientId: client.id,
-                            serviceId: picked[0],
-                            staffId: staffId === ANY ? null : staffId,
-                            dateFrom: date,
-                            dateTo: until.toISOString().slice(0, 10),
-                            timeFrom: null,
-                            timeTo: null,
-                            note,
-                          });
-                          if (!r.ok) return setError(r.error);
-                          toast.success(t("waitlist.added"));
-                          onClose();
-                        })
-                      }
-                    >
-                      {t("waitlist.add")}
-                    </Button>
-                  )}
+                  {waitlistButton}
                 </div>
               ) : (
                 <div
@@ -507,15 +530,14 @@ export function NewBookingPanel({
                   })}
                 </div>
               )}
+              {slots && slots.length > 0 && <div>{waitlistButton}</div>}
               {isManager && staffId !== ANY && (
                 <FormField id="nb-other" label={t("booking.otherTime")} className="max-w-40">
-                  <Input
+                  <TimeInput
                     id="nb-other"
-                    type="time"
-                    step={300}
                     value={otherTime}
-                    onChange={(e) => {
-                      setOtherTime(e.target.value);
+                    onChange={(v) => {
+                      setOtherTime(v);
                       setChosen(null);
                     }}
                     className="h-11 md:h-9"
@@ -545,12 +567,10 @@ export function NewBookingPanel({
             {fuOn && (
               <div className="flex flex-wrap items-end gap-3">
                 <FormField id="nb-fu-time" label={t("booking.followUp.time")} className="w-32">
-                  <Input
+                  <TimeInput
                     id="nb-fu-time"
-                    type="time"
-                    step={300}
                     value={fuAt}
-                    onChange={(e) => setFuTime(e.target.value)}
+                    onChange={(v) => setFuTime(v)}
                     className="h-11 md:h-9"
                   />
                 </FormField>

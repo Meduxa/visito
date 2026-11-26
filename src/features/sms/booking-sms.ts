@@ -1,4 +1,5 @@
 import "server-only";
+import { pickText } from "@/lib/translations";
 import { getTranslations } from "next-intl/server";
 import { hmac, newToken } from "@/features/public-booking/security";
 import { shortDate, ymdIn } from "@/lib/date-format";
@@ -20,6 +21,23 @@ async function manageLink(bookingId: string) {
   return `${publicEnv.NEXT_PUBLIC_APP_URL}/m/${token}`;
 }
 
+/** The business name, plus the branch when the business has several (who to go to, and where). */
+async function placeFor(tenantId: string, business: string, bookingId: string, locale: string) {
+  const db = createAdminClient();
+  const { count } = await db
+    .from("locations")
+    .select("id", { count: "exact", head: true })
+    .eq("tenant_id", tenantId)
+    .eq("active", true);
+  if ((count ?? 0) < 2) return business;
+  const { data: b } = await db.from("bookings").select("location_id").eq("id", bookingId).single();
+  const q = db.from("locations").select("name, translations").eq("tenant_id", tenantId);
+  const { data: l } = await (
+    b?.location_id ? q.eq("id", b.location_id) : q.eq("is_primary", true)
+  ).maybeSingle();
+  return l ? `${business}, ${pickText(l.translations, locale, "name", l.name)}` : business;
+}
+
 type Kind = "confirmed" | "pending" | "rescheduled" | "cancelled";
 const SWITCH = {
   confirmed: "sms_on_confirm",
@@ -36,7 +54,13 @@ const SWITCH = {
 export async function notifyBooking(
   bookingId: string,
   type: Kind,
-  opts: { immediate?: boolean; manageToken?: string; createdBy?: string | null } = {},
+  opts: {
+    immediate?: boolean;
+    manageToken?: string;
+    createdBy?: string | null;
+    /** a later round of the same message (e.g. confirmed again after an undo) — part of its key */
+    round?: number;
+  } = {},
 ): Promise<boolean> {
   try {
     const db = createAdminClient();
@@ -89,6 +113,7 @@ export async function notifyBooking(
     const vars: SmsVars = {
       client_name: client.first_name,
       business_name: tenant.name,
+      place: await placeFor(b.tenant_id, tenant.name, b.id, locale),
       service: items.map((i) => i.name_snapshot).join(", "),
       staff: [...new Set(items.map((i) => i.staff?.display_name ?? ""))].filter(Boolean).join(", "),
       date: shortDate(t, ymdIn(b.starts_at, tenant.timezone)),
@@ -112,7 +137,7 @@ export async function notifyBooking(
       kind: "service" as const,
       type,
       // a moved booking gets a new message for each new time
-      key: `${type}:${bookingId}${type === "rescheduled" ? `:${Math.floor(start.getTime() / 1000)}` : ""}`,
+      key: `${type}:${bookingId}${type === "rescheduled" ? `:${Math.floor(start.getTime() / 1000)}` : ""}${opts.round ? `:r${opts.round}` : ""}`,
       clientId: b.client_id,
       bookingId,
       sendAfter: when,
@@ -159,6 +184,7 @@ export async function enqueueDueReminders() {
     const vars: SmsVars = {
       client_name: r.first_name,
       business_name: r.business,
+      place: await placeFor(r.tenant_id, r.business, r.booking_id, r.locale),
       service: r.services ?? "",
       staff: r.staff ?? "",
       date: shortDate(t, ymdIn(r.starts_at, r.timezone)),

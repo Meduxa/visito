@@ -5,7 +5,10 @@ import { dbErrorCode, memberContext } from "@/lib/action-context";
 
 const items = z
   .array(
-    z.object({ kind: z.enum(["online_booking", "needs_action", "needs_followup"]), bookingId: z.uuid() }),
+    z.object({
+      kind: z.enum(["online_booking", "needs_action", "needs_followup", "client_moved", "client_cancelled"]),
+      bookingId: z.uuid(),
+    }),
   )
   .max(100)
   .nullable();

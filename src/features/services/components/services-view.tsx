@@ -46,6 +46,7 @@ export function ServicesView({
   const [openId, setOpenId] = useState<string | "new" | null>(null);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [pending, startTransition] = useTransition();
+  const [saving, setSaving] = useState(false);
 
   const catName = (c: Category) => localized(c.name, locale);
   const counts = useMemo(() => {
@@ -241,26 +242,32 @@ export function ServicesView({
             onOpenChange={(o) => !o && setOpenId(null)}
             title={open ? localized(open.name, locale) : t("services.new")}
             footer={
-              open && (
-                <ConfirmDialog
-                  description={t("services.deleteConfirm", { name: localized(open.name, locale) })}
-                  onConfirm={() =>
-                    startTransition(async () => {
-                      const r = await deleteService(open.id);
-                      if (r.ok) {
-                        toast.success(t("common.deleted"));
-                        setOpenId(null);
-                      } else toast.error(t(`errors.${r.error}`));
-                    })
-                  }
-                  trigger={
-                    <Button variant="destructive" className="h-11 md:h-9" disabled={pending}>
-                      <Trash2 aria-hidden />
-                      {t("common.delete")}
-                    </Button>
-                  }
-                />
-              )
+              <div className="flex w-full flex-wrap items-center justify-between gap-2">
+                {/* Save is always in sight, at the bottom, next to Delete */}
+                <Button type="submit" form="service-form" className="h-11 md:h-9" disabled={saving}>
+                  {t("common.save")}
+                </Button>
+                {open && (
+                  <ConfirmDialog
+                    description={t("services.deleteConfirm", { name: localized(open.name, locale) })}
+                    onConfirm={() =>
+                      startTransition(async () => {
+                        const r = await deleteService(open.id);
+                        if (r.ok) {
+                          toast.success(t("common.deleted"));
+                          setOpenId(null);
+                        } else toast.error(t(`errors.${r.error}`));
+                      })
+                    }
+                    trigger={
+                      <Button variant="destructive" className="h-11 md:h-9" disabled={pending}>
+                        <Trash2 aria-hidden />
+                        {t("common.delete")}
+                      </Button>
+                    }
+                  />
+                )}
+              </div>
             }
           >
             {openId !== null && (
@@ -272,6 +279,7 @@ export function ServicesView({
                   categoryName={catName}
                   isDental={isDental}
                   onSaved={(id) => setOpenId(id)}
+                  onPendingChange={setSaving}
                   otherServices={services
                     .filter((x) => x.active && x.id !== open?.id)
                     .map((x) => ({ id: x.id, name: localized(x.name, locale) }))}

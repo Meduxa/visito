@@ -26,6 +26,12 @@ export function intervalProblem(intervals: Interval[]): "badTime" | "endBeforeSt
   return null;
 }
 
+/** A working interval that does not fit inside any of the opening intervals (none = closed that day). */
+export const outsideHours = (iv: Interval, open: Interval[]) =>
+  isTime(iv.start) &&
+  isTime(iv.end) &&
+  !open.some((o) => toMinutes(o.start) <= toMinutes(iv.start) && toMinutes(iv.end) <= toMinutes(o.end));
+
 // "2027-02-01" + "10:00" in the business's time zone → UTC ISO string for timestamptz.
 export function zonedToUtcIso(date: string, time: string, tz = DEFAULT_TZ): string {
   return fromZonedTime(`${date}T${time}`, tz).toISOString();

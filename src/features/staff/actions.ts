@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { buildTranslations } from "@/lib/translations";
 import { z } from "zod";
 import { dbErrorCode, managerContext } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
@@ -34,6 +35,7 @@ export async function saveStaff(id: string | null, input: StaffInput): Promise<A
     display_name: v.displayName,
     position: v.position,
     position_type: v.positionType,
+    translations: buildTranslations({ en: { position: v.positionEn }, ru: { position: v.positionRu } }),
     color: v.color,
     phone: v.phone,
     email: v.email,

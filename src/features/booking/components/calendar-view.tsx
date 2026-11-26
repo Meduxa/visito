@@ -144,6 +144,10 @@ export function CalendarScreen({
   const [waitHighlight, setWaitHighlight] = useState<string[]>([]);
   // the cancelled booking whose time the highlighted clients could take
   const [freedBooking, setFreedBooking] = useState<string | null>(null);
+  // the freed time, so "book" from the waitlist opens right there (test plan #30)
+  const [freedSlot, setFreedSlot] = useState<{ date: string; time: string; staffId: string | null } | null>(
+    null,
+  );
   const tz = data.timeZone;
   // Optimistic moves: a dropped booking stays where it was dropped until the
   // refreshed data arrives (or snaps back if the move failed).
@@ -228,7 +232,13 @@ export function CalendarScreen({
       }));
     }
     const r = await moveBooking({ bookingId, staffId: col.staffId, start: start.toISOString(), durationMin });
-    if (r.ok) toast.success(t("booking.moved"));
+    // stretching by the bottom edge changes only the length (test plan #38)
+    const resized =
+      !!durationMin &&
+      !!b &&
+      new Date(b.start).getTime() === start.getTime() &&
+      b.items[0]?.staffId === col.staffId;
+    if (r.ok) toast.success(t(resized ? "booking.resized" : "booking.moved"));
     else if (r.error === "conflicts" && "conflicts" in r)
       toast.error(r.conflicts.map((c) => t(`booking.conflicts.${c}`)).join(" "));
     else toast.error(t(`errors.${r.error}`));
@@ -685,6 +695,7 @@ export function CalendarScreen({
           } else router.refresh();
         }}
         onCancelled={async (id) => {
+          const freed = data.bookings.find((b) => b.id === id);
           const matches = await waitlistMatches(id);
           if (matches.length)
             toast(t("waitlist.matches", { count: matches.length }), {
@@ -693,6 +704,15 @@ export function CalendarScreen({
                 onClick: () => {
                   setWaitHighlight(matches);
                   setFreedBooking(id);
+                  setFreedSlot(
+                    freed
+                      ? {
+                          date: localDate(freed.start, tz),
+                          time: localTime(freed.start, tz),
+                          staffId: freed.items[0]?.staffId ?? null,
+                        }
+                      : null,
+                  );
                   setWaitOpen(true);
                 },
               },
@@ -708,10 +728,11 @@ export function CalendarScreen({
         freedBooking={isManager ? freedBooking : null}
         onBook={(w) => {
           setWaitOpen(false);
+          const atFreed = freedSlot && waitHighlight.includes(w.id);
           setCreating({
-            date: w.dateFrom < today ? today : w.dateFrom,
-            time: null,
-            staffId: w.staffId,
+            date: atFreed ? freedSlot.date : w.dateFrom < today ? today : w.dateFrom,
+            time: atFreed ? freedSlot.time : null,
+            staffId: atFreed ? (w.staffId ?? freedSlot.staffId) : w.staffId,
             fromWaitlist: w,
           });
         }}

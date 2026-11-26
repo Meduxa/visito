@@ -11,7 +11,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // the database). The public review page: only through the private SMS link,
 // whose key is stored as an HMAC; one review per visit; rate limited.
 
-const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{32}$/);
+// 22 characters since 2026-11-26 (one-part SMS), 32 before
+const tokenSchema = z.string().regex(/^[A-Za-z0-9_-]{22,32}$/);
 
 export async function moderateReview(
   id: string,

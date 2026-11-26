@@ -9,7 +9,8 @@ import { serverEnv } from "@/lib/server-env";
 export const hmac = (value: string) =>
   createHmac("sha256", serverEnv().SUPABASE_SECRET_KEY).update(`visito:${value}`).digest("hex");
 
-export const newToken = () => randomBytes(24).toString("base64url"); // 32 characters
+/** 24 bytes = 32 characters; review links use 16 bytes = 22 characters so the SMS stays one part. */
+export const newToken = (bytes = 24) => randomBytes(bytes).toString("base64url");
 export const newCode = () => String(randomInt(0, 1_000_000)).padStart(6, "0");
 
 // The visitor's IP as set by the hosting proxy. On this computer (dev server,

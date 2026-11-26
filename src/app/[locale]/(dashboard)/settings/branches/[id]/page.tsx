@@ -18,6 +18,7 @@ import { Link } from "@/i18n/navigation";
 import { localized } from "@/lib/i18n-text";
 import { createClient } from "@/lib/supabase/server";
 import { trimSeconds } from "@/lib/time";
+import { translationOf } from "@/lib/translations";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/settings/branches/[id]">) {
   const t = await getTranslations({ locale: (await params).locale, namespace: "branches" });
@@ -36,7 +37,7 @@ export default async function BranchPage({ params }: PageProps<"/[locale]/settin
     db
       .from("locations")
       .select(
-        "id, name, address, phone, slug, is_primary, active, location_hours(weekday, start_time, end_time)",
+        "id, name, address, phone, slug, is_primary, active, translations, location_hours(weekday, start_time, end_time)",
       )
       .eq("tenant_id", tenant.tenantId)
       .eq("id", id)
@@ -94,6 +95,10 @@ export default async function BranchPage({ params }: PageProps<"/[locale]/settin
           address: b.address ?? "",
           phone: b.phone ?? (b.is_primary ? (settings?.phone ?? "") : ""),
           slug: b.slug ?? "",
+          nameEn: translationOf(b.translations, "en", "name"),
+          nameRu: translationOf(b.translations, "ru", "name"),
+          addressEn: translationOf(b.translations, "en", "address"),
+          addressRu: translationOf(b.translations, "ru", "address"),
         }}
       />
       {url && b.active && (

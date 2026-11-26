@@ -6,6 +6,7 @@ import { trimSeconds } from "@/lib/time";
 export const SMS_VARIABLES = [
   "client_name",
   "business_name",
+  "place", // the business, plus the branch when it has several
   "service",
   "staff",
   "date",

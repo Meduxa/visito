@@ -166,7 +166,9 @@ export function ClosuresCard({
               onValueChange={(v) => setClosure({ ...closure, locationId: v === "__all" ? "" : v })}
             >
               <SelectTrigger id="closure-branch" className="h-11 w-44 md:h-9">
-                <SelectValue />
+                <SelectValue>
+                  {branches.find((b) => b.id === closure.locationId)?.name ?? t("branches.allBranches")}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all">{t("branches.allBranches")}</SelectItem>

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { cn } from "cn"
 import { Dialog as DialogPrimitive } from "radix-ui"
 
@@ -76,7 +77,7 @@ function DialogContent({
             >
               <XIcon
               />
-              <span className="sr-only">Close</span>
+              <span className="sr-only"><CloseText /></span>
             </Button>
           </DialogPrimitive.Close>
         )}
@@ -115,7 +116,7 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline"><CloseText /></Button>
         </DialogPrimitive.Close>
       )}
     </div>
@@ -165,4 +166,9 @@ export {
   DialogPortal,
   DialogTitle,
   DialogTrigger,
+}
+
+// Visito: the close label in the page's language (was English "Close")
+function CloseText() {
+  return useTranslations("common")("close")
 }

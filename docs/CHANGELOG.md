@@ -2,9 +2,32 @@
 
 All notable changes per phase. Newest on top.
 
+## Fixes from test day 3 — calendar (2026-11-27)
+
+Problems #26–#42 of `docs/test-plan.md`.
+- **SMS:** undoing a cancellation now tells the client the visit is back ("ჯავშანი დადასტურდა"), and a later cancel tells them again; a repeat series sends one confirmation (its first visit); the confirmation text is "{salon}: ჯავშანი დადასტურდა — …" (also after approving an online request).
+- **Checkout:** a second payment of a part-paid visit keeps the discount given earlier (it was dropped and the total went back up); the tip shows as its own line, with "სულ მისაღები" and the "მიღება" button including it; the visit panel lists extra items and the discount so its lines add up, and "from" prices show "-დან".
+- **Booking import with branches:** a visit goes to the branch where its specialist works that weekday (a date change first), otherwise the main branch (migration `20261127090000_import_branch.sql`).
+- **Conflicts:** booking during a specialist's time off says so ("სპეციალისტს ამ დროს არყოფნა აქვს…") instead of "outside working hours"; "book anyway" still possible.
+- **Waitlist:** "მოლოდინის სიაში დამატება" also when the day has free times; "დაჯავშნა" after a cancellation opens at the freed time.
+- **Small:** confirm windows explain the action instead of repeating "დარწმუნებული ხართ?"; stretching a visit says "ხანგრძლივობა შეიცვალა"; free times reload after "time just taken"; client search shows "იძებნება…"; calendar blocks name walk-ins and the status for screen readers; "დამატება: „…“" wording.
+- Tests: `availability.test.ts` (time off), `supabase/tests/rls_test_fixes.test.ts` (import branch).
+
+## Fixes from the test salon run (2026-11-26)
+
+All 25 problems found on days 1–2 of  (table "Problems found").
+- **SMS:** every automatic SMS starts with the salon name, plus the branch when there are several (, decision 039). Review SMS: shorter link, always one SMS.
+- **Online booking:** a blocked number or one over the future-visits limit is refused **before** the SMS code (no paid SMS for nothing); a wrong email shows Visito's own message; the manage page shows "-დან" prices, hides prices when the salon hides them, names the main branch too, and its cancel window says "არა, დავტოვო".
+- **Bell:** "time ago" in Visito's own words (was English on browsers without Georgian); new notices when a client moves or cancels with the link; a cancelled online booking is marked "გაუქმებულია".
+- **Branches and team:** optional English/Russian branch name, address and staff position for the booking page in those languages (decision 039); new branches get a link name from their name (საბურთალო → saburtalo); a yellow note when a staff member's hours are outside the branch's opening hours.
+- **Forms:** 24-hour time fields everywhere (were AM/PM on English phones); service window: Save next to Delete at the bottom; invitation role goes back to "staff"; cancelling an invitation uses Visito's window and hides its link.
+- **Wording and layout:** dashboard/Team texts without "-ის" glued to the salon name; "თუ გამორთულია:" hints; client import label; staff home explains what to do before being linked; dashboard card titles readable at 1024 px; staff page tab bar and own-price fields; screen-reader names for Close, colours and invitation buttons.
+- Migration  (notice kinds, trigger, manage view,  columns); tests , .
+
 ## SMS test mode (2026-11-19)
 
 - New server setting `SMS_ONLY_TO`: while testing with real TNET SMS, only the listed numbers receive SMS; all others are logged as "test mode" and not sent (decision 038). Must be empty at launch.
+- **Demo and test businesses never send real SMS** (owners with `.test` addresses: demo salons, automatic-test businesses) — logged as "demo or test business"; real salons send normally, without `SMS_ONLY_TO` (decision 038).
 - `docs/test-plan.md`: full step-by-step test of a salon with three branches, with real SMS to Levan's phone (and a section for testing without SMS).
 - **Fix:** a business created after the branches update had a main branch without a link name, so once a second branch was added the main branch vanished from the client's branch choice. New main branches now get "main", existing ones were fixed (migration `20261120090000_main_branch_slug.sql`, test in `rls_branches.test.ts`).
 - Next.js 16.4.3 → 16.4.6 (fixes seven moderate security advisories).

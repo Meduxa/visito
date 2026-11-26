@@ -1,6 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 // Static class names so Tailwind can see them; values come from design tokens.
@@ -30,6 +31,7 @@ export function ColorSwatches({
   allowNone?: boolean;
   noneLabel?: string;
 }) {
+  const t = useTranslations("colors");
   const options = [...(allowNone ? [null] : []), ...Object.keys(SWATCH_BG)];
   return (
     <div role="radiogroup" aria-label={label} className="flex flex-wrap gap-2">
@@ -41,7 +43,7 @@ export function ColorSwatches({
             type="button"
             role="radio"
             aria-checked={selected}
-            aria-label={c ?? noneLabel}
+            aria-label={c ? t(c as "green") : noneLabel}
             onClick={() => onChange(c)}
             className={cn(
               "flex size-8 items-center justify-center rounded-full border-2 border-transparent outline-none focus-visible:ring-3 focus-visible:ring-ring/50",

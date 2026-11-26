@@ -23,7 +23,9 @@ import { RailTip, SIDEBAR_LABEL } from "./sidebar";
 
 type BusinessType = "salon" | "dental";
 
-function groups(type: BusinessType, canManage: boolean, hasProfile: boolean) {
+// seeMoney: cashbox, reports and payroll only for people who may see money (owner;
+// admins when the owner allows it — test plan #50)
+function groups(type: BusinessType, canManage: boolean, hasProfile: boolean, seeMoney: boolean) {
   return [
     {
       key: "main",
@@ -40,7 +42,7 @@ function groups(type: BusinessType, canManage: boolean, hasProfile: boolean) {
         { href: "/services", key: "services", icon: type === "dental" ? Stethoscope : Scissors },
         { href: "/staff", key: "staff", icon: UserRound },
         { href: "/reviews", key: "reviews", icon: Star },
-        ...(canManage
+        ...(canManage && seeMoney
           ? [
               { href: "/cash", key: "cash", icon: Banknote },
               { href: "/reports", key: "reports", icon: ChartColumn },
@@ -70,16 +72,21 @@ export function SidebarNav({
   type,
   canManage,
   hasProfile,
+  seeMoney = canManage,
+  badges = {},
 }: {
   type: BusinessType;
   canManage: boolean;
   hasProfile: boolean;
+  seeMoney?: boolean;
+  /** a small count next to a menu item, e.g. time-off requests waiting (test plan #48) */
+  badges?: Partial<Record<string, number>>;
 }) {
   const t = useTranslations("nav");
   const isActive = useIsActive();
   return (
     <nav aria-label={t("main")} className="flex flex-col gap-5">
-      {groups(type, canManage, hasProfile).map((group) => (
+      {groups(type, canManage, hasProfile, seeMoney).map((group) => (
         <div key={group.key} className="flex flex-col gap-0.5">
           {/* the group title; a thin line in its place when folded (same height, nothing moves) */}
           <div className="relative h-5 px-3">
@@ -104,7 +111,18 @@ export function SidebarNav({
                 )}
               >
                 <Icon className="size-4 shrink-0" aria-hidden />
-                <span className={SIDEBAR_LABEL}>{t(key)}</span>
+                <span className={cn("flex-1", SIDEBAR_LABEL)}>{t(key)}</span>
+                {!!badges[key] && (
+                  <span
+                    className={cn(
+                      "rounded-full bg-primary px-1.5 text-xs text-primary-foreground tabular-nums",
+                      SIDEBAR_LABEL,
+                    )}
+                  >
+                    {badges[key]}
+                    <span className="sr-only"> {t("waitingBadge")}</span>
+                  </span>
+                )}
               </Link>
             </RailTip>
           ))}
@@ -116,7 +134,16 @@ export function SidebarNav({
 
 // Phone: max 5 items; "More" leads to the remaining sections.
 // Staff with a profile start from "My day" instead of the dashboard.
-export function BottomNav({ type, myDayFirst }: { type: BusinessType; myDayFirst: boolean }) {
+export function BottomNav({
+  type,
+  myDayFirst,
+  moreDot = false,
+}: {
+  type: BusinessType;
+  myDayFirst: boolean;
+  /** something waits on the "More" page (e.g. time-off requests) */
+  moreDot?: boolean;
+}) {
   const t = useTranslations("nav");
   const isActive = useIsActive();
   const items = [
@@ -150,7 +177,14 @@ export function BottomNav({ type, myDayFirst }: { type: BusinessType; myDayFirst
                   active && "font-medium text-primary",
                 )}
               >
-                <Icon className="size-5" aria-hidden />
+                <span className="relative">
+                  <Icon className="size-5" aria-hidden />
+                  {href === "/more" && moreDot && (
+                    <span className="absolute -top-0.5 -right-1 size-2 rounded-full bg-primary">
+                      <span className="sr-only">{t("waitingBadge")}</span>
+                    </span>
+                  )}
+                </span>
                 <span className="line-clamp-1 text-center">{t(key)}</span>
               </Link>
             </li>
@@ -162,12 +196,20 @@ export function BottomNav({ type, myDayFirst }: { type: BusinessType; myDayFirst
 }
 
 // The "More" page on phones lists what doesn't fit in the bottom bar.
-export function MoreNavList({ canManage }: { canManage: boolean }) {
+export function MoreNavList({
+  canManage,
+  seeMoney = canManage,
+  badges = {},
+}: {
+  canManage: boolean;
+  seeMoney?: boolean;
+  badges?: Partial<Record<string, number>>;
+}) {
   const t = useTranslations("nav");
   const items = [
     { href: "/staff", key: "staff", icon: UserRound },
     { href: "/reviews", key: "reviews", icon: Star },
-    ...(canManage
+    ...(canManage && seeMoney
       ? [
           { href: "/cash", key: "cash", icon: Banknote },
           { href: "/reports", key: "reports", icon: ChartColumn },
@@ -187,7 +229,13 @@ export function MoreNavList({ canManage }: { canManage: boolean }) {
             className="flex min-h-12 items-center gap-3 px-4 text-sm font-medium outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
           >
             <Icon className="size-4 text-muted-foreground" aria-hidden />
-            {t(key)}
+            <span className="flex-1">{t(key)}</span>
+            {!!badges[key] && (
+              <span className="rounded-full bg-primary px-2 text-xs text-primary-foreground tabular-nums">
+                {badges[key]}
+                <span className="sr-only"> {t("waitingBadge")}</span>
+              </span>
+            )}
           </Link>
         </li>
       ))}

@@ -22,6 +22,7 @@ import { TimeGrid, type GridColumn } from "./time-grid";
 import { setWaitlistStatus, waitlistMatches, type WaitlistEntry } from "../waitlist-actions";
 import { WaitlistPanel } from "./waitlist-panel";
 import { missingFollowUp } from "../followup";
+import { noClientKey } from "../client-label";
 
 export type CalendarView = "day" | "week" | "list" | "month";
 export type DayBy = "staff" | "chair";
@@ -343,7 +344,7 @@ export function CalendarScreen({
               data-testid="branch-switch"
             >
               <MapPin aria-hidden className="text-muted-foreground" />
-              <SelectValue />
+              <SelectValue>{(branches.find((b) => b.id === branchId) ?? branches[0]).name}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               {branches.map((b) => (
@@ -595,7 +596,7 @@ export function CalendarScreen({
                           </span>
                           <span className="flex min-w-0 flex-1 flex-col gap-0.5">
                             <span className="flex items-center gap-1.5 text-sm font-medium">
-                              {b.client?.name ?? t("calendar.walkIn")}
+                              {b.client?.name ?? t(noClientKey(b))}
                               {b.client?.importantNote && (
                                 <TriangleAlert
                                   className="size-3.5 text-warning"

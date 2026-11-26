@@ -28,6 +28,7 @@ import { DentalNotes } from "./dental-notes";
 import { FollowUpAdder } from "./followup-adder";
 import type { CatalogEntry } from "./new-booking-panel";
 import { missingFollowUp } from "../followup";
+import { noClientKey } from "../client-label";
 
 export { STATUS_TONE };
 
@@ -113,6 +114,8 @@ export function BookingPanel({
   if (paying) return <CheckoutPanel booking={booking} staff={staff} onClose={onClose} />;
 
   const first = booking.items[0];
+  // "earlier" no-shows: this visit itself does not count (test plan #46)
+  const earlierNoShows = (booking.client?.noShows ?? 0) - (booking.status === "no_show" ? 1 : 0);
   const discountMinor =
     booking.items.reduce((s, i) => s + i.priceMinor, 0) +
     charges.reduce((s, c) => s + c.price_minor, 0) -
@@ -160,7 +163,7 @@ export function BookingPanel({
     <DetailPanel
       open
       onOpenChange={(o) => !o && onClose()}
-      title={booking.client?.name ?? t("calendar.walkIn")}
+      title={booking.client?.name ?? t(noClientKey(booking))}
       description={`${dates.dayTitle(date)} · ${localTime(booking.start, timeZone)}–${localTime(booking.end, timeZone)}`}
     >
       <div className="flex flex-col gap-6">
@@ -194,9 +197,9 @@ export function BookingPanel({
             {booking.client.importantNote}
           </div>
         )}
-        {!!booking.client?.noShows && (
+        {earlierNoShows > 0 && (
           <StatusPill tone="danger" className="self-start">
-            {t("booking.noShows", { count: booking.client.noShows })}
+            {t("booking.noShows", { count: earlierNoShows })}
           </StatusPill>
         )}
         {booking.client?.phone && (

@@ -15,6 +15,7 @@ import { Link } from "@/i18n/navigation";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { canManage, getActiveTenant, getMyTenants } from "@/lib/tenant";
+import { canSeeMoney } from "@/features/reports/report";
 
 export default async function DashboardLayout({ children, params }: LayoutProps<"/[locale]">) {
   const { locale } = await params;
@@ -23,9 +24,21 @@ export default async function DashboardLayout({ children, params }: LayoutProps<
   const user = await requireUser(locale);
   const [active, tenants] = await Promise.all([getActiveTenant(), getMyTenants()]);
   if (!active) redirect(`/${locale}/onboarding`);
-  const { data: ownStaffId } = await (
-    await createClient()
-  ).rpc("current_staff_id", { p_tenant: active.tenantId });
+  const db = await createClient();
+  const manager = canManage(active.role);
+  const [{ data: ownStaffId }, seeMoney, { count: timeOffWaiting }] = await Promise.all([
+    db.rpc("current_staff_id", { p_tenant: active.tenantId }),
+    canSeeMoney(db, active.tenantId, active.role),
+    // owner/admin: time-off requests waiting for a decision show next to "Staff" (#48)
+    manager
+      ? db
+          .from("time_off_requests")
+          .select("id", { count: "exact", head: true })
+          .eq("tenant_id", active.tenantId)
+          .eq("status", "pending")
+      : Promise.resolve({ count: 0 }),
+  ]);
+  const badges = { staff: timeOffWaiting ?? 0 };
 
   const menu = (
     <AccountMenu
@@ -61,7 +74,13 @@ export default async function DashboardLayout({ children, params }: LayoutProps<
           </>
         }
       >
-        <SidebarNav type={active.type} canManage={canManage(active.role)} hasProfile={!!ownStaffId} />
+        <SidebarNav
+          type={active.type}
+          canManage={manager}
+          hasProfile={!!ownStaffId}
+          seeMoney={seeMoney}
+          badges={badges}
+        />
       </Sidebar>
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -82,7 +101,7 @@ export default async function DashboardLayout({ children, params }: LayoutProps<
         </main>
       </div>
 
-      <BottomNav type={active.type} myDayFirst={!!ownStaffId && !canManage(active.role)} />
+      <BottomNav type={active.type} myDayFirst={!!ownStaffId && !manager} moreDot={badges.staff > 0} />
     </div>
   );
 }

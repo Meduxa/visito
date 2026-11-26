@@ -143,15 +143,17 @@ Open the salon link from your phone (as a client would, e.g. scan the QR).
 
 Sign in on your phone as **staff1**; install the app on the home screen (G 3.3).
 
-- [ ] 4.1 "ჩემი დღე": current visit highlighted, next visit, today's list; Upcoming / Today / Past
-- [ ] 4.2 Sees **only own** calendar and clients (access switches OFF); turn "see all bookings" ON as owner → now sees all; back OFF
-- [ ] 4.3 Mark arrived / completed / no-show on own visit; add a note
-- [ ] 4.4 Create a booking for themself (if allowed)
-- [ ] 4.5 **Time-off request** → owner/admin sees it, approves one, rejects another → calendar blocks the approved days
-- [ ] 4.6 Staff has **no Settings**, only "Team"; can't open `/settings/...` addresses by typing them; no revenue, no export
-- [ ] 4.7 As **admin**: revenue is hidden ("owner hid revenue"); owner turns it ON → visible
-- [ ] 4.8 Admin can't open Subscription and Data & security
-- [ ] 4.9 Phone layout: every screen fits 375 px, no sideways scrolling; buttons big enough
+> 27.11: run by Claude on localhost at phone size (staff1, then admin). Not covered: installing on the home screen and a real phone — for you.
+
+- [x] 4.1 "ჩემი დღე": current visit highlighted, next visit, today's list; Upcoming / Today / Past
+- [x] 4.2 Sees **only own** calendar and clients (access switches OFF); turn "see all bookings" ON as owner → now sees all; back OFF
+- [x] 4.3 Mark arrived / completed / no-show on own visit; add a note
+- [x] 4.4 Create a booking for themself (if allowed)
+- [x] 4.5 **Time-off request** → owner/admin sees it, approves one, rejects another → calendar blocks the approved days
+- [x] 4.6 Staff has **no Settings**, only "Team"; can't open `/settings/...` addresses by typing them; no revenue, no export
+- [x] 4.7 As **admin**: revenue is hidden ("owner hid revenue"); owner turns it ON → visible
+- [x] 4.8 Admin can't open Subscription and Data & security
+- [x] 4.9 Phone layout: every screen fits 375 px, no sideways scrolling; buttons big enough
 
 ---
 
@@ -259,3 +261,12 @@ Plan bookings so the reminders arrive while you're awake (quiet hours 22:00–09
 | 40 | 3.2 | Client search in a new booking | Smooth | Results appear 1–2 s later with no "searching…" sign and push "ახალი კლიენტი" down — easy to click the wrong button. Screen readers: walk-in block and pending visits have no "walk-in"/status in their name | 26.11 | Claude | Fixed 27.11: "იძებნება…" / "ვერ მოიძებნა — დაამატეთ ახალი კლიენტი."; block names say "პირდაპირ მოსული" and the status |
 | 41 | 3.13 | "ყველას წაკითხულად მონიშვნა" | Badge 0 | Server 0 but badge stayed "3" until reload — may be my automated click; recheck by hand | 26.11 | Claude | Not reproduced in code (badge is updated at once); recheck by hand |
 | 42 | 3.14 | Second checkout of a part-paid visit (found while re-testing) | Due 12 ₾ (162 − 150) | Discount forgotten: asked 30 ₾, and saving would have raised the total back to 180 ₾ | 27.11 | Claude | Fixed 27.11: checkout starts with the discount already given |
+| 43 | 4.2 | Staff with "see all bookings" ON | Other clients' visits marked as hidden clients | Visits of clients the staff member may not see show as **"პირდაპირ მოსული"** (walk-in); other specialists' visits don't say who does them | 27.11 | Claude | Fixed 27.11: hidden clients show "სხვა სპეციალისტის კლიენტი"; with the switch on, staff get everyone's columns and names. Needs a staff sign-in to see |
+| 44 | 4.3 / 3.13 | Open a visit by link (bell notices use this) when it is in another branch | Calendar switches to the visit's branch and opens it | Opens the default branch; the visit's window does not open (Keti at Isani) | 27.11 | Claude | Fixed 27.11: a visit link opens that visit's branch |
+| 45 | 4.1 | "ჩემი დღე" on a phone | Today's visits on the first screen | The three number cards stack full-width and fill the first screen; today's list starts below the fold | 27.11 | Claude | Fixed 27.11: three small cards in one row on a phone |
+| 46 | 4.3 | No-show visit window | Count of earlier no-shows | "ადრე 1-ჯერ არ გამოცხადდა" counts this very visit as "earlier" | 27.11 | Claude | Fixed 27.11: this visit is not counted |
+| 47 | 4.5 | Reject a time-off request | Button "უარყოფა", optional reason | Confirm button says **"წაშლა"** (delete); no reason field (the request has a place for it) | 27.11 | Claude | Fixed 27.11: button "უარყოფა" and an optional reason the staff member sees |
+| 48 | 4.5 | Staff sends a time-off request | Owner/admin is told | No bell notice; seen only on the Staff page | 27.11 | Claude | Fixed 27.11: count next to "პერსონალი" (and a dot on "მეტი" on phones) while requests wait |
+| 49 | 4.5 | Send a time-off request | Shown in the list at once | List says "მოთხოვნები ჯერ არ არის" for a few seconds after "შენახულია" | 27.11 | Claude | Not changed: same slow re-render on the laptop as #26; recheck on visito.ge |
+| 50 | 4.7 | Admin with revenue hidden | Menu without money pages | Cashbox / Reports / Payroll stay in the menu and open to "მფლობელმა … დაუმალა" | 27.11 | Claude | Fixed 27.11: money pages leave the menu when the owner hides revenue |
+| 51 | 4.9 | Small things at 375 px | — | Calendar branch picker 32 px high (finger target); it shows empty until the page finishes loading (like #1); "მეტი" page tab title is only "Visito" | 27.11 | Claude | Fixed 27.11: all dropdowns are finger-sized on phones (44 px; a shared style was overriding it); branch name shown from the start; "მეტი" has its own tab title |

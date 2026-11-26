@@ -2,6 +2,16 @@
 
 All notable changes per phase. Newest on top.
 
+## Fixes from test day 4 — staff and permissions (2026-11-27)
+
+Problems #43–#51 of `docs/test-plan.md`.
+- Staff allowed to see all bookings get everyone's columns and specialist names; clients they may not see show as "სხვა სპეციალისტის კლიენტი" instead of "walk-in".
+- A link to a visit (bell, client card) opens the visit's own branch.
+- Time off: rejecting says "უარყოფა" and takes an optional reason the staff member sees; waiting requests show as a count next to "პერსონალი" (a dot on "მეტი" on phones).
+- Menu: cashbox, reports and payroll only for people who may see money.
+- "ჩემი დღე": three small number cards in one row on phones; a no-show visit no longer counts itself as an earlier no-show.
+- All dropdowns are 44 px high on phones (a shared style overrode the screens' size); the calendar's branch picker shows its name from the start; "მეტი" has a tab title.
+
 ## Fixes from test day 3 — calendar (2026-11-27)
 
 Problems #26–#42 of `docs/test-plan.md`.

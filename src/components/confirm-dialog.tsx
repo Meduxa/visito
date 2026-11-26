@@ -22,6 +22,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   onConfirm,
+  children,
 }: {
   trigger: ReactNode;
   title?: string;
@@ -30,6 +31,8 @@ export function ConfirmDialog({
   /** the button that closes without doing anything (default: "Cancel") */
   cancelLabel?: string;
   onConfirm: () => void;
+  /** extra fields inside the window (e.g. a reason) */
+  children?: ReactNode;
 }) {
   const t = useTranslations("common");
   return (
@@ -43,6 +46,7 @@ export function ConfirmDialog({
             {description}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {children}
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelLabel ?? t("dialogNo")}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm}>

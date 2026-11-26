@@ -16,6 +16,7 @@ import type { ReadResult } from "../reads";
 import { checkout } from "../checkout-actions";
 import { PAYMENT_METHODS, type PaymentMethod } from "../payment-methods";
 import type { CalBooking, CalStaff } from "../queries";
+import { noClientKey } from "../client-label";
 
 const text = (minor: number) =>
   minor % 100 === 0 ? String(minor / 100) : (minor / 100).toFixed(2).replace(".", ",");
@@ -92,7 +93,7 @@ export function CheckoutPanel({
       open
       onOpenChange={(o) => !o && onClose()}
       title={t("checkout.title")}
-      description={booking.client?.name ?? t("calendar.walkIn")}
+      description={booking.client?.name ?? t(noClientKey(booking))}
     >
       <div className="flex flex-col gap-5">
         <ul className="flex flex-col divide-y rounded-lg border text-sm">

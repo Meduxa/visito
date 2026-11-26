@@ -38,6 +38,8 @@ export type CalBooking = {
     importantNote: string | null;
     noShows: number;
   } | null;
+  /** there is a client, but this person may not see them (staff, own clients only) */
+  clientHidden: boolean;
   items: CalItem[];
 };
 
@@ -97,7 +99,7 @@ export async function getCalendar(
       const q = supabase
         .from("bookings")
         .select(
-          "id, status, source, recurrence_id, starts_at, ends_at, internal_note, client_comment, total_minor, paid_minor, clients(id, first_name, last_name, phone_e164, important_note, no_show_count), booking_items(id, staff_id, resource_id, service_id, name_snapshot, price_minor_snapshot, price_type_snapshot, duration_min_snapshot, starts_at, ends_at, sort_order, services(color))",
+          "id, status, source, recurrence_id, client_id, starts_at, ends_at, internal_note, client_comment, total_minor, paid_minor, clients(id, first_name, last_name, phone_e164, important_note, no_show_count), booking_items(id, staff_id, resource_id, service_id, name_snapshot, price_minor_snapshot, price_type_snapshot, duration_min_snapshot, starts_at, ends_at, sort_order, services(color))",
         )
         .eq("tenant_id", tenantId)
         .lt("starts_at", new Date(toIso).toISOString())
@@ -188,6 +190,7 @@ export async function getCalendar(
             noShows: c.no_show_count,
           }
         : null,
+      clientHidden: !c && !!b.client_id,
       items: [...b.booking_items]
         .sort((x, y) => x.sort_order - y.sort_order)
         .map((i) => ({

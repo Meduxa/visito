@@ -63,7 +63,8 @@
     "reports": "Reports",
     "payroll": "Payroll",
     "collapse": "Fold the menu",
-    "expand": "Unfold the menu"
+    "expand": "Unfold the menu",
+    "waitingBadge": "waiting for a decision"
   },
   "auth": {
     "email": "Email",
@@ -572,7 +573,8 @@
     "conflicts": "{count, plural, one {# booking in this period} other {# bookings in this period}} — move them after approving",
     "approve": "Approve",
     "decline": "Decline",
-    "declineConfirm": "Decline {name}'s request?"
+    "declineConfirm": "Decline {name}'s request?",
+    "declineReason": "Reason (optional) — the staff member will see it"
   },
   "settings": {
     "title": "Business settings",
@@ -1073,7 +1075,8 @@
     "noChairs": "Add chairs or rooms in Settings to see this view.",
     "colorBy": "Colour",
     "colorByStaff": "Colour: specialist",
-    "colorByService": "Colour: service"
+    "colorByService": "Colour: service",
+    "hiddenClient": "Another specialist's client"
   },
   "booking": {
     "status": {

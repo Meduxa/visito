@@ -27,14 +27,28 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
   const sp = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: tz }, { data: ownStaffId }, branchInfo] = await Promise.all([
-    supabase.from("tenants").select("timezone").eq("id", tenant.tenantId).single(),
-    supabase.rpc("current_staff_id", { p_tenant: tenant.tenantId }),
-    getBranchInfo(supabase, tenant.tenantId),
-  ]);
+  const linkedBooking =
+    typeof sp.booking === "string" && /^[0-9a-f-]{36}$/.test(sp.booking) ? sp.booking : null;
+  const [{ data: tz }, { data: ownStaffId }, branchInfo, { data: rules }, { data: linked }] =
+    await Promise.all([
+      supabase.from("tenants").select("timezone").eq("id", tenant.tenantId).single(),
+      supabase.rpc("current_staff_id", { p_tenant: tenant.tenantId }),
+      getBranchInfo(supabase, tenant.tenantId),
+      supabase
+        .from("tenant_settings")
+        .select("staff_sees_all_bookings")
+        .eq("tenant_id", tenant.tenantId)
+        .maybeSingle(),
+      // a link to a visit (bell, client card) opens the visit's own branch (test plan #44)
+      linkedBooking && typeof sp.branch !== "string"
+        ? supabase.from("bookings").select("location_id").eq("id", linkedBooking).maybeSingle()
+        : Promise.resolve({ data: null }),
+    ]);
   // several branches: one at a time (?branch=<id>, else the main one) — decision 032
   const multi = branchInfo.usable.length > 1;
-  const branch = multi ? pickBranch(branchInfo, typeof sp.branch === "string" ? sp.branch : null) : undefined;
+  const branch = multi
+    ? pickBranch(branchInfo, typeof sp.branch === "string" ? sp.branch : (linked?.location_id ?? null))
+    : undefined;
   const timeZone = tz?.timezone ?? DEFAULT_TZ;
   const today = formatInTimeZone(new Date(), timeZone, "yyyy-MM-dd");
   const date = typeof sp.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : today;
@@ -69,9 +83,9 @@ export default async function CalendarPage({ params, searchParams }: PageProps<"
           : [date, addDays(date, 6)];
 
   const [data, { categories, services }, links, waitlist, here] = await Promise.all([
-    // staff see their own column only
+    // staff see their own column only — unless the owner lets them see everyone's bookings (#43)
     getCalendar(tenant.tenantId, from, to, {
-      onlyStaffId: isManager ? undefined : (ownStaffId ?? "none"),
+      onlyStaffId: isManager || rules?.staff_sees_all_bookings ? undefined : (ownStaffId ?? "none"),
       branch: branch && { id: branch.id, isPrimary: branch.isPrimary },
     }),
     getCatalog(tenant.tenantId),

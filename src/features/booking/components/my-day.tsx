@@ -11,6 +11,7 @@ import { useDates } from "@/lib/use-dates";
 import { cn } from "@/lib/utils";
 import type { CalBooking, CalStaff } from "../queries";
 import { BookingPanel, STATUS_TONE } from "./booking-panel";
+import { noClientKey } from "../client-label";
 
 const GONE = ["cancelled_by_client", "cancelled_by_business"];
 
@@ -64,7 +65,7 @@ export function MyDay({
         </span>
         <span className="flex min-w-0 flex-1 flex-col gap-0.5">
           <span className="flex items-center gap-1.5 text-sm font-medium">
-            {b.client?.name ?? t("calendar.walkIn")}
+            {b.client?.name ?? t(noClientKey(b))}
             {b.client?.importantNote && (
               <TriangleAlert
                 className="size-3.5 text-warning"
@@ -95,9 +96,11 @@ export function MyDay({
     <div className="flex max-w-3xl flex-col gap-5">
       <PageHeader title={t("myDay.title")} description={`${me.name} · ${dates.dayTitle(today)}`} />
 
-      <div className="grid gap-3 sm:grid-cols-3">
-        <StatCard icon={<CalendarDays />} label={t("myDay.stats.today")} value={todays.length} />
+      {/* three in a row, small, also on a phone: today's visits stay on the first screen (#45) */}
+      <div className="grid grid-cols-3 gap-2 sm:gap-3">
+        <StatCard compact icon={<CalendarDays />} label={t("myDay.stats.today")} value={todays.length} />
         <StatCard
+          compact
           icon={<CalendarCheck />}
           tone="info"
           label={t("myDay.stats.week")}
@@ -109,6 +112,7 @@ export function MyDay({
           }
         />
         <StatCard
+          compact
           icon={<CheckCheck />}
           tone="warning"
           label={t("myDay.stats.completed")}
@@ -125,7 +129,7 @@ export function MyDay({
               className="flex flex-col gap-1 rounded-xl border-2 border-primary bg-card p-4 text-left"
             >
               <span className="text-xs font-medium text-primary">{t("myDay.now")}</span>
-              <span className="font-semibold">{current.client?.name ?? t("calendar.walkIn")}</span>
+              <span className="font-semibold">{current.client?.name ?? t(noClientKey(current))}</span>
               <span className="text-sm text-muted-foreground">
                 {time(current.start)}–{time(current.end)} · {current.items.map((i) => i.name).join(", ")}
               </span>
@@ -142,7 +146,7 @@ export function MyDay({
                 {day(next) === today &&
                   ` · ${t("myDay.inMinutes", { minutes: Math.max(0, Math.round((new Date(next.start).getTime() - now) / 60_000)) })}`}
               </span>
-              <span className="font-semibold">{next.client?.name ?? t("calendar.walkIn")}</span>
+              <span className="font-semibold">{next.client?.name ?? t(noClientKey(next))}</span>
               <span className="text-sm text-muted-foreground">
                 {day(next) !== today && `${dates.dayShort(day(next))} · `}
                 {time(next.start)} · {next.items.map((i) => i.name).join(", ")}

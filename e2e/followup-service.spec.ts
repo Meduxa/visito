@@ -43,6 +43,7 @@ async function setFollowUp(page: Page, on: boolean) {
 
 test("a service with an additional one: reminder, one visit, two blocks", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop");
+  test.setTimeout(60_000); // two service saves and a booking: close to 30 s on a slow evening
   await signIn(page, "salon.owner@demo.test");
   await setFollowUp(page, true);
 
@@ -112,6 +113,7 @@ test("a service with an additional one: reminder, one visit, two blocks", async 
 
 test("additional service not added: flag in the calendar, added from the visit", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop");
+  test.setTimeout(60_000); // same: two service saves and a booking
   await signIn(page, "salon.owner@demo.test");
   await setFollowUp(page, true);
 

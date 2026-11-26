@@ -2,6 +2,7 @@ import "server-only";
 import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { getSmsProvider } from "@/integrations/sms";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { ABOUT_VISIT, outdatedReason } from "./outdated";
 import { isSandboxTenant } from "./sandbox";
 import { countSegments } from "./segments";
 
@@ -38,7 +39,32 @@ type Claimed = {
   to_phone: string;
   body: string;
   kind: "service" | "marketing";
+  type?: string;
+  booking_id?: string | null;
+  idempotency_key?: string;
+  created_at?: string;
 };
+
+/** A queued message about a visit that changed meanwhile: why it must not go out. */
+async function staleReason(m: Claimed): Promise<string | null> {
+  if (!m.booking_id || !m.type || !ABOUT_VISIT.includes(m.type)) return null;
+  const db = createAdminClient();
+  const [{ data: b }, { data: later }] = await Promise.all([
+    db.from("bookings").select("status, starts_at").eq("id", m.booking_id).maybeSingle(),
+    db
+      .from("sms_messages")
+      .select("created_at")
+      .eq("booking_id", m.booking_id)
+      .in("type", ["confirmed", "rescheduled", "cancelled"])
+      .neq("id", m.id),
+  ]);
+  return outdatedReason(
+    { type: m.type, idempotencyKey: m.idempotency_key ?? "", createdAt: m.created_at ?? "" },
+    b
+      ? { status: b.status, startsAt: b.starts_at, laterMessages: (later ?? []).map((x) => x.created_at) }
+      : null,
+  );
+}
 
 export async function queueSms(m: QueueInput): Promise<string | null> {
   const { data, error } = await createAdminClient().rpc("sms_enqueue", {
@@ -153,10 +179,28 @@ export async function sendNow(m: QueueInput): Promise<boolean> {
 
 /** The background job: everything due in the queue. */
 export async function processQueue(limit = 50) {
-  const { data } = await createAdminClient().rpc("sms_claim", { p_limit: limit });
+  const db = createAdminClient();
+  const { data } = await db.rpc("sms_claim", { p_limit: limit });
   let sent = 0;
-  for (const m of (data ?? []) as Claimed[]) if (await deliver(m)) sent++;
-  return { picked: (data ?? []).length, sent };
+  let outdated = 0;
+  for (const m of (data ?? []) as Claimed[]) {
+    // waited in the queue: is it still true? (test plan #53) — not sent, credits back
+    const reason = await staleReason(m);
+    if (reason) {
+      outdated++;
+      await db.rpc("sms_finish", {
+        p_id: m.id,
+        p_ok: false,
+        p_provider: "none",
+        p_ref: "",
+        p_error: reason,
+        p_retry: false,
+      });
+      continue;
+    }
+    if (await deliver(m)) sent++;
+  }
+  return { picked: (data ?? []).length, sent, outdated };
 }
 
 /**

@@ -2,6 +2,11 @@
 
 All notable changes per phase. Newest on top.
 
+## Fixes from test day 5 — SMS (2026-11-27)
+
+- Live problem found: every scheduled job on Netlify failed because CRON_SECRET contained a curly quote (no reminders, review requests or held messages; no daily job). The job now logs a clear reason; the value must be re-entered on Netlify.
+- A message that waited in the queue (e.g. until the end of quiet hours) is checked against the visit before sending: a reminder for a moved or cancelled visit, a confirmation replaced by a later change, or a cancel message whose cancellation was undone is not sent; credits go back and the SMS log says why (`src/features/sms/outdated.ts`, unit-tested).
+
 ## Fixes from test day 4 — staff and permissions (2026-11-27)
 
 Problems #43–#51 of `docs/test-plan.md`.

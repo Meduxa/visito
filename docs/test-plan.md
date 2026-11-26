@@ -161,13 +161,15 @@ Sign in on your phone as **staff1**; install the app on the home screen (G 3.3).
 
 Plan bookings so the reminders arrive while you're awake (quiet hours 22:00–09:00).
 
+> 27.11, Claude on localhost: which reminders are due (24 h, 2 h; cancelled and late-booked visits left out), quiet hours, SMS switch off, review → Reviews and booking page, SMS log and balance — OK. Not done: real delivery on the phone, TNET "delivered" status, /admin (needs a platform-admin login). #52 fixed 27.11 (CRON_SECRET re-entered) — now repeat 5.1–5.6 on your phone.
+
 - [ ] 5.1 Today at 12:00 book a visit for **tomorrow 14:00** → the **24 h reminder** arrives today at ~14:00 (24 h before the visit)
-- [ ] 5.2 Book a visit **in 3 h** → **2 h reminder** arrives 2 h before
-- [ ] 5.3 A reminder that falls inside quiet hours → sent at 09:00 if still before the visit, otherwise skipped
+- [x] 5.2 Book a visit **in 3 h** → **2 h reminder** arrives 2 h before
+- [x] 5.3 A reminder that falls inside quiet hours → sent at 09:00 if still before the visit, otherwise skipped
 - [ ] 5.4 Move a booking after its reminder was planned → old reminder not sent, new one is
 - [ ] 5.5 Cancel a booking → its reminders are not sent
-- [ ] 5.6 Complete a visit → **review request SMS** with link → leave a review → it appears in Reviews (G 14.4) and, if switched on, on the booking page
-- [ ] 5.7 Turn one automatic SMS **off** → it is no longer sent
+- [x] 5.6 Complete a visit → **review request SMS** with link → leave a review → it appears in Reviews (G 14.4) and, if switched on, on the booking page
+- [x] 5.7 Turn one automatic SMS **off** → it is no longer sent
 - [ ] 5.8 SMS log (G 12.6): each SMS with status **delivered** (TNET report), segments; test-mode lines for made-up numbers; balance went down by the right amount
 - [ ] 5.9 `/admin` → SMS log across businesses shows the same
 - [ ] 5.10 Text of every SMS: correct date/time (Tbilisi time), branch address, Georgian letters fine, no broken links
@@ -270,3 +272,7 @@ Plan bookings so the reminders arrive while you're awake (quiet hours 22:00–09
 | 49 | 4.5 | Send a time-off request | Shown in the list at once | List says "მოთხოვნები ჯერ არ არის" for a few seconds after "შენახულია" | 27.11 | Claude | Not changed: same slow re-render on the laptop as #26; recheck on visito.ge |
 | 50 | 4.7 | Admin with revenue hidden | Menu without money pages | Cashbox / Reports / Payroll stay in the menu and open to "მფლობელმა … დაუმალა" | 27.11 | Claude | Fixed 27.11: money pages leave the menu when the owner hides revenue |
 | 51 | 4.9 | Small things at 375 px | — | Calendar branch picker 32 px high (finger target); it shows empty until the page finishes loading (like #1); "მეტი" page tab title is only "Visito" | 27.11 | Claude | Fixed 27.11: all dropdowns are finger-sized on phones (44 px; a shared style was overriding it); branch name shown from the start; "მეტი" has its own tab title |
+| 52 | 5.1–5.6 | Live SMS job on Netlify (cron-sms, every 5 min) and daily job (cron-daily) | Runs | **Every run fails (287 of 287 in 24 h):** "Cannot convert argument to a ByteString … character at index 34 has a value of 8220". The `CRON_SECRET` saved on Netlify contains a curly quote (“). On visito.ge **no reminders, review requests or held messages go out**, and the daily job (trial endings, deletions) does not run. **Fix: Levan re-enters CRON_SECRET (letters and digits only) and redeploys.** The job now logs a clear message if this happens again | 27.11 | Claude | Fixed 27.11: Levan re-entered CRON_SECRET and redeployed — cron-sms returns 200 from 20:10 UTC. Job now logs a clear reason if it happens again |
+| 53 | 5.4 / 5.5 | Read the code: a reminder already waiting in the queue (e.g. held during quiet hours until 09:00), then the visit is moved or cancelled | Old reminder not sent | Nothing removes or re-checks a queued message: it would still go out with the old time, or for a cancelled visit | 27.11 | Claude | Fixed 27.11: before a queued message about a visit is sent, it is checked against the visit now — moved/cancelled/replaced ones are not sent (credits back) and the log says why. Unit-tested; to see live after deploy |
+| 54 | 5.8 | SMS settings page with 3 branches | Example shows the branch | Text examples show only the salon name, not ", ვაკე" | 27.11 | Claude | |
+| 55 | 5.6 | Review request made on the laptop | — | Its link is `http://localhost:3000/r/…` (2 SMS) and the live site would send it — a side effect of the laptop and visito.ge sharing one database, not an app bug | 27.11 | Claude | |

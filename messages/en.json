@@ -1539,7 +1539,12 @@
       "rate_limited": "too many requests — will retry",
       "invalid_credentials": "SMS company login failed",
       "destination": "phone number not supported",
-      "undelivered": "not delivered"
+      "undelivered": "not delivered",
+      "visit_cancelled": "Visit cancelled — not sent",
+      "visit_moved": "Visit moved — the old reminder was not sent",
+      "visit_active": "Cancellation undone — not sent",
+      "visit_gone": "Visit no longer exists — not sent",
+      "replaced": "Replaced by a later change — not sent"
     },
     "types": {
       "otp": "Code",

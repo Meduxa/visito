@@ -11,6 +11,14 @@ export async function runJob(name: "sms" | "daily", context?: NetlifyContext) {
     console.error(`${name} job: site address or CRON_SECRET missing`);
     return new Response(`${name} job: not configured`, { status: 500 });
   }
+  // a secret pasted from a document can carry curly quotes or other non-ASCII
+  // characters, which can never be sent in a header (test plan #52)
+  if (!/^[\x21-\x7e]+$/.test(process.env.CRON_SECRET)) {
+    console.error(
+      `${name} job: CRON_SECRET contains characters that cannot be sent (quotes, spaces or non-Latin) — re-enter it on Netlify with letters and digits only, then redeploy`,
+    );
+    return new Response(`${name} job: CRON_SECRET invalid`, { status: 500 });
+  }
   try {
     const res = await fetch(`${base}/api/cron/${name}`, {
       headers: { authorization: `Bearer ${process.env.CRON_SECRET}` },

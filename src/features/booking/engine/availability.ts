@@ -182,7 +182,14 @@ export function getAvailableSlots(req: SlotRequest, data: EngineData): Slot[] {
   return [...byStart.values()].map((x) => x.slot).sort((a, b) => a.start.getTime() - b.start.getTime());
 }
 
-export type Conflict = "closed" | "outsideHours" | "overlap" | "cannotPerform" | "noResource" | "inactive";
+export type Conflict =
+  | "closed"
+  | "outsideHours"
+  | "timeOff" // vacation, sick leave… — said as such, not as "outside working hours"
+  | "overlap"
+  | "cannotPerform"
+  | "noResource"
+  | "inactive";
 
 // Why a specific time does not work (admin calendar). Empty list = OK.
 export function validateBooking(
@@ -198,6 +205,7 @@ export function validateBooking(
   const end = start + total.durationMin * MIN;
   const conflicts: Conflict[] = [];
   if (data.closures.includes(date)) conflicts.push("closed");
+  else if (overlapsAny([start, end], staff.timeOff)) conflicts.push("timeOff");
   else if (!workingRanges(staff, date, data).some((r) => contains(r, [start, end])))
     conflicts.push("outsideHours");
   const block: Range = [start, end + total.bufferMin * MIN];

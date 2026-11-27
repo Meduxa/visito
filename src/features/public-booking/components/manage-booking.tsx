@@ -78,7 +78,13 @@ export function ManageBooking({ token, view }: { token: string; view: View }) {
         <dd>
           {view.items.map((i) => i.name).join(", ")} ·{" "}
           {[...new Set(view.items.map((i) => i.staff))].join(", ")}
-          <span className="block text-muted-foreground">{formatMoney(view.totalMinor)}</span>
+          {view.showPrices && (
+            <span className="block text-muted-foreground">
+              {view.priceFrom
+                ? t("format.priceFrom", { price: formatMoney(view.totalMinor) })
+                : formatMoney(view.totalMinor)}
+            </span>
+          )}
         </dd>
         {(view.address || view.branch) && (
           <>
@@ -173,6 +179,7 @@ export function ManageBooking({ token, view }: { token: string; view: View }) {
               title={tm("cancelConfirm")}
               description={tm("cancelBody")}
               confirmLabel={tm("cancel")}
+              cancelLabel={tm("keepIt")}
               onConfirm={() => run(() => manageCancel(token), tm("cancelled"))}
             />
           </div>

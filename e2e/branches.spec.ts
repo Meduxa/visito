@@ -34,13 +34,14 @@ test("owner adds a branch; clients choose it on the booking page and get its own
     await signIn(page, "dental.owner@demo.test");
     await page.goto("/ka/settings/branches");
     await page.getByLabel("ფილიალის სახელი").fill(name);
-    await page.getByLabel("მისამართი").fill("ვაკე, ტესტის ქ. 1");
+    await page.getByLabel("მისამართი", { exact: true }).fill("ვაკე, ტესტის ქ. 1");
     await page.getByRole("button", { name: "ფილიალის დამატება" }).click();
     await page.waitForURL("**/ka/settings/branches/*");
     await expect(page.getByRole("heading", { name, level: 1 })).toBeVisible();
     // its own booking link (?branch=…) with a QR code
     await expect(page.getByRole("heading", { name: "ამ ფილიალის ჯავშნის ბმული" })).toBeVisible();
-    await expect(page.getByText(/\?branch=branch-\d+/)).toBeVisible();
+    // the link name comes from the branch name (Georgian → latin), not "branch-2"
+    await expect(page.getByText(/\?branch=e2e-[a-z0-9-]+/)).toBeVisible();
     // new branches start with the main branch's hours
     const { data: loc } = await db
       .from("locations")

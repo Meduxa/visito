@@ -12,6 +12,7 @@ type W = {
   atRisk: string; // last visit 100 days ago
   lost: string; // last visit 200 days ago
   vip: string; // 5 recent visits
+  partPaid: string; // 1 visit, arrived (not completed), 150 of 200 ₾ paid
 };
 
 const daysAgo = (d: number) => new Date(Date.now() - d * 86_400_000).toISOString();
@@ -52,6 +53,7 @@ async function world(label: string): Promise<W> {
     status: string,
     totalMinor: number,
     staffId = staffOther,
+    paidMinor = status === "completed" ? totalMinor : 0,
   ) => {
     const start = daysAgo(days);
     const end = new Date(new Date(start).getTime() + 3_600_000).toISOString();
@@ -64,6 +66,7 @@ async function world(label: string): Promise<W> {
         ends_at: end,
         status,
         total_minor: totalMinor,
+        paid_minor: paidMinor,
         created_at: daysAgo(Math.max(days, 0) + 1),
       })
       .select("id")
@@ -100,7 +103,10 @@ async function world(label: string): Promise<W> {
   await visit(lost, 200, "completed", 5000);
   const vip = await client(`Vip ${label}`);
   for (const d of [50, 40, 30, 20, 10]) await visit(vip, d, "completed", 4000);
-  return { t, staffMine, regular, mine, atRisk, lost, vip };
+  // #56: part-paid, never marked completed — the money still counts
+  const partPaid = await client(`PartPaid ${label}`);
+  await visit(partPaid, 2, "arrived", 20000, staffOther, 15000);
+  return { t, staffMine, regular, mine, atRisk, lost, vip, partPaid };
 }
 
 let A: W;
@@ -132,6 +138,12 @@ describe("client_list numbers", () => {
       segment: "regular",
     });
     expect(new Date(r!.last_visit_at!).getTime()).toBeLessThan(Date.now());
+    // money received counts even when nobody marked the visit completed (test plan #56)
+    expect(await row(A.t.owner, A.partPaid)).toMatchObject({
+      visits: 0,
+      spent_minor: 15000,
+      average_minor: 15000,
+    });
     expect(new Date(r!.next_visit_at!).getTime()).toBeGreaterThan(Date.now());
   });
 

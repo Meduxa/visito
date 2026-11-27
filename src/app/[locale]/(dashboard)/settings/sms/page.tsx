@@ -36,13 +36,14 @@ export default async function SmsSettingsPage({ params }: PageProps<"/[locale]/s
   const sample = {
     client_name: tAll("smsSettings.sample.client_name"),
     business_name: tenant.name,
+    place: tenant.name,
     service: tAll("smsSettings.sample.service"),
     staff: tAll("smsSettings.sample.staff"),
     date: shortDate(tAll, "2026-11-09"),
     time: "12:15",
     address: tAll("smsSettings.sample.address"),
     phone: tAll("smsSettings.sample.phone"),
-    manage_link: "https://visito.ge/r/Xk3pQ9vRm2LbT7wZ4nYc8dHf6gJs1aEq", // as long as a real link
+    manage_link: "https://visito.ge/r/Xk3pQ9vRm2LbT7wZ4nYc8d", // as long as a real review link
   };
   const previews = Object.fromEntries(
     await Promise.all(

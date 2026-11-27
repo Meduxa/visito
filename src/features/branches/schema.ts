@@ -15,6 +15,11 @@ export const branchSchema = z.object({
     .trim()
     .toLowerCase()
     .refine((s) => s === "" || /^[a-z0-9][a-z0-9-]{0,38}[a-z0-9]$/.test(s), "branchSlugInvalid"),
+  // optional English/Russian versions for the booking page in those languages
+  nameEn: z.string().trim().max(120, "tooLong").default(""),
+  nameRu: z.string().trim().max(120, "tooLong").default(""),
+  addressEn: z.string().trim().max(300, "tooLong").default(""),
+  addressRu: z.string().trim().max(300, "tooLong").default(""),
 });
 export type BranchInput = z.input<typeof branchSchema>;
 

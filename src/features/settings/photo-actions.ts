@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { managerContext } from "@/lib/action-context";
+import { managerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { MAX_PHOTOS } from "./photo-limits";
 
@@ -10,7 +10,7 @@ import { MAX_PHOTOS } from "./photo-limits";
 // the business's own storage folder (storage RLS); here we record or remove it.
 export async function addBusinessPhoto(path: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   if (
     !z
       .string()

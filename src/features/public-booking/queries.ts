@@ -1,4 +1,5 @@
 import "server-only";
+import { pickText } from "@/lib/translations";
 import { cache } from "react";
 import { localized } from "@/lib/i18n-text";
 import { publicEnv } from "@/lib/env";
@@ -92,7 +93,7 @@ export const getPublicBusiness = cache(
         db
           .from("locations")
           .select(
-            "id, name, slug, address, phone, is_primary, active, sort_order, location_hours(weekday, start_time, end_time)",
+            "id, name, slug, address, phone, is_primary, active, sort_order, translations, location_hours(weekday, start_time, end_time)",
           )
           .eq("tenant_id", id),
         db.from("service_categories").select("id, name_i18n").eq("tenant_id", id).order("sort_order"),
@@ -107,7 +108,7 @@ export const getPublicBusiness = cache(
           .order("sort_order"),
         db
           .from("staff")
-          .select("id, display_name, position, bio, photo_path")
+          .select("id, display_name, position, translations, bio, photo_path")
           .eq("tenant_id", id)
           .eq("active", true)
           .eq("bookable_online", true)
@@ -215,7 +216,13 @@ export const getPublicBusiness = cache(
       slug: tenant.slug,
       branch: multi ? (chosen?.slug ?? null) : null,
       branches: multi
-        ? usable.filter((l) => l.slug).map((l) => ({ slug: l.slug!, name: l.name, address: l.address }))
+        ? usable
+            .filter((l) => l.slug)
+            .map((l) => ({
+              slug: l.slug!,
+              name: pickText(l.translations, locale, "name", l.name),
+              address: pickText(l.translations, locale, "address", l.address),
+            }))
         : [],
       name: tenant.name,
       type: tenant.type as PublicBusiness["type"],
@@ -223,7 +230,7 @@ export const getPublicBusiness = cache(
       phone: location.is_primary
         ? (settings.data?.phone ?? location.phone ?? null)
         : (location.phone ?? settings.data?.phone ?? null),
-      address: location.address ?? null,
+      address: pickText(location.translations, locale, "address", location.address ?? null),
       otpRequired: settings.data?.online_otp_required ?? true,
       showPrices,
       maxDaysAhead: settings.data?.max_days_ahead ?? 60,
@@ -247,7 +254,7 @@ export const getPublicBusiness = cache(
         .map((s) => ({
           id: s.id,
           name: s.display_name,
-          position: s.position,
+          position: pickText(s.translations, locale, "position", s.position),
           bio: s.bio,
           photoUrl: s.photo_path ? `${url}/storage/v1/object/public/staff-photos/${s.photo_path}` : null,
         })),
@@ -257,3 +264,25 @@ export const getPublicBusiness = cache(
 
 /** What the browser receives: no tenant or branch id. */
 export type PublicBusinessView = Omit<PublicBusiness, "tenantId" | "locationId">;
+
+/** A suspended business: its page says online booking is paused and shows the
+ *  phone, instead of "page not found" (test plan #63). */
+export const getPausedBusiness = cache(
+  async (slug: string): Promise<{ name: string; phone: string | null } | null> => {
+    if (!/^[a-z0-9-]{3,50}$/.test(slug)) return null;
+    const db = createAdminClient();
+    const { data: tenant } = await db
+      .from("tenants")
+      .select("id, name")
+      .eq("slug", slug)
+      .eq("status", "suspended")
+      .maybeSingle();
+    if (!tenant) return null;
+    const { data: settings } = await db
+      .from("tenant_settings")
+      .select("phone")
+      .eq("tenant_id", tenant.id)
+      .maybeSingle();
+    return { name: tenant.name, phone: settings?.phone ?? null };
+  },
+);

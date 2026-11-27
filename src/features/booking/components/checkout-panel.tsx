@@ -16,6 +16,7 @@ import type { ReadResult } from "../reads";
 import { checkout } from "../checkout-actions";
 import { PAYMENT_METHODS, type PaymentMethod } from "../payment-methods";
 import type { CalBooking, CalStaff } from "../queries";
+import { noClientKey } from "../client-label";
 
 const text = (minor: number) =>
   minor % 100 === 0 ? String(minor / 100) : (minor / 100).toFixed(2).replace(".", ",");
@@ -46,7 +47,12 @@ export function CheckoutPanel({
   const [error, setError] = useState<string>();
 
   useEffect(() => {
-    read("bookingMoney", booking.id, null).then(setExisting);
+    read("bookingMoney", booking.id, null).then((m) => {
+      setExisting(m);
+      // a discount given at an earlier (partial) payment stays: each checkout saves the
+      // whole discount, so starting from 0 would take it away (test plan #42)
+      if (m?.discountMinor) setDiscount({ kind: "amount", value: text(m.discountMinor) });
+    });
   }, [booking.id]);
 
   const itemsMinor =
@@ -63,6 +69,7 @@ export function CheckoutPanel({
   const due = Math.max(0, gross - discountMinor - paidBefore);
   const shown = payments.length ? payments : [{ method: "cash" as PaymentMethod, amount: text(due) }];
   const paying = shown.reduce((s, p) => s + minor(p.amount), 0);
+  const tipMinor = tip ? minor(tip) : 0;
 
   const submit = () =>
     startTransition(async () => {
@@ -86,7 +93,7 @@ export function CheckoutPanel({
       open
       onOpenChange={(o) => !o && onClose()}
       title={t("checkout.title")}
-      description={booking.client?.name ?? t("calendar.walkIn")}
+      description={booking.client?.name ?? t(noClientKey(booking))}
     >
       <div className="flex flex-col gap-5">
         <ul className="flex flex-col divide-y rounded-lg border text-sm">
@@ -217,6 +224,15 @@ export function CheckoutPanel({
           )}
           <dt className="font-semibold">{t("checkout.due")}</dt>
           <dd className="text-right font-semibold tabular-nums">{formatMoney(due)}</dd>
+          {/* the tip comes on top: the amount to take from the client includes it (test plan #34) */}
+          {tipMinor > 0 && (
+            <>
+              <dt>{t("checkout.tipLine", { name: staff.find((s) => s.id === tipStaffId)?.name ?? "" })}</dt>
+              <dd className="text-right tabular-nums">+{formatMoney(tipMinor)}</dd>
+              <dt className="font-semibold">{t("checkout.toTake")}</dt>
+              <dd className="text-right font-semibold tabular-nums">{formatMoney(due + tipMinor)}</dd>
+            </>
+          )}
         </dl>
 
         <section className="flex flex-col gap-2">
@@ -284,10 +300,10 @@ export function CheckoutPanel({
         <FieldError code={error} />
         <Button
           className="h-11 md:h-9"
-          disabled={pending || existing === null || paying + (tip ? minor(tip) : 0) <= 0}
+          disabled={pending || existing === null || paying + tipMinor <= 0}
           onClick={submit}
         >
-          {t("checkout.pay", { amount: formatMoney(paying) })}
+          {t("checkout.pay", { amount: formatMoney(paying + tipMinor) })}
         </Button>
       </div>
     </DetailPanel>

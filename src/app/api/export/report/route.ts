@@ -27,6 +27,13 @@ export async function GET(req: Request) {
     getTranslations({ locale }),
   ]);
   const file = await reportWorkbook(report, { t: t as never, money, from, to });
+  // downloads of business data are recorded (test plan #61)
+  await db.rpc("log_audit", {
+    p_tenant: tenant.tenantId,
+    p_action: "report.exported",
+    p_entity: "report",
+    p_meta: { from, to },
+  });
   return new Response(new Uint8Array(file), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -225,6 +225,13 @@ describe("validateBooking", () => {
       validateBooking({ staffId: "ana", start: new Date(at(MON, "12:00")), services: [colour] }, noColour),
     ).toEqual(["cannotPerform"]);
   });
+
+  it("time off is named as such, not as 'outside working hours' (test plan #27)", () => {
+    const away = data({ staff: [staff("ana", { timeOff: [[at(MON, "10:00"), at(MON, "19:00")]] })] });
+    expect(
+      validateBooking({ staffId: "ana", start: new Date(at(MON, "12:00")), services: [cut] }, away),
+    ).toEqual(["timeOff"]);
+  });
 });
 
 // Branches (decision 032): a person can work in several branches on different

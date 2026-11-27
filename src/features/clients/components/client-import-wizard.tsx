@@ -64,7 +64,7 @@ export function ClientImportWizard() {
     return (
       <Card className="gap-5 p-4 md:p-6">
         <div className="flex flex-col gap-2">
-          <Label htmlFor="paste">{t("import.paste")}</Label>
+          <Label htmlFor="paste">{t("clientImport.paste")}</Label>
           <Textarea
             id="paste"
             rows={10}

@@ -33,7 +33,26 @@ function useSave() {
   return { pending, error, run };
 }
 
-type Details = { name: string; address: string; phone: string; slug: string };
+type Details = {
+  name: string;
+  address: string;
+  phone: string;
+  slug: string;
+  nameEn: string;
+  nameRu: string;
+  addressEn: string;
+  addressRu: string;
+};
+const EMPTY: Details = {
+  name: "",
+  address: "",
+  phone: "",
+  slug: "",
+  nameEn: "",
+  nameRu: "",
+  addressEn: "",
+  addressRu: "",
+};
 
 function DetailsFields({
   value,
@@ -101,6 +120,25 @@ function DetailsFields({
           />
         </FormField>
       )}
+      {/* the booking page in English/Russian shows these; empty = the Georgian text */}
+      <details className="group sm:col-span-2">
+        <summary className="cursor-pointer text-sm font-medium text-primary">
+          {t("fields.otherLanguages")}
+        </summary>
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          {(["nameEn", "nameRu", "addressEn", "addressRu"] as const).map((k) => (
+            <FormField key={k} id={`${idPrefix}-${k}`} label={t(`fields.${k}`)} error={field(k)}>
+              <Input
+                id={`${idPrefix}-${k}`}
+                lang={k.endsWith("En") ? "en" : "ru"}
+                value={value[k]}
+                onChange={(e) => onChange({ ...value, [k]: e.target.value })}
+                className="h-11 md:h-9"
+              />
+            </FormField>
+          ))}
+        </div>
+      </details>
     </div>
   );
 }
@@ -108,7 +146,7 @@ function DetailsFields({
 export function AddBranchCard({ canAdd, limitNote }: { canAdd: boolean; limitNote: string | null }) {
   const t = useTranslations("branches");
   const router = useRouter();
-  const [value, setValue] = useState<Details>({ name: "", address: "", phone: "", slug: "" });
+  const [value, setValue] = useState<Details>(EMPTY);
   const save = useSave();
   return (
     <SettingsCard title={t("add.title")} hint={t("add.hint")} testId="add-branch">

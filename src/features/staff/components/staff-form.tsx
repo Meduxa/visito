@@ -34,6 +34,8 @@ export function StaffForm({
     defaultValues: {
       displayName: staff?.displayName ?? "",
       position: staff?.position ?? "",
+      positionEn: staff?.positionEn ?? "",
+      positionRu: staff?.positionRu ?? "",
       positionType: staff?.positionType ?? (isDental ? "doctor" : "master"),
       color: (staff?.color as StaffInput["color"]) ?? "green",
       phone: staff?.phone ?? "",
@@ -46,7 +48,7 @@ export function StaffForm({
   });
   const { errors } = form.formState;
   const field = (
-    name: "displayName" | "position" | "phone" | "email" | "commissionPct",
+    name: "displayName" | "position" | "positionEn" | "positionRu" | "phone" | "email" | "commissionPct",
     extra: object = {},
   ) => (
     <Input
@@ -84,7 +86,7 @@ export function StaffForm({
             render={({ field: f }) => (
               <Select value={f.value} onValueChange={f.onChange}>
                 <SelectTrigger id="positionType" className="h-11 w-full md:h-9">
-                  <SelectValue />
+                  <SelectValue>{t(`staff.positionTypes.${f.value}`)}</SelectValue>
                 </SelectTrigger>
                 <SelectContent>
                   {positionTypes.map((p) => (
@@ -98,6 +100,20 @@ export function StaffForm({
           />
         </FormField>
       </div>
+      {/* the booking page in English/Russian shows these; empty = the Georgian text */}
+      <details className="-mt-2">
+        <summary className="cursor-pointer text-sm font-medium text-primary">
+          {t("staff.fields.positionOtherLanguages")}
+        </summary>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <FormField id="positionEn" label={t("staff.fields.positionEn")} error={errors.positionEn?.message}>
+            {field("positionEn", { lang: "en" })}
+          </FormField>
+          <FormField id="positionRu" label={t("staff.fields.positionRu")} error={errors.positionRu?.message}>
+            {field("positionRu", { lang: "ru" })}
+          </FormField>
+        </div>
+      </details>
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium">{t("staff.fields.color")}</span>
         <Controller

@@ -20,6 +20,7 @@ export function StatCard({
   href,
   tone = "brand",
   extra,
+  compact,
 }: {
   icon: ReactNode;
   label: string;
@@ -29,10 +30,13 @@ export function StatCard({
   tone?: keyof typeof chip;
   /** e.g. the change against the previous period */
   extra?: ReactNode;
+  /** small, for three in a row on a phone: no icon chip on phones, smaller number */
+  compact?: boolean;
 }) {
   return (
-    <Card className="gap-3 p-4">
-      <div className="flex items-center gap-3">
+    <Card className={cn("gap-3 p-4", compact && "gap-1.5 p-3 sm:gap-3 sm:p-4")}>
+      {/* the label has its own line: long Georgian words do not fit next to the icon and the arrow */}
+      <div className={cn("flex items-center justify-between gap-3", compact && "max-sm:hidden")}>
         <span
           className={cn(
             "flex size-9 shrink-0 items-center justify-center rounded-lg [&_svg]:size-4.5",
@@ -41,7 +45,6 @@ export function StatCard({
         >
           {icon}
         </span>
-        <span className="min-w-0 flex-1 text-sm font-medium">{label}</span>
         {href && (
           <Link
             href={href}
@@ -52,7 +55,15 @@ export function StatCard({
           </Link>
         )}
       </div>
-      <div className="text-2xl font-semibold tabular-nums">{value}</div>
+      <span
+        className={cn(
+          "-mb-2 text-sm font-medium [overflow-wrap:anywhere]",
+          compact && "max-sm:mb-0 max-sm:text-xs",
+        )}
+      >
+        {label}
+      </span>
+      <div className={cn("text-2xl font-semibold tabular-nums", compact && "max-sm:text-xl")}>{value}</div>
       {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
       {extra}
     </Card>

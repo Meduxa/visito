@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { managerContext } from "@/lib/action-context";
+import { managerContext, refusal } from "@/lib/action-context";
 import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { normalizePhone } from "@/lib/phone";
@@ -33,7 +33,7 @@ const settingsSchema = z.object({
 export async function saveSmsSettings(input: z.input<typeof settingsSchema>): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = settingsSchema.safeParse(input);
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   if (!p.success)
     return fail(
       p.error.issues[0]?.message === "senderInvalid" ? "senderInvalid" : "invalidInput",
@@ -70,7 +70,7 @@ const templateSchema = z.object({
 export async function saveTemplate(input: z.input<typeof templateSchema>): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = templateSchema.safeParse(input);
-  if (!SMS_SALON_TOOLS) return fail("notAllowed");
+  if (!SMS_SALON_TOOLS) return fail(await refusal());
   if (!ctx || !p.success) return fail("invalidInput", "body");
   if (unknownVariables(p.data.body).length) return fail("templateVariable", "body");
   const { error } = await ctx.supabase
@@ -87,7 +87,7 @@ export async function saveTemplate(input: z.input<typeof templateSchema>): Promi
 export async function resetTemplate(input: { type: string; locale: string }): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = templateSchema.pick({ type: true, locale: true }).safeParse(input);
-  if (!SMS_SALON_TOOLS) return fail("notAllowed");
+  if (!SMS_SALON_TOOLS) return fail(await refusal());
   if (!ctx || !p.success) return fail("invalidInput");
   await ctx.supabase
     .from("sms_templates")
@@ -102,7 +102,7 @@ export async function resetTemplate(input: { type: string; locale: string }): Pr
 // "Send a test SMS to my phone": uses one real credit, shows up in the log.
 export async function sendTestSms(phone: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !SMS_SALON_TOOLS) return fail("notAllowed");
+  if (!ctx || !SMS_SALON_TOOLS) return fail(await refusal());
   const to = normalizePhone(phone ?? "");
   if (!to) return fail("phoneInvalid", "phone");
   const t = await getTranslations("smsSettings");

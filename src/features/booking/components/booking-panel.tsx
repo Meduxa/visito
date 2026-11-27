@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { TimeInput } from "@/components/time-input";
 import { DetailPanel } from "@/components/detail-panel";
 import { FieldError } from "@/components/field-error";
 import { FormField } from "@/components/form-field";
@@ -27,6 +28,7 @@ import { DentalNotes } from "./dental-notes";
 import { FollowUpAdder } from "./followup-adder";
 import type { CatalogEntry } from "./new-booking-panel";
 import { missingFollowUp } from "../followup";
+import { noClientKey } from "../client-label";
 
 export { STATUS_TONE };
 
@@ -88,11 +90,21 @@ export function BookingPanel({
   const [error, setError] = useState<string>();
   const [paying, setPaying] = useState(false);
   const [history, setHistory] = useState<ReadResult<"bookingHistory">>([]);
+  // after checkout: extra items (products) — and so the discount — so the lines add up (test plan #35)
+  const [money, setMoney] = useState<{
+    for: string;
+    charges: { id: string; name: string; price_minor: number }[];
+  }>({ for: "", charges: [] });
+  const charges = booking && money.for === booking.id ? money.charges : [];
 
   useEffect(() => {
     if (!booking) return;
     let live = true;
     read("bookingHistory", booking.id, []).then((h) => live && setHistory(h));
+    if (booking.items.reduce((s, i) => s + i.priceMinor, 0) !== booking.totalMinor)
+      read("bookingMoney", booking.id, null).then(
+        (m) => live && setMoney({ for: booking.id, charges: m?.charges ?? [] }),
+      );
     return () => {
       live = false;
     };
@@ -102,6 +114,12 @@ export function BookingPanel({
   if (paying) return <CheckoutPanel booking={booking} staff={staff} onClose={onClose} />;
 
   const first = booking.items[0];
+  // "earlier" no-shows: this visit itself does not count (test plan #46)
+  const earlierNoShows = (booking.client?.noShows ?? 0) - (booking.status === "no_show" ? 1 : 0);
+  const discountMinor =
+    booking.items.reduce((s, i) => s + i.priceMinor, 0) +
+    charges.reduce((s, c) => s + c.price_minor, 0) -
+    booking.totalMinor;
   const staffName = staff.find((s) => s.id === first?.staffId)?.name ?? "";
   const date = localDate(booking.start, timeZone);
   const reschedule = {
@@ -139,13 +157,13 @@ export function BookingPanel({
     });
 
   const onlySoftConflicts =
-    conflicts.length > 0 && conflicts.every((c) => c === "outsideHours" || c === "closed");
+    conflicts.length > 0 && conflicts.every((c) => c === "outsideHours" || c === "closed" || c === "timeOff");
 
   return (
     <DetailPanel
       open
       onOpenChange={(o) => !o && onClose()}
-      title={booking.client?.name ?? t("calendar.walkIn")}
+      title={booking.client?.name ?? t(noClientKey(booking))}
       description={`${dates.dayTitle(date)} · ${localTime(booking.start, timeZone)}–${localTime(booking.end, timeZone)}`}
     >
       <div className="flex flex-col gap-6">
@@ -154,7 +172,8 @@ export function BookingPanel({
             {t(`booking.status.${booking.status as "confirmed"}`)}
           </StatusPill>
           <span className="text-sm text-muted-foreground">
-            {staffName} · {t(`booking.sources.${booking.source as "admin"}`)}
+            {staffName} ·{" "}
+            {t("booking.sourceLine", { source: t(`booking.sources.${booking.source as "admin"}`) })}
             {booking.recurrenceId && ` · ${t("booking.series")}`}
           </span>
         </div>
@@ -179,9 +198,9 @@ export function BookingPanel({
             {booking.client.importantNote}
           </div>
         )}
-        {!!booking.client?.noShows && (
+        {earlierNoShows > 0 && (
           <StatusPill tone="danger" className="self-start">
-            {t("booking.noShows", { count: booking.client.noShows })}
+            {t("booking.noShows", { count: earlierNoShows })}
           </StatusPill>
         )}
         {booking.client?.phone && (
@@ -200,10 +219,25 @@ export function BookingPanel({
               <li key={i.id} className="flex items-center gap-3 px-3 py-2">
                 <span className="flex-1">{i.name}</span>
                 <span className="text-muted-foreground tabular-nums">
-                  {localTime(i.start, timeZone)} · {formatMoney(i.priceMinor)}
+                  {localTime(i.start, timeZone)} ·{" "}
+                  {i.priceType === "fixed"
+                    ? formatMoney(i.priceMinor)
+                    : t("format.priceFrom", { price: formatMoney(i.priceMinor) })}
                 </span>
               </li>
             ))}
+            {charges.map((c) => (
+              <li key={c.id} className="flex items-center gap-3 px-3 py-2">
+                <span className="flex-1">{c.name}</span>
+                <span className="text-muted-foreground tabular-nums">{formatMoney(c.price_minor)}</span>
+              </li>
+            ))}
+            {discountMinor > 0 && (
+              <li className="flex items-center gap-3 px-3 py-2">
+                <span className="flex-1">{t("checkout.discount")}</span>
+                <span className="text-muted-foreground tabular-nums">−{formatMoney(discountMinor)}</span>
+              </li>
+            )}
             <li className="flex items-center gap-3 px-3 py-2 font-medium">
               <span className="flex-1">{t("booking.total")}</span>
               <span className="tabular-nums">{formatMoney(booking.totalMinor)}</span>
@@ -255,7 +289,7 @@ export function BookingPanel({
                 />
                 {booking.recurrenceId && NEXT[booking.status].includes("cancelled_by_client") && (
                   <ConfirmDialog
-                    description={t("common.confirm")}
+                    description={t("booking.confirmBody.cancelFollowing")}
                     confirmLabel={t("booking.cancelFollowing")}
                     onConfirm={() =>
                       startTransition(async () => {
@@ -277,7 +311,7 @@ export function BookingPanel({
                   .map((s) => (
                     <ConfirmDialog
                       key={s}
-                      description={t("common.confirm")}
+                      description={t(`booking.confirmBody.${s as "no_show"}`)}
                       confirmLabel={t(`booking.actions.${s as "no_show"}`)}
                       onConfirm={() => status(s)}
                       trigger={
@@ -306,12 +340,10 @@ export function BookingPanel({
                 />
               </FormField>
               <FormField id="mv-time" label={t("booking.time")}>
-                <Input
+                <TimeInput
                   id="mv-time"
-                  type="time"
-                  step={300}
                   value={reschedule.time}
-                  onChange={(e) => setMove({ ...move, time: e.target.value })}
+                  onChange={(v) => setMove({ ...move, time: v })}
                   className="h-11 md:h-9"
                 />
               </FormField>

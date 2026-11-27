@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { fullDate, fullDateTime } from "@/lib/date-format";
 import { useState, useTransition } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { TimeInput } from "@/components/time-input";
 import { FieldError } from "@/components/field-error";
 import { FormField } from "@/components/form-field";
 import { StatusPill } from "@/components/status-pill";
@@ -83,20 +84,16 @@ export function OverridesEditor({
         </label>
         {!dayOff && (
           <div className="flex items-center gap-2">
-            <Input
-              type="time"
-              step={300}
+            <TimeInput
               value={start}
-              onChange={(e) => setStart(e.target.value)}
+              onChange={(v) => setStart(v)}
               aria-label={t("staff.timeOff.from")}
               className="h-11 w-32 md:h-9"
             />
             <span aria-hidden>–</span>
-            <Input
-              type="time"
-              step={300}
+            <TimeInput
               value={end}
-              onChange={(e) => setEnd(e.target.value)}
+              onChange={(v) => setEnd(v)}
               aria-label={t("staff.timeOff.to")}
               className="h-11 w-32 md:h-9"
             />
@@ -198,11 +195,9 @@ export function TimeOffEditor({
               onChange={(e) => setStartDate(e.target.value)}
               className="h-11 md:h-9"
             />
-            <Input
-              type="time"
-              step={300}
+            <TimeInput
               value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
+              onChange={(v) => setStartTime(v)}
               aria-label={t("staff.timeOff.from")}
               className="h-11 w-32 md:h-9"
             />
@@ -218,11 +213,9 @@ export function TimeOffEditor({
               onChange={(e) => setEndDate(e.target.value)}
               className="h-11 md:h-9"
             />
-            <Input
-              type="time"
-              step={300}
+            <TimeInput
               value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
+              onChange={(v) => setEndTime(v)}
               aria-label={t("staff.timeOff.to")}
               className="h-11 w-32 md:h-9"
             />

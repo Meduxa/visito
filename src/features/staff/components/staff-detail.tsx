@@ -32,9 +32,19 @@ type Props = {
   catalog: (PriceShape & { id: string; name: I18nText; durationMin: number; categoryName: string })[];
   members: { id: string; name: string; role: string; staffId: string | null }[];
   branches: { id: string; name: string }[];
+  openHours?: Record<string, Record<number, { start: string; end: string }[]>>;
 };
 
-export function StaffDetailView({ staff, tenantId, timeZone, isDental, catalog, members, branches }: Props) {
+export function StaffDetailView({
+  staff,
+  tenantId,
+  timeZone,
+  isDental,
+  catalog,
+  members,
+  branches,
+  openHours,
+}: Props) {
   const t = useTranslations();
   const router = useRouter();
   const [pending, startTransition] = useTransition();
@@ -80,7 +90,7 @@ export function StaffDetailView({ staff, tenantId, timeZone, isDental, catalog, 
       </div>
 
       <Tabs defaultValue="profile" className="gap-4">
-        <TabsList className="w-full justify-start overflow-x-auto sm:w-auto">
+        <TabsList className="w-full justify-start overflow-x-auto overflow-y-hidden group-data-horizontal/tabs:h-auto sm:w-auto">
           {(["profile", "services", "schedule", "timeOff"] as const).map((k) => (
             <TabsTrigger key={k} value={k} className="min-h-9">
               {t(`staff.tabs.${k}`)}
@@ -180,6 +190,7 @@ export function StaffDetailView({ staff, tenantId, timeZone, isDental, catalog, 
             hint={t("staff.schedule.hint")}
             onSave={(week) => saveWeek(staff.id, week)}
             branches={branches}
+            openHours={openHours}
           />
           <OverridesEditor staffId={staff.id} items={staff.overrides} branches={branches} />
         </TabsContent>

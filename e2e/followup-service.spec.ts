@@ -43,6 +43,7 @@ async function setFollowUp(page: Page, on: boolean) {
 
 test("a service with an additional one: reminder, one visit, two blocks", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop");
+  test.setTimeout(60_000); // two service saves and a booking: close to 30 s on a slow evening
   await signIn(page, "salon.owner@demo.test");
   await setFollowUp(page, true);
 
@@ -76,7 +77,7 @@ test("a service with an additional one: reminder, one visit, two blocks", async 
     const [h, m] = time.split(":").map(Number);
     const fu = h * 60 + m + 120 + 30; // colouring 120 min, then 30 min gap
     const suggested = `${String(Math.floor(fu / 60)).padStart(2, "0")}:${String(fu % 60).padStart(2, "0")}`;
-    await expect(reminder.getByLabel("დრო", { exact: true })).toHaveValue(suggested);
+    await expect(reminder.locator('[data-slot="time-input"]')).toHaveAttribute("data-value", suggested);
 
     // free times for the additional service: pick the last one instead of the suggestion
     const fuSlots = reminder.getByTestId("followup-slots").getByRole("radio");
@@ -86,7 +87,7 @@ test("a service with an additional one: reminder, one visit, two blocks", async 
     expect(fuTime).not.toBe(suggested);
     await last.click();
     await expect(last).toHaveAttribute("aria-checked", "true");
-    await expect(reminder.getByLabel("დრო", { exact: true })).toHaveValue(fuTime);
+    await expect(reminder.locator('[data-slot="time-input"]')).toHaveAttribute("data-value", fuTime);
 
     await panel.getByRole("button", { name: "დაჯავშნა", exact: true }).click();
     await expect(panel).toBeHidden();
@@ -112,6 +113,7 @@ test("a service with an additional one: reminder, one visit, two blocks", async 
 
 test("additional service not added: flag in the calendar, added from the visit", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop");
+  test.setTimeout(60_000); // same: two service saves and a booking
   await signIn(page, "salon.owner@demo.test");
   await setFollowUp(page, true);
 
@@ -151,7 +153,7 @@ test("additional service not added: flag in the calendar, added from the visit",
     await block.click();
     const missing = page.getByRole("dialog").getByTestId("followup-missing");
     await expect(missing).toContainText("„დავარცხნა“ ჯერ არ არის დამატებული");
-    await missing.getByRole("button", { name: "„დავარცხნა“-ის დამატება" }).click();
+    await missing.getByRole("button", { name: "დამატება: „დავარცხნა“" }).click();
     const slot = missing.getByTestId("followup-add-slots").getByRole("radio").last();
     const fuTime = (await slot.textContent())!.trim();
     await slot.click();

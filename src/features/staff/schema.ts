@@ -16,6 +16,9 @@ const optionalText = (max: number) =>
 export const staffSchema = z.object({
   displayName: z.string().trim().min(1, "required").max(120, "tooLong"),
   position: optionalText(120),
+  // optional English/Russian versions for the booking page in those languages
+  positionEn: z.string().trim().max(120, "tooLong").default(""),
+  positionRu: z.string().trim().max(120, "tooLong").default(""),
   positionType: z.enum(positionTypes),
   color: z.enum(staffColors),
   phone: z

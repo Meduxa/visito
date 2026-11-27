@@ -1,5 +1,6 @@
 "use server";
 
+import { refusal } from "@/lib/action-context";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -21,7 +22,7 @@ export async function inviteMember(
   if (!parsed.success) return fail("invalidInput");
 
   const tenant = await getActiveTenant();
-  if (!tenant || !canManage(tenant.role) || isReadOnly(tenant)) return fail("notAllowed");
+  if (!tenant || !canManage(tenant.role) || isReadOnly(tenant)) return fail(await refusal());
 
   const supabase = await createClient();
   const { data: token, error } = await supabase.rpc("create_invitation", {
@@ -31,7 +32,7 @@ export async function inviteMember(
   });
   if (error) {
     if (error.code === "P0002") return fail("alreadyMember", "email");
-    if (error.code === "42501") return fail("notAllowed");
+    if (error.code === "42501") return fail(await refusal());
     console.error("create_invitation failed", error.code);
     return fail("generic");
   }
@@ -78,4 +79,53 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
 
   await rememberActiveTenant(tenantId);
   redirect(`/${locale}/dashboard`);
+}
+
+// The owner changes a member's role or removes them from the team (test plan
+// #66). RLS allows this only to the owner and never on their own membership;
+// the database audits both and always keeps one owner.
+async function ownerContext() {
+  await requireUser(await getLocale());
+  const tenant = await getActiveTenant();
+  if (!tenant || tenant.role !== "owner" || isReadOnly(tenant)) return null;
+  return { tenant, supabase: await createClient() };
+}
+
+export async function changeMemberRole(membershipId: string, role: string): Promise<ActionResult> {
+  const id = z.uuid().safeParse(membershipId);
+  const r = z.enum(["admin", "staff"]).safeParse(role);
+  if (!id.success || !r.success) return fail("invalidInput");
+  const ctx = await ownerContext();
+  if (!ctx) return fail(await refusal());
+  const { data, error } = await ctx.supabase
+    .from("memberships")
+    .update({ role: r.data })
+    .eq("id", id.data)
+    .eq("tenant_id", ctx.tenant.tenantId)
+    .neq("role", "owner")
+    .select("id");
+  if (error) return fail(error.code === "42501" ? await refusal() : "generic");
+  if (!data?.length) return fail("notAllowed");
+  revalidatePath(`/${await getLocale()}/settings/team`);
+  return ok(undefined);
+}
+
+export async function removeMember(membershipId: string): Promise<ActionResult> {
+  const id = z.uuid().safeParse(membershipId);
+  if (!id.success) return fail("invalidInput");
+  const ctx = await ownerContext();
+  if (!ctx) return fail(await refusal());
+  const { data, error } = await ctx.supabase
+    .from("memberships")
+    .delete()
+    .eq("id", id.data)
+    .eq("tenant_id", ctx.tenant.tenantId)
+    .neq("role", "owner")
+    .select("id");
+  if (error) return fail(error.code === "42501" ? await refusal() : "generic");
+  if (!data?.length) return fail("notAllowed");
+  const locale = await getLocale();
+  revalidatePath(`/${locale}/settings/team`);
+  revalidatePath(`/${locale}/staff`, "layout");
+  return ok(undefined);
 }

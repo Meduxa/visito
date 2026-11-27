@@ -1,7 +1,7 @@
 "use client";
 
 import { Download, FileJson, ScrollText, Trash2 } from "lucide-react";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { FieldError } from "@/components/field-error";
@@ -32,6 +32,7 @@ export function AccountCard({
   const t = useTranslations("accountData");
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const locale = useLocale();
   const [name, setName] = useState("");
   const [error, setError] = useState<string>();
   const [pending, startTransition] = useTransition();
@@ -44,7 +45,7 @@ export function AccountCard({
       </div>
       <div className="flex flex-wrap gap-2">
         <Button variant="outline" asChild className="h-11 md:h-9">
-          <a href="/api/export/business?format=xlsx" download>
+          <a href={`/api/export/business?format=xlsx&locale=${locale}`} download>
             <Download aria-hidden />
             {t("excel")}
           </a>

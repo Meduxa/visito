@@ -7,7 +7,7 @@ import { getLinkableMembers, getStaffDetail } from "@/features/staff/queries";
 import { localized } from "@/lib/i18n-text";
 import { createClient } from "@/lib/supabase/server";
 import { canManage, getActiveTenant } from "@/lib/tenant";
-import { DEFAULT_TZ } from "@/lib/time";
+import { DEFAULT_TZ, trimSeconds } from "@/lib/time";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/staff/[id]">) {
   const { id } = await params;
@@ -33,13 +33,24 @@ export default async function StaffDetailPage({ params }: PageProps<"/[locale]/s
   if (!/^[0-9a-f-]{36}$/.test(id)) notFound();
 
   const supabase = await createClient();
-  const [staff, { categories, services }, members, { data: t }, branches] = await Promise.all([
-    getStaffDetail(tenant.tenantId, id),
-    getCatalog(tenant.tenantId),
-    getLinkableMembers(tenant.tenantId),
-    supabase.from("tenants").select("timezone").eq("id", tenant.tenantId).single(),
-    getBranchInfo(supabase, tenant.tenantId),
-  ]);
+  const [staff, { categories, services }, members, { data: t }, branches, { data: hours }] =
+    await Promise.all([
+      getStaffDetail(tenant.tenantId, id),
+      getCatalog(tenant.tenantId),
+      getLinkableMembers(tenant.tenantId),
+      supabase.from("tenants").select("timezone").eq("id", tenant.tenantId).single(),
+      getBranchInfo(supabase, tenant.tenantId),
+      supabase
+        .from("location_hours")
+        .select("location_id, weekday, start_time, end_time")
+        .eq("tenant_id", tenant.tenantId),
+    ]);
+  // each branch's opening hours, for the "outside opening hours" warning
+  const openHours: Record<string, Record<number, { start: string; end: string }[]>> = {};
+  for (const h of hours ?? []) {
+    const byDay = (openHours[h.location_id] ??= {});
+    (byDay[h.weekday] ??= []).push({ start: trimSeconds(h.start_time), end: trimSeconds(h.end_time) });
+  }
   if (!staff) notFound();
 
   const catName = new Map(categories.map((c) => [c.id, localized(c.name, locale)]));
@@ -64,6 +75,7 @@ export default async function StaffDetailPage({ params }: PageProps<"/[locale]/s
       catalog={catalog}
       members={members}
       branches={branches.usable.map((b) => ({ id: b.id, name: b.name }))}
+      openHours={openHours}
     />
   );
 }

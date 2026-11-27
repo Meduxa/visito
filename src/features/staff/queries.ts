@@ -1,11 +1,14 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { trimSeconds } from "@/lib/time";
+import { translationOf } from "@/lib/translations";
 
 export type StaffMember = {
   id: string;
   displayName: string;
   position: string | null;
+  positionEn: string;
+  positionRu: string;
   positionType: "master" | "doctor" | "assistant" | "other";
   color: string;
   photoUrl: string | null;
@@ -39,6 +42,7 @@ type Row = {
   display_name: string;
   position: string | null;
   position_type: string;
+  translations: unknown;
   color: string;
   photo_path: string | null;
   phone: string | null;
@@ -57,6 +61,8 @@ function base(
     id: r.id,
     displayName: r.display_name,
     position: r.position,
+    positionEn: translationOf(r.translations, "en", "position"),
+    positionRu: translationOf(r.translations, "ru", "position"),
     positionType: r.position_type as StaffMember["positionType"],
     color: r.color,
     photoUrl: r.photo_path ? `${supabaseUrl}/storage/v1/object/public/staff-photos/${r.photo_path}` : null,

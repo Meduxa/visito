@@ -1,5 +1,6 @@
 "use server";
 
+import { refusal } from "@/lib/action-context";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
@@ -18,7 +19,7 @@ async function owner() {
 
 export async function allowSupport(hours: number): Promise<ActionResult> {
   const ctx = await owner();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   if (hours !== 24 && hours !== 72) return fail("invalidInput");
   const { error } = await (
     await createClient()
@@ -33,7 +34,7 @@ export async function allowSupport(hours: number): Promise<ActionResult> {
 
 export async function endSupport(): Promise<ActionResult> {
   const ctx = await owner();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const { error } = await (
     await createClient()
   ).rpc("revoke_support_access", {

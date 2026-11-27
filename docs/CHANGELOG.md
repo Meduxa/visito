@@ -2,9 +2,65 @@
 
 All notable changes per phase. Newest on top.
 
+## Fixes from test day 7 — ending (2026-11-27)
+
+Problems #64–#67 of `docs/test-plan.md`.
+- Team: the owner can change a member's role and remove someone from the team (with confirmation). The removed person loses access at once; history stays (RLS test `rls_team_remove`).
+- "Download everything (Excel)" is readable: sheets and columns in the page language, names instead of IDs, money in lari, times in the business's time zone, a visit's services in plain words.
+- "Download everything" now also includes categories, variants, add-ons, branch hours and services, closed days, resources, specialists' services and schedules, time off and requests, client field definitions, extra charges, reviews, waitlist, pay rules, bonuses/deductions, payouts and subscription payments (migration `20261128100000_export_everything.sql`). Treatment notes stay out.
+- Switches in forms are named for screen readers (all `SwitchRow` switches).
+
+## Fixes from test day 6 — clients, money, account (2026-11-27)
+
+Problems #56–#63 of `docs/test-plan.md` (#57 was not a problem).
+- Client "spent" is the money actually received (part payments included); the average is per paid visit (migration `20261128090000_day6_fixes.sql`, RLS test extended).
+- Deleting a client's personal data cancels their upcoming visits first; the confirmation says so.
+- Report chart opens on a metric that has data (a branch with only completed visits no longer shows "nothing in this period").
+- Audit log: sign-ins (password or email link) and report / payroll Excel downloads are recorded; every action has a readable name; details show names, money and dates instead of IDs; role "changes" that changed nothing are hidden.
+- A refused change in a suspended business says the account is suspended (not "no permission"); a suspended business's booking page says online booking is temporarily unavailable, with a call button, instead of "page not found".
+- Wording: "ჩაწერა: ადმინისტრატორი" in the visit panel; Georgian dates no longer end in "-მდე" (trial, paid period, support access).
+
+## Fixes from test day 5 — SMS (2026-11-27)
+
+- Live problem found: every scheduled job on Netlify failed because CRON_SECRET contained a curly quote (no reminders, review requests or held messages; no daily job). The job now logs a clear reason; the value must be re-entered on Netlify.
+- A message that waited in the queue (e.g. until the end of quiet hours) is checked against the visit before sending: a reminder for a moved or cancelled visit, a confirmation replaced by a later change, or a cancel message whose cancellation was undone is not sent; credits go back and the SMS log says why (`src/features/sms/outdated.ts`, unit-tested).
+
+## Fixes from test day 4 — staff and permissions (2026-11-27)
+
+Problems #43–#51 of `docs/test-plan.md`.
+- Staff allowed to see all bookings get everyone's columns and specialist names; clients they may not see show as "სხვა სპეციალისტის კლიენტი" instead of "walk-in".
+- A link to a visit (bell, client card) opens the visit's own branch.
+- Time off: rejecting says "უარყოფა" and takes an optional reason the staff member sees; waiting requests show as a count next to "პერსონალი" (a dot on "მეტი" on phones).
+- Menu: cashbox, reports and payroll only for people who may see money.
+- "ჩემი დღე": three small number cards in one row on phones; a no-show visit no longer counts itself as an earlier no-show.
+- All dropdowns are 44 px high on phones (a shared style overrode the screens' size); the calendar's branch picker shows its name from the start; "მეტი" has a tab title.
+
+## Fixes from test day 3 — calendar (2026-11-27)
+
+Problems #26–#42 of `docs/test-plan.md`.
+- **SMS:** undoing a cancellation now tells the client the visit is back ("ჯავშანი დადასტურდა"), and a later cancel tells them again; a repeat series sends one confirmation (its first visit); the confirmation text is "{salon}: ჯავშანი დადასტურდა — …" (also after approving an online request).
+- **Checkout:** a second payment of a part-paid visit keeps the discount given earlier (it was dropped and the total went back up); the tip shows as its own line, with "სულ მისაღები" and the "მიღება" button including it; the visit panel lists extra items and the discount so its lines add up, and "from" prices show "-დან".
+- **Booking import with branches:** a visit goes to the branch where its specialist works that weekday (a date change first), otherwise the main branch (migration `20261127090000_import_branch.sql`).
+- **Conflicts:** booking during a specialist's time off says so ("სპეციალისტს ამ დროს არყოფნა აქვს…") instead of "outside working hours"; "book anyway" still possible.
+- **Waitlist:** "მოლოდინის სიაში დამატება" also when the day has free times; "დაჯავშნა" after a cancellation opens at the freed time.
+- **Small:** confirm windows explain the action instead of repeating "დარწმუნებული ხართ?"; stretching a visit says "ხანგრძლივობა შეიცვალა"; free times reload after "time just taken"; client search shows "იძებნება…"; calendar blocks name walk-ins and the status for screen readers; "დამატება: „…“" wording.
+- Tests: `availability.test.ts` (time off), `supabase/tests/rls_test_fixes.test.ts` (import branch).
+
+## Fixes from the test salon run (2026-11-26)
+
+All 25 problems found on days 1–2 of  (table "Problems found").
+- **SMS:** every automatic SMS starts with the salon name, plus the branch when there are several (, decision 039). Review SMS: shorter link, always one SMS.
+- **Online booking:** a blocked number or one over the future-visits limit is refused **before** the SMS code (no paid SMS for nothing); a wrong email shows Visito's own message; the manage page shows "-დან" prices, hides prices when the salon hides them, names the main branch too, and its cancel window says "არა, დავტოვო".
+- **Bell:** "time ago" in Visito's own words (was English on browsers without Georgian); new notices when a client moves or cancels with the link; a cancelled online booking is marked "გაუქმებულია".
+- **Branches and team:** optional English/Russian branch name, address and staff position for the booking page in those languages (decision 039); new branches get a link name from their name (საბურთალო → saburtalo); a yellow note when a staff member's hours are outside the branch's opening hours.
+- **Forms:** 24-hour time fields everywhere (were AM/PM on English phones); service window: Save next to Delete at the bottom; invitation role goes back to "staff"; cancelling an invitation uses Visito's window and hides its link.
+- **Wording and layout:** dashboard/Team texts without "-ის" glued to the salon name; "თუ გამორთულია:" hints; client import label; staff home explains what to do before being linked; dashboard card titles readable at 1024 px; staff page tab bar and own-price fields; screen-reader names for Close, colours and invitation buttons.
+- Migration  (notice kinds, trigger, manage view,  columns); tests , .
+
 ## SMS test mode (2026-11-19)
 
 - New server setting `SMS_ONLY_TO`: while testing with real TNET SMS, only the listed numbers receive SMS; all others are logged as "test mode" and not sent (decision 038). Must be empty at launch.
+- **Demo and test businesses never send real SMS** (owners with `.test` addresses: demo salons, automatic-test businesses) — logged as "demo or test business"; real salons send normally, without `SMS_ONLY_TO` (decision 038).
 - `docs/test-plan.md`: full step-by-step test of a salon with three branches, with real SMS to Levan's phone (and a section for testing without SMS).
 - **Fix:** a business created after the branches update had a main branch without a link name, so once a second branch was added the main branch vanished from the client's branch choice. New main branches now get "main", existing ones were fixed (migration `20261120090000_main_branch_slug.sql`, test in `rls_branches.test.ts`).
 - Next.js 16.4.3 → 16.4.6 (fixes seven moderate security advisories).

@@ -30,7 +30,10 @@
     "confirm": "Are you sure?",
     "signOutEverywhere": "Sign out of all devices",
     "signOutEverywhereHint": "You will be signed out on every phone and computer, including this one. Use it if a device was lost or someone else used your account.",
-    "signOutEverywhereConfirm": "Sign out everywhere"
+    "signOutEverywhereConfirm": "Sign out everywhere",
+    "dialogNo": "No",
+    "timeHours": "hours",
+    "timeMinutes": "minutes"
   },
   "languages": {
     "ka": "ქართული",
@@ -60,7 +63,8 @@
     "reports": "Reports",
     "payroll": "Payroll",
     "collapse": "Fold the menu",
-    "expand": "Unfold the menu"
+    "expand": "Unfold the menu",
+    "waitingBadge": "waiting for a decision"
   },
   "auth": {
     "email": "Email",
@@ -151,6 +155,15 @@
       "occupancyHint": "Booked hours ÷ working hours",
       "newClients": "New clients",
       "noShows": "No-shows"
+    },
+    "subtitleStaff": "Dashboard — {business}.",
+    "staffHome": {
+      "title": "Your working day",
+      "body": "Today's visits and schedule are in “My day”. The full calendar is in “Calendar”.",
+      "myDay": "My day",
+      "calendar": "Calendar",
+      "notLinkedTitle": "Your account is not linked to a staff profile yet",
+      "notLinkedBody": "Until the owner or an administrator links your account to a staff profile (Staff → the person → Sign-in), your visits and schedule won't show here. Please ask them to do it."
     }
   },
   "placeholder": {
@@ -177,7 +190,16 @@
     "noName": "No name yet",
     "staffNotice": "Only the owner and administrators can invite people.",
     "role": "Role",
-    "link": "Invitation link"
+    "link": "Invitation link",
+    "revokeFor": "Revoke the invitation for {email}",
+    "remove": "Remove from team",
+    "removeFor": "Remove from team: {name}",
+    "removeTitle": "Remove {name} from the team?",
+    "removeConfirm": "They will no longer be able to sign in to your business or see clients and bookings. Visits and history stay. To add them back, send a new invitation.",
+    "removeStaffHint": "The specialist profile “{staff}” stays — if they no longer work here, turn off “Active” on the Staff page.",
+    "removed": "{name} was removed from the team",
+    "roleFor": "Role: {name}",
+    "roleChanged": "Role changed"
   },
   "invite": {
     "title": "You're invited",
@@ -274,7 +296,9 @@
     "linkExpired": "The link has expired. Ask for a new one.",
     "samePassword": "This is your current password. Choose a different one.",
     "consentNeeded": "Please tick the box to agree to the monthly payment.",
-    "captchaFailed": "We couldn't confirm that you are a person. Refresh the page and try again."
+    "captchaFailed": "We couldn't confirm that you are a person. Refresh the page and try again.",
+    "onlineNotPossible": "Online booking isn't possible with this number right now. Please call the business.",
+    "readOnly": "The account is suspended — for now you can only view and download. Please contact Visito."
   },
   "email": {
     "invite": {
@@ -474,7 +498,10 @@
       "photo": "Photo",
       "uploadPhoto": "Upload photo",
       "removePhoto": "Remove photo",
-      "photoHint": "JPG, PNG or WebP, up to 2 MB."
+      "photoHint": "JPG, PNG or WebP, up to 2 MB.",
+      "positionOtherLanguages": "Position in English and Russian (optional)",
+      "positionEn": "Position in English",
+      "positionRu": "Position in Russian"
     },
     "positionTypes": {
       "master": "Master",
@@ -493,13 +520,17 @@
       "ownPrice": "Own price, ₾",
       "ownDuration": "Own time, min",
       "emptyCatalog": "Add services first.",
-      "selected": "{count} selected"
+      "selected": "{count} selected",
+      "ownPriceShort": "Price, ₾",
+      "ownDurationShort": "Time, min"
     },
     "schedule": {
       "hint": "Weekly hours. Add a second interval for a lunch break.",
       "dayOff": "Day off",
       "addInterval": "Add interval",
-      "copyToWeekdays": "Copy Monday to Tue–Fri"
+      "copyToWeekdays": "Copy Monday to Tue–Fri",
+      "outsideHours": "Note: {branch} is open {hours} on this day. Times outside these hours are not offered to clients.",
+      "branchClosed": "Note: {branch} is closed on this day. No times are offered to clients on this day."
     },
     "overrides": {
       "title": "Changes for a date",
@@ -551,7 +582,8 @@
     "conflicts": "{count, plural, one {# booking in this period} other {# bookings in this period}} — move them after approving",
     "approve": "Approve",
     "decline": "Decline",
-    "declineConfirm": "Decline {name}'s request?"
+    "declineConfirm": "Decline {name}'s request?",
+    "declineReason": "Reason (optional) — the staff member will see it"
   },
   "settings": {
     "title": "Business settings",
@@ -585,13 +617,13 @@
       "onlineRequiresApproval": "Approve online bookings",
       "onlineRequiresApprovalHint": "New online bookings wait for your confirmation.",
       "onlineShowPrices": "Show prices on the booking page",
-      "onlineShowPricesHint": "Off: clients see services and times, but no prices.",
+      "onlineShowPricesHint": "When off: clients see services and times, but no prices.",
       "maxUpcoming": "Upcoming visits per client",
       "maxUpcomingHint": "How many future visits one client can have at once when booking online. 0 = no limit.",
       "staffSeesAllClients": "Staff see all clients",
-      "staffSeesAllClientsHint": "Off: staff see only clients who chose them.",
+      "staffSeesAllClientsHint": "When off: staff see only clients who chose them.",
       "staffSeesAllBookings": "Staff see all bookings",
-      "staffSeesAllBookingsHint": "Off: staff see only their own calendar.",
+      "staffSeesAllBookingsHint": "When off: staff see only their own calendar.",
       "onlineOtpRequired": "SMS code for online bookings",
       "onlineOtpRequiredHint": "Clients confirm their number with a code, which stops fake bookings. One SMS per booking."
     },
@@ -790,7 +822,7 @@
       "hint": "On the client’s request: give them their data, or delete it.",
       "export": "Download data (JSON)",
       "anonymize": "Delete personal data",
-      "anonymizeConfirm": "Remove {name}’s name, phone, email, notes and consents for good? Visit history stays, without personal data. This cannot be undone.",
+      "anonymizeConfirm": "Remove {name}’s name, phone, email, notes and consents for good? Upcoming visits will be cancelled. Visit history stays, without personal data. This cannot be undone.",
       "anonymized": "Personal data removed",
       "ownerOnly": "Only the owner can export or delete client data."
     },
@@ -974,7 +1006,8 @@
       "badEmail": "Email not valid (left out)",
       "badBirthday": "Birthday not understood (left out)",
       "duplicateInFile": "Same phone twice in file"
-    }
+    },
+    "paste": "Paste your client list"
   },
   "dates": {
     "months": {
@@ -1051,7 +1084,8 @@
     "noChairs": "Add chairs or rooms in Settings to see this view.",
     "colorBy": "Colour",
     "colorByStaff": "Colour: specialist",
-    "colorByService": "Colour: service"
+    "colorByService": "Colour: service",
+    "hiddenClient": "Another specialist's client"
   },
   "booking": {
     "status": {
@@ -1119,7 +1153,8 @@
       "overlap": "This person is busy at that time.",
       "cannotPerform": "This person does not do one of these services.",
       "noResource": "No free chair/room at that time.",
-      "inactive": "This person is not active."
+      "inactive": "This person is not active.",
+      "timeOff": "The specialist is away at this time (vacation, sick leave or other)."
     },
     "visits": "Visits",
     "visitsEmpty": "No visits yet.",
@@ -1148,7 +1183,17 @@
       "addNow": "Add “{service}”",
       "addConfirm": "Add to visit",
       "added": "Additional service added"
-    }
+    },
+    "confirmBody": {
+      "cancelled_by_business": "The booking is cancelled and the time becomes free.",
+      "cancelled_by_client": "Marked as cancelled by the client; the time becomes free.",
+      "no_show": "Marked as a no-show. This also shows on the client card.",
+      "cancelFollowing": "This and all following visits of the series are cancelled."
+    },
+    "resized": "Length changed",
+    "searching": "Searching…",
+    "noClientFound": "Not found — add a new client.",
+    "sourceLine": "Booked via: {source}"
   },
   "myDay": {
     "title": "My day",
@@ -1217,7 +1262,9 @@
       "transfer": "Bank transfer",
       "gift_card": "Gift card",
       "online": "Online"
-    }
+    },
+    "tipLine": "Tip ({name})",
+    "toTake": "To take in total"
   },
   "cash": {
     "title": "Cash summary",
@@ -1236,7 +1283,7 @@
   },
   "settingsRevenue": {
     "label": "Administrators see revenue",
-    "hint": "Off: only the owner sees money and the cash summary."
+    "hint": "When off: only the owner sees money and the cash summary."
   },
   "bookingImport": {
     "title": "Import bookings",
@@ -1358,7 +1405,8 @@
       "title": "Choose a branch",
       "hint": "Where would you like to come?",
       "change": "Change"
-    }
+    },
+    "pausedBody": "Online booking is temporarily unavailable. Please call us to book."
   },
   "manageBooking": {
     "title": "Your booking",
@@ -1378,17 +1426,18 @@
     "policy": "Changes are possible online until {hours} h before the visit.",
     "notFoundTitle": "This link doesn't work",
     "notFoundBody": "It may be mistyped, or the booking no longer exists.",
-    "bookAgain": "Book again"
+    "bookAgain": "Book again",
+    "keepIt": "No, keep it"
   },
   "smsTemplates": {
-    "confirmed": "Your booking is confirmed. Date: {date} - {time} 💚",
-    "pending": "Your request is received: {date} - {time}. We'll confirm soon 💚",
-    "reminder": "Reminder: your visit {date} - {time} 💚",
-    "rescheduled": "Your booking is moved. New date: {date} - {time} 💚",
-    "cancelled": "Your booking is cancelled: {date} - {time} 💚",
+    "confirmed": "{place}: your booking is confirmed - {date}, {time}",
+    "pending": "{place}: request received - {date}, {time}. We'll confirm soon",
+    "reminder": "{place}: reminder - your visit {date}, {time}",
+    "rescheduled": "{place}: your booking is moved - {date}, {time}",
+    "cancelled": "{place}: your booking is cancelled - {date}, {time}",
     "optOut": "Unsubscribe: {link}",
     "waitlistOffer": "{business_name}: a time opened up — {date}, {time}, {service}. Want it? Call {phone}",
-    "review": "Thank you for your visit! Rate us: {manage_link} 💚"
+    "review": "Thank you! Rate your visit: {manage_link}"
   },
   "smsSettings": {
     "title": "SMS",
@@ -1438,7 +1487,8 @@
       "time": "time",
       "address": "address",
       "phone": "your phone",
-      "manage_link": "manage link"
+      "manage_link": "manage link",
+      "place": "Business and branch"
     },
     "custom": "Your text",
     "default": "Default text",
@@ -1491,6 +1541,7 @@
       "exception": "provider error",
       "no_provider": "no SMS company connected",
       "test_mode": "test mode — this number is not on the test list",
+      "demo_business": "demo or test business — real SMS are never sent",
       "uncertain": "no answer from the SMS company — not resent, to avoid a double SMS",
       "sender": "sender name not registered with the SMS company",
       "rejected": "rejected by the SMS company",
@@ -1499,7 +1550,12 @@
       "rate_limited": "too many requests — will retry",
       "invalid_credentials": "SMS company login failed",
       "destination": "phone number not supported",
-      "undelivered": "not delivered"
+      "undelivered": "not delivered",
+      "visit_cancelled": "Visit cancelled — not sent",
+      "visit_moved": "Visit moved — the old reminder was not sent",
+      "visit_active": "Cancellation undone — not sent",
+      "visit_gone": "Visit no longer exists — not sent",
+      "replaced": "Replaced by a later change — not sent"
     },
     "types": {
       "otp": "Code",
@@ -1841,7 +1897,7 @@
       "invitation_created": "Invitation sent",
       "invitation_revoked": "Invitation cancelled",
       "membership_removed": "Team member removed",
-      "membership_updated": "Team member's role changed",
+      "membership_updated": "Team member changed",
       "platform_sms_topup": "SMS credits added by Visito",
       "platform_tenant_updated": "Plan or status changed by Visito",
       "service_deleted": "Service deleted",
@@ -1859,7 +1915,79 @@
       "tenant_deletion_cancelled": "Deletion cancelled",
       "tenant_deletion_requested": "Deletion requested",
       "tenant_exported": "All business data downloaded",
-      "tenant_seeded": "Demo data loaded"
+      "tenant_seeded": "Demo data loaded",
+      "auth_signed_in": "Signed in",
+      "auth_password_changed": "Password changed",
+      "time_off_requested": "Time off requested",
+      "time_off_approved": "Time off approved",
+      "time_off_declined": "Time off declined",
+      "time_off_cancelled": "Time off request cancelled",
+      "payroll_staff_pay_insert": "Pay rule added",
+      "payroll_staff_pay_rates_insert": "Service commission added",
+      "payroll_pay_adjustments_insert": "Bonus / deduction added",
+      "payroll_payouts_insert": "Payout recorded",
+      "payroll_staff_pay_update": "Pay rule changed",
+      "payroll_staff_pay_rates_update": "Service commission changed",
+      "payroll_pay_adjustments_update": "Bonus / deduction changed",
+      "payroll_payouts_update": "Payout changed",
+      "payroll_staff_pay_delete": "Pay rule removed",
+      "payroll_staff_pay_rates_delete": "Service commission removed",
+      "payroll_pay_adjustments_delete": "Bonus / deduction removed",
+      "payroll_payouts_delete": "Payout removed",
+      "payroll_exported": "Payroll downloaded (Excel)",
+      "report_exported": "Report downloaded (Excel)",
+      "clients_list_exported": "Client list downloaded",
+      "billing_paid": "Subscription paid",
+      "billing_started": "Payment started",
+      "billing_recurring_consent": "Automatic payment turned on",
+      "billing_autopay_off": "Automatic payment turned off",
+      "billing_amount_mismatch": "Payment amount mismatch",
+      "review_moderated": "Review moderated (reply / hide)",
+      "services_templates_added": "Services added from a template",
+      "location_created": "Branch added",
+      "location_updated": "Branch changed",
+      "location_activated": "Branch turned on",
+      "location_deactivated": "Branch turned off",
+      "location_deleted": "Branch deleted",
+      "location_services_updated": "Branch services changed"
+    },
+    "meta": {
+      "amount": "Amount",
+      "salary": "Salary",
+      "paid": "Paid",
+      "total": "Total",
+      "pct": "Percent",
+      "method": "How",
+      "role": "Role",
+      "starts": "Starts",
+      "ends": "Ends",
+      "until": "Ends",
+      "due": "Deleted on",
+      "paidOn": "Paid on",
+      "from": "From",
+      "to": "To",
+      "email": "Email",
+      "count": "Count",
+      "rows": "Rows",
+      "imported": "Imported",
+      "inserted": "Imported",
+      "skipped": "Skipped",
+      "hours": "Hours",
+      "segments": "SMS",
+      "note": "Note",
+      "month": "Month"
+    },
+    "how": {
+      "password": "with password",
+      "email_link": "with an email link"
+    },
+    "memberStatus": {
+      "active": "turned on",
+      "disabled": "turned off"
+    },
+    "reviewStatus": {
+      "published": "visible",
+      "hidden": "hidden"
     }
   },
   "accountData": {
@@ -2437,13 +2565,22 @@
     "markAllRead": "Mark all as read",
     "close": "Close",
     "empty": "No new notifications",
-    "emptyHint": "Online bookings and visits that still need a status will appear here.",
+    "emptyHint": "Online bookings, visits clients moved or cancelled, and visits that need a status appear here.",
     "error": "Couldn't load notifications",
     "onlineBooking": "New online booking",
     "needsAction": "Booking needs a status",
     "noClient": "No client",
     "when": "{date}, {time}",
-    "needsFollowUp": "Additional service not added"
+    "needsFollowUp": "Additional service not added",
+    "ago": {
+      "now": "just now",
+      "minutes": "{n, plural, one {# minute ago} other {# minutes ago}}",
+      "hours": "{n, plural, one {# hour ago} other {# hours ago}}",
+      "days": "{n, plural, one {# day ago} other {# days ago}}"
+    },
+    "clientMoved": "Client moved their visit",
+    "clientCancelled": "Client cancelled their visit",
+    "cancelledNow": "cancelled"
   },
   "branches": {
     "branch": "Branch",
@@ -2460,7 +2597,12 @@
       "phone": "Phone",
       "address": "Address",
       "slug": "Link name",
-      "slugHint": "The end of this branch's booking link: latin letters, digits, dashes."
+      "slugHint": "The end of this branch's booking link: latin letters, digits, dashes.",
+      "otherLanguages": "In English and Russian (optional)",
+      "nameEn": "Name in English",
+      "nameRu": "Name in Russian",
+      "addressEn": "Address in English",
+      "addressRu": "Address in Russian"
     },
     "add": {
       "title": "Add a branch",
@@ -2504,5 +2646,108 @@
     "idCode": "ID code {code}",
     "securePayment": "Secure card payment: Flitt (TBC Group)",
     "legalNav": "Legal information"
+  },
+  "colors": {
+    "green": "Green",
+    "teal": "Teal",
+    "sky": "Sky blue",
+    "blue": "Blue",
+    "indigo": "Indigo",
+    "violet": "Violet",
+    "pink": "Pink",
+    "rose": "Rose",
+    "orange": "Orange",
+    "amber": "Amber"
+  },
+  "businessExport": {
+    "yes": "Yes",
+    "no": "No",
+    "deletedClient": "Deleted client",
+    "allBranches": "All branches",
+    "payout": "Payout",
+    "paymentStatus": {
+      "paid": "Paid",
+      "refunded": "Refunded",
+      "voided": "Voided"
+    },
+    "sheets": {
+      "clients": "Clients",
+      "visits": "Visits",
+      "payments": "Payments",
+      "services": "Services",
+      "staff": "Staff",
+      "schedules": "Schedules",
+      "timeOff": "Time off",
+      "branches": "Branches",
+      "closures": "Closed days",
+      "reviews": "Reviews",
+      "waitlist": "Waitlist",
+      "payroll": "Payroll",
+      "sms": "SMS",
+      "consents": "Consents"
+    },
+    "cols": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phone": "Phone",
+      "email": "Email",
+      "birthday": "Birthday",
+      "importantNote": "Important note",
+      "notes": "Notes",
+      "tags": "Tags",
+      "noShows": "No-shows",
+      "added": "Added",
+      "dataDeleted": "Data deleted",
+      "date": "Date",
+      "time": "Time",
+      "branch": "Branch",
+      "client": "Client",
+      "services": "Services",
+      "specialist": "Specialist",
+      "status": "Status",
+      "source": "Source",
+      "price": "Price, ₾",
+      "discount": "Discount, ₾",
+      "paid": "Paid, ₾",
+      "clientComment": "Client comment",
+      "internalNote": "Internal note",
+      "cancelReason": "Cancel reason",
+      "visitDate": "Visit date",
+      "amount": "Amount, ₾",
+      "tip": "Tip, ₾",
+      "tipFor": "Tip for",
+      "method": "Method",
+      "category": "Category",
+      "name": "Name",
+      "nameEn": "Name (English)",
+      "nameRu": "Name (Russian)",
+      "duration": "Duration, min",
+      "priceMax": "Price up to, ₾",
+      "online": "Online booking",
+      "active": "Active",
+      "position": "Position",
+      "commission": "Commission, %",
+      "salary": "Salary, ₾",
+      "weekday": "Day",
+      "from": "From",
+      "to": "To",
+      "reason": "Reason",
+      "note": "Note",
+      "address": "Address",
+      "hours": "Opening hours",
+      "rating": "Rating",
+      "comment": "Comment",
+      "reply": "Reply",
+      "visible": "Shown on page",
+      "service": "Service",
+      "month": "Month",
+      "kind": "Type",
+      "paidOn": "Paid on",
+      "type": "Type",
+      "segments": "Parts",
+      "purpose": "Purpose",
+      "channel": "Channel",
+      "granted": "Agreed"
+    }
   }
 }

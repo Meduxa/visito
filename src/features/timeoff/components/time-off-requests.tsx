@@ -170,6 +170,42 @@ export function MyTimeOff({ requests, today }: { requests: TimeOffRequest[]; tod
   );
 }
 
+// "Decline" asks first, with an optional reason the staff member sees (test plan #47)
+function DeclineButton({
+  name,
+  disabled,
+  onDecline,
+}: {
+  name: string;
+  disabled: boolean;
+  onDecline: (note: string) => void;
+}) {
+  const t = useTranslations("timeOffRequests");
+  const [note, setNote] = useState("");
+  return (
+    <ConfirmDialog
+      description={t("declineConfirm", { name })}
+      confirmLabel={t("decline")}
+      onConfirm={() => onDecline(note.trim())}
+      trigger={
+        <Button variant="outline" className="h-11 md:h-8" disabled={disabled}>
+          <X aria-hidden />
+          {t("decline")}
+        </Button>
+      }
+    >
+      <Input
+        value={note}
+        maxLength={300}
+        onChange={(e) => setNote(e.target.value)}
+        placeholder={t("declineReason")}
+        aria-label={t("declineReason")}
+        className="h-11 md:h-9"
+      />
+    </ConfirmDialog>
+  );
+}
+
 /** Staff page (owner/admin): requests waiting for a decision, and recent decisions. */
 export function TimeOffInbox({ requests }: { requests: TimeOffRequest[] }) {
   const t = useTranslations("timeOffRequests");
@@ -210,15 +246,10 @@ export function TimeOffInbox({ requests }: { requests: TimeOffRequest[] }) {
               <Check aria-hidden />
               {t("approve")}
             </Button>
-            <ConfirmDialog
-              description={t("declineConfirm", { name: r.staffName })}
-              onConfirm={() => run(() => decideTimeOff(r.id, false))}
-              trigger={
-                <Button variant="outline" className="h-11 md:h-8" disabled={pending}>
-                  <X aria-hidden />
-                  {t("decline")}
-                </Button>
-              }
+            <DeclineButton
+              name={r.staffName}
+              disabled={pending}
+              onDecline={(note) => run(() => decideTimeOff(r.id, false, note))}
             />
           </li>
         ))}

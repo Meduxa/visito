@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { dbErrorCode, managerContext } from "@/lib/action-context";
+import { dbErrorCode, managerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { parseMoneyToMinor } from "@/lib/money";
 import {
@@ -27,7 +27,7 @@ const amount = (s: string) => (s === "" ? 0 : parseMoneyToMinor(s));
 export async function savePayScheme(staffId: string, input: PaySchemeInput): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = paySchemeSchema.safeParse(input);
-  if (!ctx || !uuid.safeParse(staffId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(staffId).success) return fail(await refusal());
   if (!p.success) return fail("invalidInput");
   const salary = amount(p.data.salary);
   if (salary === null) return fail("priceInvalid", "salary");
@@ -38,7 +38,7 @@ export async function savePayScheme(staffId: string, input: PaySchemeInput): Pro
     .upsert({ tenant_id: tenant.tenantId, staff_id: staffId, salary_minor: salary })
     .select("staff_id");
   if (pay.error) return fail(dbErrorCode(pay.error));
-  if (!pay.data?.length) return fail("notAllowed");
+  if (!pay.data?.length) return fail(await refusal());
   const staff = await supabase
     .from("staff")
     .update({ commission_pct: p.data.defaultPct })
@@ -54,7 +54,7 @@ export async function savePayScheme(staffId: string, input: PaySchemeInput): Pro
 export async function addPayRate(staffId: string, input: PayRateInput): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = payRateSchema.safeParse(input);
-  if (!ctx || !uuid.safeParse(staffId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(staffId).success) return fail(await refusal());
   if (!p.success) return fail("invalidInput");
   const { error } = await ctx.supabase.from("staff_pay_rates").insert({
     tenant_id: ctx.tenant.tenantId,
@@ -70,7 +70,7 @@ export async function addPayRate(staffId: string, input: PayRateInput): Promise<
 
 async function remove(table: "staff_pay_rates" | "pay_adjustments" | "payouts", id: string) {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
   const { data, error } = await ctx.supabase
     .from(table)
     .delete()
@@ -90,7 +90,7 @@ export async function removePayRate(id: string): Promise<ActionResult> {
 export async function addAdjustment(input: AdjustmentInput): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = adjustmentSchema.safeParse(input);
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   if (!p.success) return fail("invalidInput");
   const value = parseMoneyToMinor(p.data.amount);
   if (!value) return fail("priceInvalid", "amount");
@@ -115,7 +115,7 @@ export async function removeAdjustment(id: string): Promise<ActionResult> {
 export async function addPayout(input: PayoutInput): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = payoutSchema.safeParse(input);
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   if (!p.success) return fail("invalidInput");
   const value = parseMoneyToMinor(p.data.amount);
   if (!value) return fail("priceInvalid", "amount");

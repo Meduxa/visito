@@ -65,7 +65,7 @@ export async function bookingHistory(bookingId: string) {
 export async function bookingMoney(bookingId: string) {
   const ctx = await memberContext({ read: true });
   if (!ctx || !uuid.safeParse(bookingId).success) return null;
-  const [charges, payments] = await Promise.all([
+  const [charges, payments, booking] = await Promise.all([
     ctx.supabase
       .from("booking_charges")
       .select("id, name, price_minor")
@@ -76,8 +76,13 @@ export async function bookingMoney(bookingId: string) {
       .select("id, method, amount_minor, tip_minor, status, created_at")
       .eq("booking_id", bookingId)
       .order("created_at"),
+    ctx.supabase.from("bookings").select("discount_minor").eq("id", bookingId).maybeSingle(),
   ]);
-  return { charges: charges.data ?? [], payments: payments.data ?? [] };
+  return {
+    charges: charges.data ?? [],
+    payments: payments.data ?? [],
+    discountMinor: booking.data?.discount_minor ?? 0,
+  };
 }
 
 export async function consentHistory(clientId: string) {

@@ -8,9 +8,9 @@ import { useLocale, useTranslations } from "next-intl";
 import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { FieldError } from "@/components/field-error";
+import { TimeInput } from "@/components/time-input";
 import { FormField } from "@/components/form-field";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { localized } from "@/lib/i18n-text";
 import { cn } from "@/lib/utils";
@@ -117,14 +117,7 @@ export function FollowUpAdder({
         <div className="flex flex-col gap-3 rounded-md bg-card p-3 text-foreground">
           <div className="flex flex-wrap items-end gap-3">
             <FormField id="fa-time" label={t("booking.followUp.time")} className="w-32">
-              <Input
-                id="fa-time"
-                type="time"
-                step={300}
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="h-11 md:h-9"
-              />
+              <TimeInput id="fa-time" value={time} onChange={(v) => setTime(v)} className="h-11 md:h-9" />
             </FormField>
             {people.length > 1 && (
               <FormField id="fa-staff" label={t("booking.followUp.staff")} className="min-w-40 flex-1">
@@ -191,17 +184,18 @@ export function FollowUpAdder({
             >
               {t("booking.followUp.addConfirm")}
             </Button>
-            {conflicts.length > 0 && conflicts.every((c) => c === "outsideHours" || c === "closed") && (
-              <Button
-                type="button"
-                variant="outline"
-                className="h-11 md:h-9"
-                disabled={pending}
-                onClick={() => add(true)}
-              >
-                {t("booking.bookAnyway")}
-              </Button>
-            )}
+            {conflicts.length > 0 &&
+              conflicts.every((c) => c === "outsideHours" || c === "closed" || c === "timeOff") && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-11 md:h-9"
+                  disabled={pending}
+                  onClick={() => add(true)}
+                >
+                  {t("booking.bookAnyway")}
+                </Button>
+              )}
           </div>
         </div>
       )}

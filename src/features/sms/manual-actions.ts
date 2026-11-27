@@ -4,7 +4,7 @@ import { randomBytes } from "node:crypto";
 import { after } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
-import { managerContext } from "@/lib/action-context";
+import { managerContext, refusal } from "@/lib/action-context";
 import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { createAdminClient } from "@/lib/supabase/admin";
@@ -28,7 +28,7 @@ export async function sendClientSms(input: {
   text: string;
   marketing: boolean;
 }): Promise<ActionResult> {
-  if (!SMS_SALON_TOOLS) return fail("notAllowed"); // pilot, decision 033
+  if (!SMS_SALON_TOOLS) return fail(await refusal()); // pilot, decision 033
   const ctx = await managerContext();
   const p = z.object({ clientId: z.uuid(), text, marketing: z.boolean() }).safeParse(input);
   if (!ctx || !p.success) return fail("invalidInput", "text");
@@ -80,7 +80,7 @@ async function recipients(ctx: NonNullable<Awaited<ReturnType<typeof managerCont
 export async function bulkSmsPreview(input: {
   tag?: string;
 }): Promise<ActionResult<{ count: number; balance: number }>> {
-  if (!SMS_SALON_TOOLS) return fail("notAllowed"); // pilot, decision 033
+  if (!SMS_SALON_TOOLS) return fail(await refusal()); // pilot, decision 033
   const ctx = await managerContext({ read: true });
   const p = bulkSchema.safeParse(input);
   if (!ctx || !p.success) return fail("invalidInput");
@@ -95,7 +95,7 @@ export async function sendBulkSms(input: {
   text: string;
   tag?: string;
 }): Promise<ActionResult<{ queued: number }>> {
-  if (!SMS_SALON_TOOLS) return fail("notAllowed"); // pilot, decision 033
+  if (!SMS_SALON_TOOLS) return fail(await refusal()); // pilot, decision 033
   const ctx = await managerContext();
   const p = bulkSchema.extend({ text }).safeParse(input);
   if (!ctx || !p.success) return fail("invalidInput", "text");

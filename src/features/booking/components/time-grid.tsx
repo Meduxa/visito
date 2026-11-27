@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import type { CalBooking } from "../queries";
+import { noClientKey } from "../client-label";
 
 export const PX_PER_MIN = 1.2; // 72 px per hour
 
@@ -262,7 +263,7 @@ export function TimeGrid({
                       key={b.booking.id + b.columnKey + b.start}
                       role="button"
                       tabIndex={0}
-                      aria-label={`${startLocal}–${endLocal} ${b.booking.client?.name ?? ""} ${blockNames(b)}${b.needsFollowUp ? ` · ${t("booking.followUp.notAdded")}` : ""}`}
+                      aria-label={`${startLocal}–${endLocal} ${b.booking.client?.name ?? t(noClientKey(b.booking))} ${blockNames(b)} · ${t(`booking.status.${b.booking.status as "confirmed"}`)}${b.needsFollowUp ? ` · ${t("booking.followUp.notAdded")}` : ""}`}
                       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onBlockClick(b.booking.id)}
                       onClick={(e) => {
                         e.stopPropagation();
@@ -328,7 +329,7 @@ export function TimeGrid({
                       >
                         <span className="font-semibold tabular-nums">{startLocal}</span>
                         <span className="truncate font-semibold">
-                          {b.booking.client?.name ?? t("calendar.walkIn")}
+                          {b.booking.client?.name ?? t(noClientKey(b.booking))}
                           {h < 44 && (
                             <span className="font-medium text-foreground/70">
                               {" · "}

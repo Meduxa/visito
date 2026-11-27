@@ -1,21 +1,12 @@
-import writeXlsxFile from "write-excel-file/node";
-import { excelSafe } from "@/lib/excel-safe";
+import { getTranslations } from "next-intl/server";
+import { businessWorkbook, type Translator } from "@/features/settings/business-workbook";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveTenant } from "@/lib/tenant";
 
 // The owner's full business export (SPEC 4.14): JSON with everything, or an
-// Excel file with one sheet per table. Allowed even when the account is
+// Excel file a salon owner can read (test plan #64). Allowed even when the account is
 // suspended — people must always be able to take their data with them.
 export const dynamic = "force-dynamic";
-
-const SHEETS = ["services", "staff", "clients", "consents", "bookings", "payments", "sms_messages"] as const;
-
-const cell = (v: unknown) =>
-  v === null || v === undefined
-    ? null
-    : typeof v === "number"
-      ? { value: v, type: Number }
-      : { value: excelSafe(typeof v === "object" ? JSON.stringify(v) : String(v)), type: String };
 
 export async function GET(req: Request) {
   const tenant = await getActiveTenant();
@@ -36,19 +27,17 @@ export async function GET(req: Request) {
       },
     });
 
-  const all = data as Record<string, Record<string, unknown>[]>;
-  const sheets = SHEETS.map((key) => {
-    const rows = all[key] ?? [];
-    const cols = [...new Set(rows.flatMap((r) => Object.keys(r)))];
-    return [
-      cols.map((c) => ({ value: c, fontWeight: "bold" as const })),
-      ...rows.map((r) => cols.map((c) => cell(r[c]))),
-    ];
+  const url = new URL(req.url);
+  const locale = ["ka", "en", "ru"].includes(url.searchParams.get("locale") ?? "")
+    ? url.searchParams.get("locale")!
+    : "ka";
+  const all = data as Record<string, unknown>;
+  const business = (all.business ?? {}) as { timezone?: string };
+  const file = await businessWorkbook(all, {
+    t: (await getTranslations({ locale })) as unknown as Translator,
+    locale,
+    timeZone: business.timezone || "Asia/Tbilisi",
   });
-  const file = (await writeXlsxFile(sheets, {
-    sheets: [...SHEETS],
-    buffer: true,
-  } as never)) as unknown as Buffer;
   return new Response(new Uint8Array(file), {
     headers: {
       ...headers,

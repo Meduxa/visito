@@ -24,7 +24,7 @@ export async function enqueueReviewRequests() {
       new Date(now.getTime() + 86_400_000),
     );
     if (!when) continue;
-    const token = newToken();
+    const token = newToken(16); // a short link keeps the SMS to one part
     const { data: made } = await db.rpc("add_review_request", {
       p_booking: r.booking_id,
       p_token_hash: hmac(token),
@@ -36,6 +36,7 @@ export async function enqueueReviewRequests() {
       text: renderSms(await smsText(r.tenant_id, "review", r.locale), {
         client_name: r.first_name,
         business_name: r.business,
+        place: r.business,
         manage_link: `${publicEnv.NEXT_PUBLIC_APP_URL}/r/${token}`, // the review page link
       }),
       kind: "service",

@@ -118,7 +118,7 @@ export function StaffServicesEditor({
                         <Input
                           inputMode="decimal"
                           value={p.price}
-                          placeholder={t("staff.services.ownPrice")}
+                          placeholder={t("staff.services.ownPriceShort")}
                           aria-label={`${name}: ${t("staff.services.ownPrice")}`}
                           onChange={(e) => update(s.id, { price: e.target.value })}
                           className="col-start-2 h-10 sm:col-start-auto md:h-8"
@@ -129,7 +129,7 @@ export function StaffServicesEditor({
                           min={5}
                           step={5}
                           value={p.duration}
-                          placeholder={t("staff.services.ownDuration")}
+                          placeholder={t("staff.services.ownDurationShort")}
                           aria-label={`${name}: ${t("staff.services.ownDuration")}`}
                           onChange={(e) => update(s.id, { duration: e.target.value })}
                           className="col-start-2 h-10 sm:col-start-auto md:h-8"

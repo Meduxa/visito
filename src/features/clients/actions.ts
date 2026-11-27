@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { z } from "zod";
-import { dbErrorCode, managerContext } from "@/lib/action-context";
+import { dbErrorCode, managerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { SMS_SALON_TOOLS } from "@/lib/pilot";
 import {
@@ -25,7 +25,7 @@ export async function saveClient(
   input: ClientInput,
 ): Promise<ActionResult<{ id: string }>> {
   const ctx = await managerContext();
-  if (!ctx || (id && !uuid.safeParse(id).success)) return fail("notAllowed");
+  if (!ctx || (id && !uuid.safeParse(id).success)) return fail(await refusal());
   const parsed = clientSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
@@ -113,7 +113,7 @@ export async function saveClient(
 // Data subject request: everything stored about one client, as JSON. Owner only (RPC checks).
 export async function exportClient(clientId: string): Promise<ActionResult<{ json: string }>> {
   const ctx = await managerContext({ read: true });
-  if (!ctx || !uuid.safeParse(clientId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(clientId).success) return fail(await refusal());
   const { data, error } = await ctx.supabase.rpc("export_client", { p_client: clientId });
   if (error) return fail(dbErrorCode(error));
   return ok({ json: JSON.stringify(data, null, 2) });
@@ -121,16 +121,35 @@ export async function exportClient(clientId: string): Promise<ActionResult<{ jso
 
 export async function anonymizeClient(clientId: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(clientId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(clientId).success) return fail(await refusal());
+  // upcoming visits of a deleted client are cancelled: nobody could be reminded or
+  // called, and the time is freed (test plan #59). No SMS — the phone is being removed.
+  const { data: upcoming } = await ctx.supabase
+    .from("bookings")
+    .select("id")
+    .eq("tenant_id", ctx.tenant.tenantId)
+    .eq("client_id", clientId)
+    .in("status", ["pending", "confirmed"])
+    .gt("starts_at", new Date().toISOString());
+  for (const b of upcoming ?? []) {
+    const { error } = await ctx.supabase.rpc("set_booking_status", {
+      p_booking: b.id,
+      p_status: "cancelled_by_business",
+      p_reason: "client data deleted",
+    });
+    if (error) return fail(dbErrorCode(error));
+  }
   const { error } = await ctx.supabase.rpc("anonymize_client", { p_client: clientId });
   if (error) return fail(dbErrorCode(error));
   revalidatePath(`/${ctx.locale}/clients`);
+  revalidatePath(`/${ctx.locale}/calendar`);
   return ok(undefined);
 }
 
 export async function mergeClients(keepId: string, removeId: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(keepId).success || !uuid.safeParse(removeId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(keepId).success || !uuid.safeParse(removeId).success)
+    return fail(await refusal());
   const { error } = await ctx.supabase.rpc("merge_clients", { p_keep: keepId, p_remove: removeId });
   if (error) return fail(dbErrorCode(error));
   revalidatePath(`/${ctx.locale}/clients`);
@@ -183,7 +202,7 @@ export async function importClients(
   rows: unknown,
 ): Promise<ActionResult<{ inserted: number; skipped: number }>> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = importClientsSchema.safeParse(rows);
   if (!parsed.success) return fail("invalidInput");
   const { data, error } = await ctx.supabase.rpc("import_clients", {
@@ -201,7 +220,7 @@ export async function importClients(
 export async function saveClientNote(clientId: string, notes: string): Promise<ActionResult> {
   const ctx = await managerContext();
   const text = z.string().trim().max(4000, "tooLong").safeParse(notes);
-  if (!ctx || !uuid.safeParse(clientId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(clientId).success) return fail(await refusal());
   if (!text.success) return fail("tooLong");
   const { data, error } = await ctx.supabase
     .from("clients")
@@ -217,7 +236,7 @@ export async function saveClientNote(clientId: string, notes: string): Promise<A
 
 export async function saveClientField(id: string | null, input: ClientFieldInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || (id && !uuid.safeParse(id).success)) return fail("notAllowed");
+  if (!ctx || (id && !uuid.safeParse(id).success)) return fail(await refusal());
   const p = clientFieldSchema.safeParse(input);
   if (!p.success)
     return fail(p.error.issues[0]?.message === "optionsRequired" ? "optionsRequired" : "invalidInput");
@@ -255,7 +274,7 @@ export async function saveClientField(id: string | null, input: ClientFieldInput
 /** Removes a field and, with it, its values on every card (the database does that). */
 export async function deleteClientField(id: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
   const { data, error } = await ctx.supabase
     .from("client_fields")
     .delete()
@@ -272,7 +291,7 @@ export async function deleteClientField(id: string): Promise<ActionResult> {
 /** Moves a field one place up or down. */
 export async function moveClientField(id: string, by: -1 | 1): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success || ![-1, 1].includes(by)) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success || ![-1, 1].includes(by)) return fail(await refusal());
   const { data } = await ctx.supabase
     .from("client_fields")
     .select("id")
@@ -295,7 +314,7 @@ export async function moveClientField(id: string, by: -1 | 1): Promise<ActionRes
 
 export async function saveSegmentRules(input: SegmentRulesInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const p = segmentRulesSchema.safeParse(input);
   if (!p.success)
     return p.error.issues.some((i) => i.message === "lostAfterAtRisk")
@@ -311,7 +330,7 @@ export async function saveSegmentRules(input: SegmentRulesInput): Promise<Action
     .eq("tenant_id", ctx.tenant.tenantId)
     .select("tenant_id");
   if (error) return fail(dbErrorCode(error));
-  if (!data?.length) return fail("notAllowed");
+  if (!data?.length) return fail(await refusal());
   revalidatePath(`/${ctx.locale}/settings/clients`);
   revalidatePath(`/${ctx.locale}/clients`);
   return ok(undefined);

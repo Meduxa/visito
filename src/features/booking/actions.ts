@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { formatInTimeZone } from "date-fns-tz";
 import { z } from "zod";
-import { memberContext, type MemberContext } from "@/lib/action-context";
+import { memberContext, type MemberContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { normalizePhone } from "@/lib/phone";
 import { DEFAULT_TZ } from "@/lib/time";
@@ -12,6 +12,9 @@ import { getAvailableSlots, totalFor, validateBooking, type Conflict } from "./e
 import { notifyBooking } from "../sms/booking-sms";
 import { buildItems } from "./build-items";
 import { loadEngineData, loadServiceRequests } from "./load-data";
+
+// conflicts an owner/admin may book over ("book anyway")
+const OVERRIDABLE: string[] = ["outsideHours", "closed", "timeOff"];
 
 const uuid = z.uuid();
 const picksSchema = z
@@ -62,7 +65,7 @@ export async function findSlots(input: {
   if (input.staffId !== "any" && !uuid.safeParse(input.staffId).success) return fail("invalidInput");
   if (!locationSchema.safeParse(input.locationId).success) return fail("invalidInput");
   const staffId = ctx.isManager ? input.staffId : ctx.staffId;
-  if (!staffId) return fail("notAllowed");
+  if (!staffId) return fail(await refusal());
 
   const data = await loadEngineData(ctx.supabase, ctx.tenant.tenantId, input.date, input.date, {
     locationId: input.locationId,
@@ -111,7 +114,7 @@ export async function createBooking(
   const parsed = createSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
   const { supabase, tenant } = ctx;
 
   const date = await localDate(ctx, v.start);
@@ -122,7 +125,7 @@ export async function createBooking(
   const conflicts = validateBooking(
     { staffId: v.staffId, start: new Date(v.start), services },
     fullData,
-  ).filter((c) => !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")));
+  ).filter((c) => !(v.force && ctx.isManager && OVERRIDABLE.includes(c)));
   if (conflicts.length) return { ok: false, error: "conflicts", conflicts };
 
   // The additional service (decision 037): checked on its own time; the specialist
@@ -135,7 +138,7 @@ export async function createBooking(
     starts_at: string;
   } | null = null;
   if (v.followUp) {
-    if (!allowedStaff(ctx, v.followUp.staffId)) return fail("notAllowed");
+    if (!allowedStaff(ctx, v.followUp.staffId)) return fail(await refusal());
     const fuStart = new Date(v.followUp.start);
     const fuDate = await localDate(ctx, v.followUp.start);
     const fuData =
@@ -149,7 +152,7 @@ export async function createBooking(
     const fuConflicts = validateBooking(
       { staffId: v.followUp.staffId, start: fuStart, services: fuServices },
       fuData,
-    ).filter((c) => !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")));
+    ).filter((c) => !(v.force && ctx.isManager && OVERRIDABLE.includes(c)));
     // it must start after the first service ends (same visit, in order)
     const mainStaff = fullData.staff.find((s) => s.id === v.staffId);
     const mainTotal = mainStaff ? totalFor(mainStaff, services) : null;
@@ -233,7 +236,7 @@ export async function addFollowUp(
   const parsed = addFollowUpSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
   const { supabase, tenant } = ctx;
 
   const { data: b } = await supabase
@@ -248,7 +251,7 @@ export async function addFollowUp(
   const services = await loadServiceRequests(supabase, tenant.tenantId, [{ serviceId: v.serviceId }]);
   if (!services) return fail("notFound");
   const conflicts = validateBooking({ staffId: v.staffId, start: new Date(v.start), services }, data).filter(
-    (c) => !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")),
+    (c) => !(v.force && ctx.isManager && OVERRIDABLE.includes(c)),
   );
   if (conflicts.length) return { ok: false, error: "conflicts", conflicts };
 
@@ -281,7 +284,7 @@ export async function moveBooking(
   const parsed = moveSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
   const { supabase, tenant } = ctx;
 
   const { data: items } = await supabase
@@ -290,7 +293,7 @@ export async function moveBooking(
     .eq("booking_id", v.bookingId)
     .order("sort_order");
   if (!items?.length) return fail("notFound");
-  if (items.some((i) => !allowedStaff(ctx, i.staff_id))) return fail("notAllowed");
+  if (items.some((i) => !allowedStaff(ctx, i.staff_id))) return fail(await refusal());
 
   const date = await localDate(ctx, v.start);
   const { data: own } = await supabase.from("bookings").select("location_id").eq("id", v.bookingId).single();
@@ -322,7 +325,7 @@ export async function moveBooking(
       for (const c of validateBooking({ staffId: v.staffId, start: at, services: one }, data)) all.push(c);
     }
     const conflicts = [...new Set(all)].filter(
-      (c) => c !== "cannotPerform" && !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")),
+      (c) => c !== "cannotPerform" && !(v.force && ctx.isManager && OVERRIDABLE.includes(c)),
     );
     if (conflicts.length) return { ok: false, error: "conflicts", conflicts };
   } else if (services && services.length === items.length) {
@@ -344,7 +347,7 @@ export async function moveBooking(
     const conflicts = validateBooking(
       { staffId: v.staffId, start: new Date(v.start), services: snap },
       asAgreed,
-    ).filter((c) => !(v.force && ctx.isManager && (c === "outsideHours" || c === "closed")));
+    ).filter((c) => !(v.force && ctx.isManager && OVERRIDABLE.includes(c)));
     if (conflicts.length) return { ok: false, error: "conflicts", conflicts };
   }
 
@@ -381,6 +384,11 @@ export async function setBookingStatus(
 ): Promise<ActionResult> {
   const ctx = await memberContext();
   if (!ctx || !uuid.safeParse(bookingId).success || !statuses.includes(status)) return fail("invalidInput");
+  const { data: before } = await ctx.supabase
+    .from("bookings")
+    .select("status")
+    .eq("id", bookingId)
+    .maybeSingle();
   const { error } = await ctx.supabase.rpc("set_booking_status", {
     p_booking: bookingId,
     p_status: status,
@@ -388,9 +396,22 @@ export async function setBookingStatus(
   });
   if (error) return fail(bookingError(error));
   done(ctx);
-  // approving a pending (online) booking confirms it; one message per booking, so an undo never resends
-  if (status === "confirmed") after(() => notifyBooking(bookingId, "confirmed"));
-  if (status === "cancelled_by_business") after(() => notifyBooking(bookingId, "cancelled"));
+  // Approving a pending (online) booking confirms it. After a cancellation the client was
+  // told it is off, so an undo tells them it is back on (and a later cancel tells them again):
+  // each such change is its own "round" of the message, counted from the status history.
+  const wasCancelled = !!before?.status.startsWith("cancelled");
+  const round = async () => {
+    const { count } = await ctx.supabase
+      .from("booking_status_history")
+      .select("id", { count: "exact", head: true })
+      .eq("booking_id", bookingId)
+      .like("from_status", "cancelled%");
+    return count ?? 0;
+  };
+  if (status === "confirmed")
+    after(async () => notifyBooking(bookingId, "confirmed", { round: wasCancelled ? await round() : 0 }));
+  if (status === "cancelled_by_business")
+    after(async () => notifyBooking(bookingId, "cancelled", { round: await round() }));
   return ok(undefined);
 }
 
@@ -450,7 +471,7 @@ export async function previewRecurring(
   const parsed = recurringSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
 
   const starts = Array.from(
     { length: v.times },
@@ -497,7 +518,7 @@ export async function createRecurring(input: {
     .safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
 
   // the same back-to-back layout as a single booking, repeated per date
   const data = await loadEngineData(
@@ -524,7 +545,7 @@ export async function createRecurring(input: {
     });
   });
 
-  const { error } = await ctx.supabase.rpc("create_recurring_booking", {
+  const { data: recurrenceId, error } = await ctx.supabase.rpc("create_recurring_booking", {
     p_tenant: ctx.tenant.tenantId,
     p_client: v.clientId as string,
     p_occurrences: occurrences,
@@ -536,6 +557,18 @@ export async function createRecurring(input: {
   });
   if (error) return fail(bookingError(error));
   done(ctx);
+  // one confirmation for the series (its first visit); each visit still gets its own reminders
+  after(async () => {
+    const { data: first } = await ctx.supabase
+      .from("bookings")
+      .select("id")
+      .eq("tenant_id", ctx.tenant.tenantId)
+      .eq("recurrence_id", recurrenceId as string)
+      .order("starts_at")
+      .limit(1)
+      .maybeSingle();
+    if (first) await notifyBooking(first.id, "confirmed");
+  });
   return ok({ count: v.starts.length });
 }
 

@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRef, useState, useTransition, type ReactNode } from "react";
 import { toast } from "sonner";
 import { FieldError } from "@/components/field-error";
+import { TimeInput } from "@/components/time-input";
 import { describedBy, FormField } from "@/components/form-field";
 import { StatCard } from "@/components/stat-card";
 import { StatusPill, type PillTone } from "@/components/status-pill";
@@ -192,21 +193,19 @@ export function SmsSettingsView({
         <p className="text-sm text-muted-foreground">{t("quietHint")}</p>
         <div className="flex gap-4">
           <FormField id="sms-qs" label={t("quietStart")}>
-            <Input
+            <TimeInput
               id="sms-qs"
-              type="time"
               className="h-11 w-32 md:h-9"
               value={s.quietStart}
-              onChange={(e) => setS({ ...s, quietStart: e.target.value })}
+              onChange={(v) => setS({ ...s, quietStart: v })}
             />
           </FormField>
           <FormField id="sms-qe" label={t("quietEnd")}>
-            <Input
+            <TimeInput
               id="sms-qe"
-              type="time"
               className="h-11 w-32 md:h-9"
               value={s.quietEnd}
-              onChange={(e) => setS({ ...s, quietEnd: e.target.value })}
+              onChange={(v) => setS({ ...s, quietEnd: v })}
             />
           </FormField>
         </div>
@@ -354,6 +353,7 @@ function TemplateEditor({
   const sample = {
     client_name: t("sample.client_name"),
     business_name: businessName,
+    place: businessName,
     service: t("sample.service"),
     staff: t("sample.staff"),
     date: t("sample.date"),

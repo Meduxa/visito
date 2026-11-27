@@ -1,5 +1,6 @@
 "use server";
 
+import { refusal } from "@/lib/action-context";
 import { revalidatePath } from "next/cache";
 import { getLocale } from "next-intl/server";
 import { requireUser } from "@/lib/auth";
@@ -18,7 +19,7 @@ async function ownerOnly() {
 
 export async function requestDeletion(confirmName: string): Promise<ActionResult<{ due: string }>> {
   const ctx = await ownerOnly();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const { data, error } = await (
     await createClient()
   ).rpc("request_tenant_deletion", {
@@ -32,7 +33,7 @@ export async function requestDeletion(confirmName: string): Promise<ActionResult
 
 export async function cancelDeletion(): Promise<ActionResult> {
   const ctx = await ownerOnly();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const { error } = await (
     await createClient()
   ).rpc("cancel_tenant_deletion", { p_tenant: ctx.tenant.tenantId });

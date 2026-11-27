@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { getBillingProvider } from "@/integrations/payments";
-import { dbErrorCode } from "@/lib/action-context";
+import { dbErrorCode, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { requireUser } from "@/lib/auth";
 import { publicEnv } from "@/lib/env";
@@ -34,7 +34,7 @@ export async function startPayment(
   const p = z
     .object({ kind: z.literal("plan"), code: z.string().regex(/^[a-z0-9_-]{2,30}$/) })
     .safeParse({ kind, code });
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   if (!p.success) return fail("invalidInput");
   let provider: ReturnType<typeof getBillingProvider>;
   try {
@@ -82,7 +82,7 @@ export async function startPayment(
 /** Stops the monthly charge; the plan stays until the paid period ends. */
 export async function stopAutopay(): Promise<ActionResult> {
   const ctx = await ownerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const provider = getBillingProvider();
   // the first approved plan payment of the subscription
   const { data: first } = await ctx.supabase

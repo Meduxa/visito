@@ -5,6 +5,7 @@ import { locales } from "@/i18n/routing";
 import { publicEnv } from "@/lib/env";
 import { siteDomain } from "@/lib/site";
 import { createClient } from "@/lib/supabase/server";
+import { auditSignIn } from "@/features/auth/audit-sign-in";
 
 // Where the links in sign-in emails land (confirm the address, new password,
 // changed address). The email carries a one-time token; checking it here signs
@@ -36,7 +37,10 @@ export async function GET(request: NextRequest) {
 
   if (tokenHash && type && TYPES.includes(type)) {
     const { error } = await supabase.auth.verifyOtp({ type, token_hash: tokenHash });
-    if (!error) return NextResponse.redirect(new URL(next, origin));
+    if (!error) {
+      if (type === "magiclink" || type === "email") await auditSignIn(supabase, "email_link");
+      return NextResponse.redirect(new URL(next, origin));
+    }
   } else if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) return NextResponse.redirect(new URL(next, origin));

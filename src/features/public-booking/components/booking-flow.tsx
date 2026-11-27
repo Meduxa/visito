@@ -26,6 +26,9 @@ import { CategoryIcon } from "./category-icon";
 type Step = "services" | "staff" | "time" | "details" | "verify" | "done";
 type Slot = { start: string; staffId: string; staffName: string };
 
+// same rule as the server (zod email): something@something.domain
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 const timeIn = (iso: string, tz: string) =>
   new Date(iso).toLocaleTimeString("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit" });
 
@@ -151,6 +154,9 @@ export function BookingFlow({
   const submitDetails = () =>
     startTransition(async () => {
       setError(undefined);
+      // our own message instead of the browser's bubble (in the phone's language)
+      if (form.email.trim() && !EMAIL_RE.test(form.email.trim()))
+        return setError({ code: "email", field: "email" });
       if (!business.otpRequired) return book(null, await humanToken());
       if (pass) return go("verify"); // already verified this phone
       const r = await sendCode({
@@ -414,6 +420,7 @@ export function BookingFlow({
 
           {step === "details" && (
             <form
+              noValidate
               className="flex flex-col gap-4 lg:max-w-2xl"
               onSubmit={(e) => {
                 e.preventDefault();
@@ -464,15 +471,21 @@ export function BookingFlow({
                   {...describedBy("pb-phone", error?.field === "phone" ? error.code : undefined)}
                 />
               </FormField>
-              <FormField id="pb-email" label={tb("email")}>
+              <FormField
+                id="pb-email"
+                label={tb("email")}
+                error={error?.field === "email" ? error.code : undefined}
+              >
                 <Input
                   id="pb-email"
                   type="email"
+                  inputMode="email"
                   autoComplete="email"
                   maxLength={200}
                   className="h-11 md:h-9"
                   value={form.email}
                   onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  {...describedBy("pb-email", error?.field === "email" ? error.code : undefined)}
                 />
               </FormField>
               <FormField id="pb-comment" label={tb("comment")}>
@@ -517,7 +530,9 @@ export function BookingFlow({
                 </fieldset>
               )}
               <p className="text-xs text-muted-foreground">{tb("privacy", { business: business.name })}</p>
-              {error && error.field !== "phone" && <FieldError code={error.code} />}
+              {error && error.field !== "phone" && error.field !== "email" && (
+                <FieldError code={error.code} />
+              )}
               <Button
                 type="submit"
                 className="h-11 md:h-9"
@@ -532,6 +547,7 @@ export function BookingFlow({
 
           {step === "verify" && (
             <form
+              noValidate
               className="flex flex-col gap-4"
               onSubmit={(e) => {
                 e.preventDefault();

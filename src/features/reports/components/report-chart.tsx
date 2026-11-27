@@ -73,7 +73,11 @@ export function ReportChart({
 }) {
   const t = useTranslations("reports");
   const [view, setView] = useState(defaultView);
-  const [metricKey, setMetricKey] = useState(metrics[0]?.key ?? "");
+  // start on the first measure that has something to show (a branch with visits but
+  // no money yet would otherwise open on an empty revenue chart — test plan #60)
+  const [metricKey, setMetricKey] = useState(
+    () => (metrics.find((m) => rows.some((r) => r.values[m.key])) ?? metrics[0])?.key ?? "",
+  );
   const metric = metrics.find((m) => m.key === metricKey) ?? metrics[0];
   const shown = stacked ? metrics : metric ? [metric] : [];
   const empty = rows.every((r) => shown.every((m) => !r.values[m.key]));

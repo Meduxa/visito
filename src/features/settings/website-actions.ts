@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { managerContext } from "@/lib/action-context";
+import { managerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { imagePath, socialHandle, websiteSchema, type WebsiteInput } from "./website";
 
@@ -15,7 +15,7 @@ function refresh(locale: string) {
 
 export async function saveWebsite(input: WebsiteInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const p = websiteSchema.safeParse(input);
   if (!p.success) return fail("invalidInput");
   const instagram = socialHandle(p.data.instagram, "instagram");
@@ -41,7 +41,7 @@ export async function saveWebsite(input: WebsiteInput): Promise<ActionResult> {
 // record the new path (or none) and delete the old file.
 export async function setWebsiteImage(kind: "cover" | "logo", path: string | null): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || (kind !== "cover" && kind !== "logo")) return fail("notAllowed");
+  if (!ctx || (kind !== "cover" && kind !== "logo")) return fail(await refusal());
   if (path !== null && !imagePath(ctx.tenant.tenantId).safeParse(path).success) return fail("invalidInput");
   const column = kind === "cover" ? "site_cover_path" : "site_logo_path";
   const { data: before } = await ctx.supabase

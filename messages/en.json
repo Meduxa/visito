@@ -289,7 +289,8 @@
     "samePassword": "This is your current password. Choose a different one.",
     "consentNeeded": "Please tick the box to agree to the monthly payment.",
     "captchaFailed": "We couldn't confirm that you are a person. Refresh the page and try again.",
-    "onlineNotPossible": "Online booking isn't possible with this number right now. Please call the business."
+    "onlineNotPossible": "Online booking isn't possible with this number right now. Please call the business.",
+    "readOnly": "The account is suspended — for now you can only view and download. Please contact Visito."
   },
   "email": {
     "invite": {
@@ -813,7 +814,7 @@
       "hint": "On the client’s request: give them their data, or delete it.",
       "export": "Download data (JSON)",
       "anonymize": "Delete personal data",
-      "anonymizeConfirm": "Remove {name}’s name, phone, email, notes and consents for good? Visit history stays, without personal data. This cannot be undone.",
+      "anonymizeConfirm": "Remove {name}’s name, phone, email, notes and consents for good? Upcoming visits will be cancelled. Visit history stays, without personal data. This cannot be undone.",
       "anonymized": "Personal data removed",
       "ownerOnly": "Only the owner can export or delete client data."
     },
@@ -1183,7 +1184,8 @@
     },
     "resized": "Length changed",
     "searching": "Searching…",
-    "noClientFound": "Not found — add a new client."
+    "noClientFound": "Not found — add a new client.",
+    "sourceLine": "Booked via: {source}"
   },
   "myDay": {
     "title": "My day",
@@ -1395,7 +1397,8 @@
       "title": "Choose a branch",
       "hint": "Where would you like to come?",
       "change": "Change"
-    }
+    },
+    "pausedBody": "Online booking is temporarily unavailable. Please call us to book."
   },
   "manageBooking": {
     "title": "Your booking",
@@ -1886,7 +1889,7 @@
       "invitation_created": "Invitation sent",
       "invitation_revoked": "Invitation cancelled",
       "membership_removed": "Team member removed",
-      "membership_updated": "Team member's role changed",
+      "membership_updated": "Team member changed",
       "platform_sms_topup": "SMS credits added by Visito",
       "platform_tenant_updated": "Plan or status changed by Visito",
       "service_deleted": "Service deleted",
@@ -1904,7 +1907,79 @@
       "tenant_deletion_cancelled": "Deletion cancelled",
       "tenant_deletion_requested": "Deletion requested",
       "tenant_exported": "All business data downloaded",
-      "tenant_seeded": "Demo data loaded"
+      "tenant_seeded": "Demo data loaded",
+      "auth_signed_in": "Signed in",
+      "auth_password_changed": "Password changed",
+      "time_off_requested": "Time off requested",
+      "time_off_approved": "Time off approved",
+      "time_off_declined": "Time off declined",
+      "time_off_cancelled": "Time off request cancelled",
+      "payroll_staff_pay_insert": "Pay rule added",
+      "payroll_staff_pay_rates_insert": "Service commission added",
+      "payroll_pay_adjustments_insert": "Bonus / deduction added",
+      "payroll_payouts_insert": "Payout recorded",
+      "payroll_staff_pay_update": "Pay rule changed",
+      "payroll_staff_pay_rates_update": "Service commission changed",
+      "payroll_pay_adjustments_update": "Bonus / deduction changed",
+      "payroll_payouts_update": "Payout changed",
+      "payroll_staff_pay_delete": "Pay rule removed",
+      "payroll_staff_pay_rates_delete": "Service commission removed",
+      "payroll_pay_adjustments_delete": "Bonus / deduction removed",
+      "payroll_payouts_delete": "Payout removed",
+      "payroll_exported": "Payroll downloaded (Excel)",
+      "report_exported": "Report downloaded (Excel)",
+      "clients_list_exported": "Client list downloaded",
+      "billing_paid": "Subscription paid",
+      "billing_started": "Payment started",
+      "billing_recurring_consent": "Automatic payment turned on",
+      "billing_autopay_off": "Automatic payment turned off",
+      "billing_amount_mismatch": "Payment amount mismatch",
+      "review_moderated": "Review moderated (reply / hide)",
+      "services_templates_added": "Services added from a template",
+      "location_created": "Branch added",
+      "location_updated": "Branch changed",
+      "location_activated": "Branch turned on",
+      "location_deactivated": "Branch turned off",
+      "location_deleted": "Branch deleted",
+      "location_services_updated": "Branch services changed"
+    },
+    "meta": {
+      "amount": "Amount",
+      "salary": "Salary",
+      "paid": "Paid",
+      "total": "Total",
+      "pct": "Percent",
+      "method": "How",
+      "role": "Role",
+      "starts": "Starts",
+      "ends": "Ends",
+      "until": "Ends",
+      "due": "Deleted on",
+      "paidOn": "Paid on",
+      "from": "From",
+      "to": "To",
+      "email": "Email",
+      "count": "Count",
+      "rows": "Rows",
+      "imported": "Imported",
+      "inserted": "Imported",
+      "skipped": "Skipped",
+      "hours": "Hours",
+      "segments": "SMS",
+      "note": "Note",
+      "month": "Month"
+    },
+    "how": {
+      "password": "with password",
+      "email_link": "with an email link"
+    },
+    "memberStatus": {
+      "active": "turned on",
+      "disabled": "turned off"
+    },
+    "reviewStatus": {
+      "published": "visible",
+      "hidden": "hidden"
     }
   },
   "accountData": {

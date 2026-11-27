@@ -5,7 +5,7 @@ import { slugify } from "@/lib/slug";
 import { buildTranslations } from "@/lib/translations";
 import { z } from "zod";
 import { weekSchema, type WeekInput } from "@/features/staff/schema";
-import { dbErrorCode, managerContext, type ManagerContext } from "@/lib/action-context";
+import { dbErrorCode, managerContext, type ManagerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { branchSchema, branchServicesSchema, type BranchInput, type BranchServicesInput } from "./schema";
 
@@ -36,7 +36,7 @@ export async function saveBranch(
   input: BranchInput,
 ): Promise<ActionResult<{ id: string }>> {
   const ctx = await managerContext();
-  if (!ctx || (id && !uuid.safeParse(id).success)) return fail("notAllowed");
+  if (!ctx || (id && !uuid.safeParse(id).success)) return fail(await refusal());
   const parsed = branchSchema.safeParse(input);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -110,7 +110,7 @@ export async function saveBranch(
 // Switch a branch off (keeps its history) or on again (counts against the plan).
 export async function setBranchActive(id: string, active: boolean): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
   const { error } = await ctx.supabase
     .from("locations")
     .update({ active })
@@ -126,7 +126,7 @@ export async function setBranchActive(id: string, active: boolean): Promise<Acti
 // Delete a branch that never had a booking (a mistake); otherwise switch it off.
 export async function deleteBranch(id: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
   const { count } = await ctx.supabase
     .from("bookings")
     .select("id", { count: "exact", head: true })
@@ -147,7 +147,7 @@ export async function deleteBranch(id: string): Promise<ActionResult> {
 
 export async function saveBranchHours(id: string, week: WeekInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
   const parsed = weekSchema.safeParse(week);
   if (!parsed.success) return fail("scheduleInvalid");
   const rows = Object.entries(parsed.data).flatMap(([day, list]) =>
@@ -161,7 +161,7 @@ export async function saveBranchHours(id: string, week: WeekInput): Promise<Acti
 
 export async function saveBranchServices(id: string, input: BranchServicesInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
   const parsed = branchServicesSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const rows = parsed.data

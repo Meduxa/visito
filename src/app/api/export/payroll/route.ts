@@ -23,6 +23,12 @@ export async function GET(req: Request) {
     getTranslations({ locale }),
   ]);
   const file = await payrollWorkbook(payroll, { t: t as never, month });
+  await db.rpc("log_audit", {
+    p_tenant: tenant.tenantId,
+    p_action: "payroll.exported",
+    p_entity: "payroll",
+    p_meta: { month },
+  });
   return new Response(new Uint8Array(file), {
     headers: {
       "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

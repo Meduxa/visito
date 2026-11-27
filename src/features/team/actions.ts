@@ -1,5 +1,6 @@
 "use server";
 
+import { refusal } from "@/lib/action-context";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { getLocale, getTranslations } from "next-intl/server";
@@ -21,7 +22,7 @@ export async function inviteMember(
   if (!parsed.success) return fail("invalidInput");
 
   const tenant = await getActiveTenant();
-  if (!tenant || !canManage(tenant.role) || isReadOnly(tenant)) return fail("notAllowed");
+  if (!tenant || !canManage(tenant.role) || isReadOnly(tenant)) return fail(await refusal());
 
   const supabase = await createClient();
   const { data: token, error } = await supabase.rpc("create_invitation", {
@@ -31,7 +32,7 @@ export async function inviteMember(
   });
   if (error) {
     if (error.code === "P0002") return fail("alreadyMember", "email");
-    if (error.code === "42501") return fail("notAllowed");
+    if (error.code === "42501") return fail(await refusal());
     console.error("create_invitation failed", error.code);
     return fail("generic");
   }

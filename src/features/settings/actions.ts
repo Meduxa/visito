@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { weekSchema, type WeekInput } from "@/features/staff/schema";
-import { dbErrorCode, managerContext, type ManagerContext } from "@/lib/action-context";
+import { dbErrorCode, managerContext, type ManagerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import type { Database } from "@/lib/supabase/database.types";
 import {
@@ -33,7 +33,7 @@ async function primaryLocationId(ctx: ManagerContext) {
 
 export async function saveBusiness(input: BusinessInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = businessSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
@@ -90,7 +90,7 @@ async function updateSettings(
 
 export async function saveBookingRules(input: BookingRulesInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = bookingRulesSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
@@ -112,7 +112,7 @@ export async function saveBookingRules(input: BookingRulesInput): Promise<Action
 
 export async function saveAccess(input: AccessInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = accessSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
@@ -130,7 +130,7 @@ export async function saveAccess(input: AccessInput): Promise<ActionResult> {
 
 export async function saveNotifications(input: NotifyInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = notifySchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
@@ -148,7 +148,7 @@ export async function saveNotifications(input: NotifyInput): Promise<ActionResul
 
 export async function saveOpeningHours(week: WeekInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = weekSchema.safeParse(week);
   if (!parsed.success) return fail("scheduleInvalid");
   const loc = await primaryLocationId(ctx);
@@ -164,7 +164,7 @@ export async function saveOpeningHours(week: WeekInput): Promise<ActionResult> {
 
 export async function addClosure(input: z.input<typeof closureSchema>): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = closureSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const { error } = await ctx.supabase.from("closures").insert({
@@ -180,7 +180,7 @@ export async function addClosure(input: z.input<typeof closureSchema>): Promise<
 
 export async function addResource(input: z.input<typeof resourceSchema>): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = resourceSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const { locationId, ...v } = parsed.data;
@@ -195,7 +195,7 @@ export async function addResource(input: z.input<typeof resourceSchema>): Promis
 
 export async function deleteSettingsItem(kind: "closure" | "resource", id: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !z.uuid().safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !z.uuid().safeParse(id).success) return fail(await refusal());
   const table = kind === "closure" ? "closures" : "resources";
   const { error } = await ctx.supabase.from(table).delete().eq("id", id).eq("tenant_id", ctx.tenant.tenantId);
   if (error) return fail(dbErrorCode(error));

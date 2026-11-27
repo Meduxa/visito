@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { dbErrorCode, managerContext } from "@/lib/action-context";
+import { dbErrorCode, managerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { compactI18n } from "@/lib/i18n-text";
 import {
@@ -34,7 +34,7 @@ export async function saveService(
   input: ServiceInput,
 ): Promise<ActionResult<{ id: string }>> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = serviceSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
@@ -71,7 +71,7 @@ export async function saveService(
 
 export async function deleteService(id: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !z.uuid().safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !z.uuid().safeParse(id).success) return fail(await refusal());
   const { error } = await ctx.supabase
     .from("services")
     .delete()
@@ -96,7 +96,7 @@ export async function saveExtra(
   input: ExtraInput,
 ): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !z.uuid().safeParse(serviceId).success) return fail("notAllowed");
+  if (!ctx || !z.uuid().safeParse(serviceId).success) return fail(await refusal());
   const parsed = extraSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   if (kind === "variant" && parsed.data.durationMin < 5) return fail("invalidInput");
@@ -119,7 +119,7 @@ export async function saveExtra(
 
 export async function deleteExtra(kind: "variant" | "addon", id: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !z.uuid().safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !z.uuid().safeParse(id).success) return fail(await refusal());
   const table = kind === "variant" ? "service_variants" : "service_addons";
   const { error } = await ctx.supabase.from(table).delete().eq("id", id).eq("tenant_id", ctx.tenant.tenantId);
   if (error) return fail(dbErrorCode(error));
@@ -129,7 +129,7 @@ export async function deleteExtra(kind: "variant" | "addon", id: string): Promis
 
 export async function saveCategory(id: string | null, input: CategoryInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = categorySchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const name_i18n = compactI18n(parsed.data.name);
@@ -157,7 +157,7 @@ export async function saveCategory(id: string | null, input: CategoryInput): Pro
 // Services in a deleted category stay, without a category.
 export async function deleteCategory(id: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !z.uuid().safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !z.uuid().safeParse(id).success) return fail(await refusal());
   const { error } = await ctx.supabase
     .from("service_categories")
     .delete()
@@ -172,7 +172,7 @@ export async function deleteCategory(id: string): Promise<ActionResult> {
 export async function reorderCategories(ids: string[]): Promise<ActionResult> {
   const ctx = await managerContext();
   const parsed = z.array(z.uuid()).max(200).safeParse(ids);
-  if (!ctx || !parsed.success) return fail("notAllowed");
+  if (!ctx || !parsed.success) return fail(await refusal());
   for (const [i, id] of parsed.data.entries()) {
     const { error } = await ctx.supabase
       .from("service_categories")
@@ -187,7 +187,7 @@ export async function reorderCategories(ids: string[]): Promise<ActionResult> {
 
 export async function importServices(rows: unknown): Promise<ActionResult<{ count: number }>> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = importSchema.safeParse(rows);
   if (!parsed.success) return fail("invalidInput");
   const { data, error } = await ctx.supabase.rpc("import_services", {
@@ -223,7 +223,7 @@ const templateRows = z
 /** Adds the chosen ready services (names in ka/en/ru); ones that already exist are skipped. */
 export async function addTemplateServices(rows: unknown): Promise<ActionResult<{ count: number }>> {
   const ctx = await managerContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const parsed = templateRows.safeParse(rows);
   if (!parsed.success) return fail("invalidInput");
   const { data, error } = await ctx.supabase.rpc("add_template_services", {

@@ -264,3 +264,25 @@ export const getPublicBusiness = cache(
 
 /** What the browser receives: no tenant or branch id. */
 export type PublicBusinessView = Omit<PublicBusiness, "tenantId" | "locationId">;
+
+/** A suspended business: its page says online booking is paused and shows the
+ *  phone, instead of "page not found" (test plan #63). */
+export const getPausedBusiness = cache(
+  async (slug: string): Promise<{ name: string; phone: string | null } | null> => {
+    if (!/^[a-z0-9-]{3,50}$/.test(slug)) return null;
+    const db = createAdminClient();
+    const { data: tenant } = await db
+      .from("tenants")
+      .select("id, name")
+      .eq("slug", slug)
+      .eq("status", "suspended")
+      .maybeSingle();
+    if (!tenant) return null;
+    const { data: settings } = await db
+      .from("tenant_settings")
+      .select("phone")
+      .eq("tenant_id", tenant.id)
+      .maybeSingle();
+    return { name: tenant.name, phone: settings?.phone ?? null };
+  },
+);

@@ -289,7 +289,8 @@
     "samePassword": "Это ваш текущий пароль. Выберите другой.",
     "consentNeeded": "Отметьте согласие на ежемесячный платёж.",
     "captchaFailed": "Не удалось подтвердить, что вы человек. Обновите страницу и попробуйте снова.",
-    "onlineNotPossible": "Сейчас онлайн-запись с этим номером невозможна. Пожалуйста, позвоните нам."
+    "onlineNotPossible": "Сейчас онлайн-запись с этим номером невозможна. Пожалуйста, позвоните нам.",
+    "readOnly": "Аккаунт приостановлен — сейчас можно только просматривать и скачивать. Свяжитесь с Visito."
   },
   "email": {
     "invite": {
@@ -813,7 +814,7 @@
       "hint": "По запросу клиента: выдайте его данные или удалите их.",
       "export": "Скачать данные (JSON)",
       "anonymize": "Удалить персональные данные",
-      "anonymizeConfirm": "Навсегда удалить имя, телефон, почту, заметки и согласия клиента {name}? История визитов останется без персональных данных. Отменить нельзя.",
+      "anonymizeConfirm": "Навсегда удалить имя, телефон, почту, заметки и согласия клиента {name}? Будущие визиты будут отменены. История визитов останется без персональных данных. Отменить нельзя.",
       "anonymized": "Персональные данные удалены",
       "ownerOnly": "Выгружать и удалять данные клиентов может только владелец."
     },
@@ -1183,7 +1184,8 @@
     },
     "resized": "Длительность изменена",
     "searching": "Ищем…",
-    "noClientFound": "Не найдено — добавьте нового клиента."
+    "noClientFound": "Не найдено — добавьте нового клиента.",
+    "sourceLine": "Запись: {source}"
   },
   "myDay": {
     "title": "Мой день",
@@ -1395,7 +1397,8 @@
       "title": "Выберите филиал",
       "hint": "Куда вы хотите прийти?",
       "change": "Изменить"
-    }
+    },
+    "pausedBody": "Онлайн-запись временно недоступна. Чтобы записаться, позвоните нам."
   },
   "manageBooking": {
     "title": "Ваша запись",
@@ -1886,7 +1889,7 @@
       "invitation_created": "Приглашение отправлено",
       "invitation_revoked": "Приглашение отменено",
       "membership_removed": "Участник команды удалён",
-      "membership_updated": "Роль участника изменена",
+      "membership_updated": "Участник команды изменён",
       "platform_sms_topup": "Visito добавила SMS",
       "platform_tenant_updated": "Visito изменила тариф или статус",
       "service_deleted": "Услуга удалена",
@@ -1904,7 +1907,79 @@
       "tenant_deletion_cancelled": "Удаление отменено",
       "tenant_deletion_requested": "Запрошено удаление",
       "tenant_exported": "Все данные бизнеса скачаны",
-      "tenant_seeded": "Загружены демо-данные"
+      "tenant_seeded": "Загружены демо-данные",
+      "auth_signed_in": "Вход",
+      "auth_password_changed": "Пароль изменён",
+      "time_off_requested": "Запрос отгула",
+      "time_off_approved": "Отгул одобрен",
+      "time_off_declined": "Отгул отклонён",
+      "time_off_cancelled": "Запрос отгула отменён",
+      "payroll_staff_pay_insert": "Правило оплаты добавлено",
+      "payroll_staff_pay_rates_insert": "Процент за услугу добавлен",
+      "payroll_pay_adjustments_insert": "Бонус / удержание добавлено",
+      "payroll_payouts_insert": "Выплата записана",
+      "payroll_staff_pay_update": "Правило оплаты изменено",
+      "payroll_staff_pay_rates_update": "Процент за услугу изменён",
+      "payroll_pay_adjustments_update": "Бонус / удержание изменено",
+      "payroll_payouts_update": "Выплата изменена",
+      "payroll_staff_pay_delete": "Правило оплаты удалено",
+      "payroll_staff_pay_rates_delete": "Процент за услугу удалён",
+      "payroll_pay_adjustments_delete": "Бонус / удержание удалено",
+      "payroll_payouts_delete": "Выплата удалена",
+      "payroll_exported": "Зарплаты скачаны (Excel)",
+      "report_exported": "Отчёт скачан (Excel)",
+      "clients_list_exported": "Список клиентов скачан",
+      "billing_paid": "Подписка оплачена",
+      "billing_started": "Оплата начата",
+      "billing_recurring_consent": "Автоплатёж включён",
+      "billing_autopay_off": "Автоплатёж выключен",
+      "billing_amount_mismatch": "Сумма оплаты не совпадает",
+      "review_moderated": "Отзыв изменён (ответ / скрытие)",
+      "services_templates_added": "Услуги добавлены из шаблона",
+      "location_created": "Филиал добавлен",
+      "location_updated": "Филиал изменён",
+      "location_activated": "Филиал включён",
+      "location_deactivated": "Филиал выключен",
+      "location_deleted": "Филиал удалён",
+      "location_services_updated": "Услуги филиала изменены"
+    },
+    "meta": {
+      "amount": "Сумма",
+      "salary": "Оклад",
+      "paid": "Оплачено",
+      "total": "Итого",
+      "pct": "Процент",
+      "method": "Как",
+      "role": "Роль",
+      "starts": "Начало",
+      "ends": "Конец",
+      "until": "До",
+      "due": "Удаление",
+      "paidOn": "Дата выплаты",
+      "from": "С",
+      "to": "По",
+      "email": "Почта",
+      "count": "Количество",
+      "rows": "Строк",
+      "imported": "Импортировано",
+      "inserted": "Импортировано",
+      "skipped": "Пропущено",
+      "hours": "Часов",
+      "segments": "SMS",
+      "note": "Заметка",
+      "month": "Месяц"
+    },
+    "how": {
+      "password": "по паролю",
+      "email_link": "по ссылке из почты"
+    },
+    "memberStatus": {
+      "active": "включён",
+      "disabled": "выключен"
+    },
+    "reviewStatus": {
+      "published": "видно",
+      "hidden": "скрыто"
     }
   },
   "accountData": {

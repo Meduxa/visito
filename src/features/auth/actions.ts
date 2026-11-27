@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { auditSignIn } from "./audit-sign-in";
 import { getLocale } from "next-intl/server";
 import { isHuman } from "@/integrations/captcha";
 import { clientIp } from "@/features/public-booking/security";
@@ -32,6 +33,7 @@ export async function signIn(input: SignInInput, next?: string): Promise<ActionR
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
   if (error) return fail(error.code === "email_not_confirmed" ? "emailNotConfirmed" : "invalidCredentials");
+  await auditSignIn(supabase, "password");
 
   const locale = await getLocale();
   redirect(safeNext(next, `/${locale}/dashboard`));

@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { memberContext } from "@/lib/action-context";
+import { memberContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 
 const uuid = z.uuid();
@@ -12,7 +12,7 @@ export async function readDentalNotes(
   clientId: string,
 ): Promise<ActionResult<{ id: string; author: string; body: string; at: string }[]>> {
   const ctx = await memberContext({ read: true });
-  if (!ctx || !uuid.safeParse(clientId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(clientId).success) return fail(await refusal());
   const { data, error } = await ctx.supabase.rpc("read_dental_notes", { p_client: clientId });
   if (error) return fail(error.code === "42501" ? "notAllowed" : "generic");
   return ok((data ?? []).map((n) => ({ id: n.id, author: n.author_name, body: n.body, at: n.created_at })));

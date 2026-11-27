@@ -172,7 +172,8 @@ export function BookingPanel({
             {t(`booking.status.${booking.status as "confirmed"}`)}
           </StatusPill>
           <span className="text-sm text-muted-foreground">
-            {staffName} · {t(`booking.sources.${booking.source as "admin"}`)}
+            {staffName} ·{" "}
+            {t("booking.sourceLine", { source: t(`booking.sources.${booking.source as "admin"}`) })}
             {booking.recurrenceId && ` · ${t("booking.series")}`}
           </span>
         </div>

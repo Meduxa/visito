@@ -2,6 +2,16 @@
 
 All notable changes per phase. Newest on top.
 
+## Fixes from test day 6 — clients, money, account (2026-11-27)
+
+Problems #56–#63 of `docs/test-plan.md` (#57 was not a problem).
+- Client "spent" is the money actually received (part payments included); the average is per paid visit (migration `20261128090000_day6_fixes.sql`, RLS test extended).
+- Deleting a client's personal data cancels their upcoming visits first; the confirmation says so.
+- Report chart opens on a metric that has data (a branch with only completed visits no longer shows "nothing in this period").
+- Audit log: sign-ins (password or email link) and report / payroll Excel downloads are recorded; every action has a readable name; details show names, money and dates instead of IDs; role "changes" that changed nothing are hidden.
+- A refused change in a suspended business says the account is suspended (not "no permission"); a suspended business's booking page says online booking is temporarily unavailable, with a call button, instead of "page not found".
+- Wording: "ჩაწერა: ადმინისტრატორი" in the visit panel; Georgian dates no longer end in "-მდე" (trial, paid period, support access).
+
 ## Fixes from test day 5 — SMS (2026-11-27)
 
 - Live problem found: every scheduled job on Netlify failed because CRON_SECRET contained a curly quote (no reminders, review requests or held messages; no daily job). The job now logs a clear reason; the value must be re-entered on Netlify.

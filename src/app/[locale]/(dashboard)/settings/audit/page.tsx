@@ -5,7 +5,8 @@ import { EmptyState } from "@/components/empty-state";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
 import { Link } from "@/i18n/navigation";
-import { fullDateTime } from "@/lib/date-format";
+import { fullDate, fullDateTime } from "@/lib/date-format";
+import { formatMoney } from "@/lib/money";
 import { createClient } from "@/lib/supabase/server";
 import { getActiveTenant } from "@/lib/tenant";
 import { cn } from "@/lib/utils";
@@ -14,10 +15,10 @@ import { cn } from "@/lib/utils";
 const PAGE = 50;
 const GROUPS = {
   all: null,
-  team: ["invitation.", "membership.", "staff.", "tenant."],
+  team: ["invitation.", "membership.", "staff.", "tenant.", "auth.", "time_off.", "payroll."],
   clients: ["client.", "clients.", "consent.", "dental_notes."],
   bookings: ["booking.", "bookings."],
-  settings: ["settings.", "service.", "services."],
+  settings: ["settings.", "service.", "services.", "location.", "billing.", "review.", "report."],
   platform: ["platform."],
 } as const;
 type Group = keyof typeof GROUPS;
@@ -46,9 +47,26 @@ export default async function AuditPage({ params, searchParams }: PageProps<"/[l
     .range(page * PAGE, page * PAGE + PAGE - 1);
   const prefixes = GROUPS[group];
   if (prefixes) q = q.or(prefixes.map((p) => `action.like.${p}%`).join(","));
-  const { data: rows, count } = await q;
+  const { data: found, count } = await q;
+  // a "role change" that changed nothing is noise (test plan #61)
+  const rows = (found ?? []).filter((r) => {
+    if (r.action !== "membership.updated") return true;
+    const m = (r.meta ?? {}) as Record<string, unknown>;
+    return m.from_role !== m.to_role || m.from_status !== m.to_status;
+  });
+  const metaOf = (meta: unknown) =>
+    meta && typeof meta === "object" && !Array.isArray(meta) ? (meta as Record<string, unknown>) : {};
 
-  const actorIds = [...new Set((rows ?? []).map((r) => r.actor_id).filter((x): x is string => !!x))];
+  const ids = (key: string) =>
+    rows.map((r) => metaOf(r.meta)[key]).filter((x): x is string => typeof x === "string");
+  const actorIds = [
+    ...new Set([...rows.map((r) => r.actor_id).filter((x): x is string => !!x), ...ids("user_id")]),
+  ];
+  const staffIds = [...new Set(ids("staff_id"))];
+  const { data: staffRows } = staffIds.length
+    ? await db.from("staff").select("id, display_name").eq("tenant_id", tenant.tenantId).in("id", staffIds)
+    : { data: [] as { id: string; display_name: string }[] };
+  const staffName = new Map((staffRows ?? []).map((s) => [s.id, s.display_name]));
   const { data: people } = actorIds.length
     ? await db.from("profiles").select("id, full_name").in("id", actorIds)
     : { data: [] as { id: string; full_name: string }[] };
@@ -57,13 +75,66 @@ export default async function AuditPage({ params, searchParams }: PageProps<"/[l
     const key = `auditLog.actions.${action.replace(/\./g, "_")}`;
     return t.has(key) ? t(key as "auditLog.title") : action;
   };
-  const detail = (meta: unknown) => {
-    const m = meta && typeof meta === "object" ? Object.entries(meta as Record<string, unknown>) : [];
-    return m
-      .filter(([, v]) => v !== null && typeof v !== "object")
-      .map(([k, v]) => `${k}: ${v}`)
-      .join(" · ")
-      .slice(0, 160);
+  // Details in plain words: names instead of IDs, money and dates formatted,
+  // internal fields left out (test plan #61).
+  const tx = t as unknown as ((k: string, v?: Record<string, string>) => string) & {
+    has: (k: string) => boolean;
+  };
+  const word = (key: string, fallback: string) => (tx.has(key) ? tx(key) : fallback);
+  const when = (v: string) => (v.length > 10 ? fullDateTime(t, v) : fullDate(t, v));
+  const MONEY: Record<string, string> = {
+    amount_minor: "amount",
+    salary_minor: "salary",
+    paid: "paid",
+    total: "total",
+  };
+  const DATES: Record<string, string> = {
+    starts_at: "starts",
+    ends_at: "ends",
+    until: "until",
+    due: "due",
+    paid_on: "paidOn",
+    from: "from",
+    to: "to",
+  };
+  const PLAIN = [
+    "email",
+    "count",
+    "rows",
+    "imported",
+    "inserted",
+    "skipped",
+    "hours",
+    "segments",
+    "note",
+    "month",
+  ];
+  const detail = (action: string, meta: unknown) => {
+    const m = metaOf(meta);
+    const out: string[] = [];
+    const add = (labelKey: string, value: string) => out.push(`${tx(`auditLog.meta.${labelKey}`)}: ${value}`);
+    if (typeof m.staff_id === "string" && staffName.has(m.staff_id)) out.push(staffName.get(m.staff_id)!);
+    if (typeof m.user_id === "string" && nameOf.has(m.user_id)) out.push(nameOf.get(m.user_id)!);
+    if (typeof m.how === "string") out.push(word(`auditLog.how.${m.how}`, m.how));
+    if (typeof m.kind === "string" && action.startsWith("payroll."))
+      out.push(word(`payroll.${m.kind}`, m.kind));
+    if (typeof m.role === "string") add("role", word(`roles.${m.role}`, m.role));
+    if (m.from_role !== m.to_role && typeof m.from_role === "string" && typeof m.to_role === "string")
+      add("role", `${word(`roles.${m.from_role}`, m.from_role)} → ${word(`roles.${m.to_role}`, m.to_role)}`);
+    if (m.from_status !== m.to_status && typeof m.to_status === "string")
+      out.push(word(`auditLog.memberStatus.${m.to_status}`, m.to_status));
+    if (typeof m.status === "string" && action === "review.moderated")
+      out.push(word(`auditLog.reviewStatus.${m.status}`, m.status));
+    for (const [k, label] of Object.entries(MONEY))
+      if (typeof m[k] === "number") add(label, formatMoney(m[k] as number));
+    if (typeof m.pct === "number") add("pct", `${m.pct}%`);
+    if (typeof m.method === "string") add("method", word(`payroll.methods.${m.method}`, m.method));
+    for (const [k, label] of Object.entries(DATES))
+      if (typeof m[k] === "string" && /^d{4}-d{2}-d{2}/.test(m[k] as string))
+        add(label, when(m[k] as string));
+    for (const k of PLAIN)
+      if ((typeof m[k] === "string" && m[k]) || typeof m[k] === "number") add(k, String(m[k]));
+    return out.join(" · ").slice(0, 200);
   };
 
   return (
@@ -93,7 +164,7 @@ export default async function AuditPage({ params, searchParams }: PageProps<"/[l
           </Link>
         ))}
       </nav>
-      {!rows?.length ? (
+      {!rows.length ? (
         <div className="rounded-xl border bg-card">
           <EmptyState icon={<ScrollText />} title={t("auditLog.empty")} />
         </div>
@@ -108,8 +179,8 @@ export default async function AuditPage({ params, searchParams }: PageProps<"/[l
                 </span>
                 <span className="ml-auto text-xs text-muted-foreground">{fullDateTime(t, r.at)}</span>
               </div>
-              {detail(r.meta) && (
-                <p className="text-xs break-words text-muted-foreground">{detail(r.meta)}</p>
+              {detail(r.action, r.meta) && (
+                <p className="text-xs break-words text-muted-foreground">{detail(r.action, r.meta)}</p>
               )}
             </li>
           ))}

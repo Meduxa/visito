@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { formatInTimeZone } from "date-fns-tz";
 import { z } from "zod";
-import { memberContext, type MemberContext } from "@/lib/action-context";
+import { memberContext, type MemberContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { normalizePhone } from "@/lib/phone";
 import { DEFAULT_TZ } from "@/lib/time";
@@ -65,7 +65,7 @@ export async function findSlots(input: {
   if (input.staffId !== "any" && !uuid.safeParse(input.staffId).success) return fail("invalidInput");
   if (!locationSchema.safeParse(input.locationId).success) return fail("invalidInput");
   const staffId = ctx.isManager ? input.staffId : ctx.staffId;
-  if (!staffId) return fail("notAllowed");
+  if (!staffId) return fail(await refusal());
 
   const data = await loadEngineData(ctx.supabase, ctx.tenant.tenantId, input.date, input.date, {
     locationId: input.locationId,
@@ -114,7 +114,7 @@ export async function createBooking(
   const parsed = createSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
   const { supabase, tenant } = ctx;
 
   const date = await localDate(ctx, v.start);
@@ -138,7 +138,7 @@ export async function createBooking(
     starts_at: string;
   } | null = null;
   if (v.followUp) {
-    if (!allowedStaff(ctx, v.followUp.staffId)) return fail("notAllowed");
+    if (!allowedStaff(ctx, v.followUp.staffId)) return fail(await refusal());
     const fuStart = new Date(v.followUp.start);
     const fuDate = await localDate(ctx, v.followUp.start);
     const fuData =
@@ -236,7 +236,7 @@ export async function addFollowUp(
   const parsed = addFollowUpSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
   const { supabase, tenant } = ctx;
 
   const { data: b } = await supabase
@@ -284,7 +284,7 @@ export async function moveBooking(
   const parsed = moveSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
   const { supabase, tenant } = ctx;
 
   const { data: items } = await supabase
@@ -293,7 +293,7 @@ export async function moveBooking(
     .eq("booking_id", v.bookingId)
     .order("sort_order");
   if (!items?.length) return fail("notFound");
-  if (items.some((i) => !allowedStaff(ctx, i.staff_id))) return fail("notAllowed");
+  if (items.some((i) => !allowedStaff(ctx, i.staff_id))) return fail(await refusal());
 
   const date = await localDate(ctx, v.start);
   const { data: own } = await supabase.from("bookings").select("location_id").eq("id", v.bookingId).single();
@@ -471,7 +471,7 @@ export async function previewRecurring(
   const parsed = recurringSchema.safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
 
   const starts = Array.from(
     { length: v.times },
@@ -518,7 +518,7 @@ export async function createRecurring(input: {
     .safeParse(input);
   if (!ctx || !parsed.success) return fail("invalidInput");
   const v = parsed.data;
-  if (!allowedStaff(ctx, v.staffId)) return fail("notAllowed");
+  if (!allowedStaff(ctx, v.staffId)) return fail(await refusal());
 
   // the same back-to-back layout as a single booking, repeated per date
   const data = await loadEngineData(

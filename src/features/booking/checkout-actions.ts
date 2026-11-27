@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { memberContext } from "@/lib/action-context";
+import { memberContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { parseMoneyToMinor } from "@/lib/money";
 import { PAYMENT_METHODS } from "./payment-methods";
@@ -59,7 +59,7 @@ export async function checkout(input: z.input<typeof checkoutSchema>): Promise<A
     p_tip_staff: v.tipStaffId as string,
   });
   if (error) {
-    if (error.code === "42501") return fail("notAllowed");
+    if (error.code === "42501") return fail(await refusal());
     if (error.code === "22023") return fail("discountTooBig");
     if (error.code === "P0001") return fail("cannotPay");
     return fail("generic");

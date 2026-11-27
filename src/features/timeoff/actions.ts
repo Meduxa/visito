@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { dbErrorCode, managerContext, memberContext } from "@/lib/action-context";
+import { dbErrorCode, managerContext, memberContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { addDays } from "@/lib/dates";
 import { DEFAULT_TZ, zonedToUtcIso } from "@/lib/time";
@@ -28,7 +28,7 @@ const refresh = (locale: string) => {
 /** Whole days: from the first day's start to the end of the last day, in the business's time zone. */
 export async function requestTimeOff(input: TimeOffRequestInput): Promise<ActionResult> {
   const ctx = await memberContext();
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   const p = requestSchema.safeParse(input);
   if (!p.success)
     return fail(p.error.issues[0]?.message === "endBeforeStart" ? "endBeforeStart" : "invalidInput");
@@ -52,7 +52,7 @@ export async function requestTimeOff(input: TimeOffRequestInput): Promise<Action
 
 export async function decideTimeOff(id: string, approve: boolean, note = ""): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !z.uuid().safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !z.uuid().safeParse(id).success) return fail(await refusal());
   const { error } = await ctx.supabase.rpc("decide_time_off", {
     p_id: id,
     p_approve: approve,
@@ -66,7 +66,7 @@ export async function decideTimeOff(id: string, approve: boolean, note = ""): Pr
 
 export async function cancelTimeOffRequest(id: string): Promise<ActionResult> {
   const ctx = await memberContext();
-  if (!ctx || !z.uuid().safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !z.uuid().safeParse(id).success) return fail(await refusal());
   const { error } = await ctx.supabase.rpc("cancel_time_off_request", { p_id: id });
   if (error) return fail(error.code === "P0001" ? "alreadyDecided" : dbErrorCode(error));
   refresh(ctx.locale);

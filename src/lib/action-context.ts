@@ -49,3 +49,11 @@ export function dbErrorCode(error: { code?: string; message?: string }): string 
   console.error("db error", error.code);
   return "generic";
 }
+
+// Why an action was refused, as an error code: a suspended or cancelled
+// business (or support view) is "read only", which is not the same as the
+// person lacking the right (test plan #63).
+export async function refusal(): Promise<"readOnly" | "notAllowed"> {
+  const tenant = await getActiveTenant();
+  return tenant && isReadOnly(tenant) ? "readOnly" : "notAllowed";
+}

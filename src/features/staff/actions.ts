@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { buildTranslations } from "@/lib/translations";
 import { z } from "zod";
-import { dbErrorCode, managerContext } from "@/lib/action-context";
+import { dbErrorCode, managerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { DEFAULT_TZ, zonedToUtcIso } from "@/lib/time";
 import {
@@ -27,7 +27,7 @@ const done = (locale: string, id?: string) => {
 
 export async function saveStaff(id: string | null, input: StaffInput): Promise<ActionResult<{ id: string }>> {
   const ctx = await managerContext();
-  if (!ctx || (id && !uuid.safeParse(id).success)) return fail("notAllowed");
+  if (!ctx || (id && !uuid.safeParse(id).success)) return fail(await refusal());
   const parsed = staffSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
@@ -67,8 +67,8 @@ export async function saveStaff(id: string | null, input: StaffInput): Promise<A
 // owner/admin only); this only records the path.
 export async function setStaffPhoto(id: string, path: string | null): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
-  if (path !== null && !path.startsWith(`${ctx.tenant.tenantId}/`)) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
+  if (path !== null && !path.startsWith(`${ctx.tenant.tenantId}/`)) return fail(await refusal());
   const { error } = await ctx.supabase
     .from("staff")
     .update({ photo_path: path })
@@ -81,7 +81,7 @@ export async function setStaffPhoto(id: string, path: string | null): Promise<Ac
 
 export async function deleteStaff(id: string): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
   const { error } = await ctx.supabase
     .from("staff")
     .delete()
@@ -100,7 +100,7 @@ export async function deleteStaff(id: string): Promise<ActionResult> {
 
 export async function saveWeek(staffId: string, week: WeekInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(staffId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(staffId).success) return fail(await refusal());
   const parsed = weekSchema.safeParse(week);
   if (!parsed.success) return fail("scheduleInvalid");
   const rows = Object.entries(parsed.data).flatMap(([day, list]) =>
@@ -119,7 +119,7 @@ export async function saveWeek(staffId: string, week: WeekInput): Promise<Action
 
 export async function saveStaffServices(staffId: string, input: StaffServicesInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(staffId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(staffId).success) return fail(await refusal());
   const parsed = staffServicesSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const { error } = await ctx.supabase.rpc("set_staff_services", { p_staff: staffId, p_rows: parsed.data });
@@ -131,7 +131,7 @@ export async function saveStaffServices(staffId: string, input: StaffServicesInp
 
 export async function addOverride(staffId: string, input: OverrideInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(staffId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(staffId).success) return fail(await refusal());
   const parsed = overrideSchema.safeParse(input);
   if (!parsed.success) return fail("invalidInput");
   const v = parsed.data;
@@ -154,7 +154,7 @@ export async function addOverride(staffId: string, input: OverrideInput): Promis
 
 export async function addTimeOff(staffId: string, input: TimeOffInput): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(staffId).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(staffId).success) return fail(await refusal());
   const parsed = timeOffSchema.safeParse(input);
   if (!parsed.success)
     return fail(parsed.error.issues[0]?.message === "endBeforeStart" ? "endBeforeStart" : "invalidInput");
@@ -184,7 +184,7 @@ export async function deleteScheduleItem(
   staffId: string,
 ): Promise<ActionResult> {
   const ctx = await managerContext();
-  if (!ctx || !uuid.safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !uuid.safeParse(id).success) return fail(await refusal());
   const table = kind === "override" ? "staff_schedule_overrides" : "time_off";
   const { error } = await ctx.supabase.from(table).delete().eq("id", id).eq("tenant_id", ctx.tenant.tenantId);
   if (error) return fail(dbErrorCode(error));
@@ -195,7 +195,7 @@ export async function deleteScheduleItem(
 export async function linkLogin(staffId: string, membershipId: string | null): Promise<ActionResult> {
   const ctx = await managerContext();
   if (!ctx || !uuid.safeParse(staffId).success || (membershipId && !uuid.safeParse(membershipId).success)) {
-    return fail("notAllowed");
+    return fail(await refusal());
   }
   const { error } = await ctx.supabase.rpc("link_staff_login", {
     p_staff: staffId,

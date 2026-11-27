@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { allow, clientIp, hmac } from "@/features/public-booking/security";
-import { dbErrorCode, managerContext } from "@/lib/action-context";
+import { dbErrorCode, managerContext, refusal } from "@/lib/action-context";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -22,7 +22,7 @@ export async function moderateReview(
   const p = z
     .object({ status: z.enum(["published", "hidden"]), reply: z.string().trim().max(1000) })
     .safeParse(input);
-  if (!ctx || !z.uuid().safeParse(id).success) return fail("notAllowed");
+  if (!ctx || !z.uuid().safeParse(id).success) return fail(await refusal());
   if (!p.success) return fail("invalidInput");
   const { error } = await ctx.supabase.rpc("moderate_review", {
     p_id: id,
@@ -44,7 +44,7 @@ export type ReviewSettingsInput = z.input<typeof settingsSchema>;
 export async function saveReviewSettings(input: ReviewSettingsInput): Promise<ActionResult> {
   const ctx = await managerContext();
   const p = settingsSchema.safeParse(input);
-  if (!ctx) return fail("notAllowed");
+  if (!ctx) return fail(await refusal());
   if (!p.success) return fail("invalidInput");
   const { data, error } = await ctx.supabase
     .from("tenant_settings")
@@ -56,7 +56,7 @@ export async function saveReviewSettings(input: ReviewSettingsInput): Promise<Ac
     .eq("tenant_id", ctx.tenant.tenantId)
     .select("tenant_id");
   if (error) return fail(dbErrorCode(error));
-  if (!data?.length) return fail("notAllowed");
+  if (!data?.length) return fail(await refusal());
   revalidatePath(`/${ctx.locale}/settings/reviews`);
   return ok(undefined);
 }

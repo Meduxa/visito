@@ -7,7 +7,7 @@ import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 import { renderSms } from "@/features/sms/render";
 import { sendNow } from "@/features/sms/send";
-import { memberContext } from "@/lib/action-context";
+import { memberContext, refusal } from "@/lib/action-context";
 import { shortDate, ymdIn } from "@/lib/date-format";
 import { fail, ok, type ActionResult } from "@/lib/action-result";
 import { localized } from "@/lib/i18n-text";
@@ -163,9 +163,9 @@ export async function waitlistMatches(bookingId: string): Promise<string[]> {
 // message: they asked for it). Managers only, like other SMS the team sends.
 // One offer per client per freed time — pressing twice does not send twice.
 export async function sendWaitlistOffer(entryId: string, bookingId: string): Promise<ActionResult> {
-  if (!SMS_SALON_TOOLS) return fail("notAllowed"); // pilot, decision 033
+  if (!SMS_SALON_TOOLS) return fail(await refusal()); // pilot, decision 033
   const ctx = await memberContext();
-  if (!ctx?.isManager) return fail("notAllowed");
+  if (!ctx?.isManager) return fail(await refusal());
   if (!uuid.safeParse(entryId).success || !uuid.safeParse(bookingId).success) return fail("invalidInput");
   if (!(await waitlistMatches(bookingId)).includes(entryId)) return fail("invalidInput");
 

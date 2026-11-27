@@ -178,26 +178,28 @@ Plan bookings so the reminders arrive while you're awake (quiet hours 22:00–09
 
 ## Day 6 — Clients, reports, account (computer)
 
+> 27.11, Claude on localhost as owner/admin. Not done: 6.3 (marketing consent is hidden in the pilot); custom fields of type date/list/yes-no (only text tried); 6.10/6.11 platform-admin side — status set directly in the database, support viewing needs a platform-admin login.
+
 **Clients (G 10)**
-- [ ] 6.1 Client card: history, visits, no-shows, important note (allergy) shows on bookings
-- [ ] 6.2 Custom fields (text, date, list, yes/no) and client groups (VIP, at risk, lost)
+- [x] 6.1 Client card: history, visits, no-shows, important note (allergy) shows on bookings
+- [x] 6.2 Custom fields (text, date, list, yes/no) and client groups (VIP, at risk, lost)
 - [ ] 6.3 Marketing consent: on/off with who/when recorded
-- [ ] 6.4 Export one client's data; delete a client (with confirmation) → gone everywhere, past bookings anonymous
-- [ ] 6.5 Search by name and by phone in any format (`591…`, `+995…`)
+- [x] 6.4 Export one client's data; delete a client (with confirmation) → gone everywhere, past bookings anonymous
+- [x] 6.5 Search by name and by phone in any format (`591…`, `+995…`)
 
 **Dashboard, reports, payroll (G 14)**
-- [ ] 6.6 Dashboard numbers match what you did (bookings, revenue, no-shows)
-- [ ] 6.7 Reports by date range, branch, specialist; Excel download opens correctly
-- [ ] 6.8 Payroll: fixed + % of services + tips for a specialist → amounts correct
+- [x] 6.6 Dashboard numbers match what you did (bookings, revenue, no-shows)
+- [x] 6.7 Reports by date range, branch, specialist; Excel download opens correctly
+- [x] 6.8 Payroll: fixed + % of services + tips for a specialist → amounts correct
 
 **Account and security (G 15–17)**
-- [ ] 6.9 Subscription page (owner): plans and prices shown; **card payment waits for Flitt** — just check the page and the consent tick box
+- [x] 6.9 Subscription page (owner): plans and prices shown; **card payment waits for Flitt** — just check the page and the consent tick box
 - [ ] 6.10 Platform admin changes the salon to **past due** → banner, everything still works; **suspended** → view and download only; back to trial
 - [ ] 6.11 Support access: owner allows 24 h → platform admin opens read-only, can't change anything; owner stops access
-- [ ] 6.12 Audit log shows sign-ins, role changes, exports, deleted client, support visit
-- [ ] 6.13 "Sign out of all devices" → phone gets signed out on next action
-- [ ] 6.14 Switch language ka / en / ru on several screens — no missing texts
-- [ ] 6.15 Legal pages and footer on visito.ge open (terms, privacy, DPA, payments)
+- [x] 6.12 Audit log shows sign-ins, role changes, exports, deleted client, support visit
+- [x] 6.13 "Sign out of all devices" → phone gets signed out on next action
+- [x] 6.14 Switch language ka / en / ru on several screens — no missing texts
+- [x] 6.15 Legal pages and footer on visito.ge open (terms, privacy, DPA, payments)
 
 ---
 
@@ -276,3 +278,11 @@ Plan bookings so the reminders arrive while you're awake (quiet hours 22:00–09
 | 53 | 5.4 / 5.5 | Read the code: a reminder already waiting in the queue (e.g. held during quiet hours until 09:00), then the visit is moved or cancelled | Old reminder not sent | Nothing removes or re-checks a queued message: it would still go out with the old time, or for a cancelled visit | 27.11 | Claude | Fixed 27.11: before a queued message about a visit is sent, it is checked against the visit now — moved/cancelled/replaced ones are not sent (credits back) and the log says why. Unit-tested; to see live after deploy |
 | 54 | 5.8 | SMS settings page with 3 branches | Example shows the branch | Text examples show only the salon name, not ", ვაკე" | 27.11 | Claude | |
 | 55 | 5.6 | Review request made on the laptop | — | Its link is `http://localhost:3000/r/…` (2 SMS) and the live site would send it — a side effect of the laptop and visito.ge sharing one database, not an app bug | 27.11 | Claude | |
+| 56 | 6.1 | Nia's client card after a part-paid visit | Visits / spent reflect what happened | "ვიზიტები 0 · დახარჯა 0 ₾" although she paid 150 ₾ (only completed visits seem to count) | 27.11 | Claude | Fixed 27.11: "დახარჯა" = money received (part payments too), average per paid visit |
+| 57 | 6.1 | Client card on 27 Nov, visit today at 15:00 | Under "მომავალი" | Listed under **"წარსული"** (past) before it happened | 27.11 | Claude | Not a problem: the clock was already past 15:00 (20:48) |
+| 58 | 6.1 | Visit window line under the status | Who booked it, clearly | "ნინო ვაკელი · ადმინისტრატორი" reads as if Nino were an administrator (it means "booked by an administrator") | 27.11 | Claude | Fixed 27.11: "ჩაწერა: ადმინისტრატორი" |
+| 59 | 6.4 | Delete personal data of a client with an upcoming visit | Warning, or the visit handled | Upcoming confirmed visit (5 Dec) stays, now with no name or phone; the window doesn't mention it | 27.11 | Claude | Fixed 27.11: upcoming visits are cancelled first; the confirmation says so |
+| 60 | 6.7 | Report, Isani, November | Chart shows the 1 visit | Numbers say 1 completed visit, chart says "ამ პერიოდში არაფერია" | 27.11 | Claude | Fixed 27.11: chart opens on a metric that has data |
+| 61 | 6.12 | Audit log | Readable entries, sign-ins, exports | Some entries show internal names ("payroll.staff_pay.insert", "time_off.declined") and raw IDs/dates; sign-ins and report/Excel exports are not logged; role "changes" from staff to staff | 27.11 | Claude | Fixed 27.11: sign-ins and Excel downloads logged; readable names, names/money/dates in details; no-op role changes hidden |
+| 62 | 6.9 / 6.11 | Dates with "-მდე" | "9 დეკემბრამდე" | "უფასოდ 9 დეკემბერი-მდე", "… 20:52-მდე" (like #9) | 27.11 | Claude | Fixed 27.11: "… სრულდება: {date}" |
+| 63 | 6.10 | Account suspended | Clear message to owner and clients | Owner's save refused with "ამის გაკეთების უფლება არ გაქვთ" (no permission) instead of "account suspended"; the client booking page shows "გვერდი ვერ მოიძებნა" (page not found) | 27.11 | Claude | Fixed 27.11: "ანგარიში შეჩერებულია — …" on save; booking page says online booking is temporarily unavailable + call button |

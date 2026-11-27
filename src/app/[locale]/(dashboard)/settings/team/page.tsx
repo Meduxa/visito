@@ -7,12 +7,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { InviteForm } from "@/features/team/components/invite-form";
+import { MemberControls } from "@/features/team/components/member-controls";
 import { RevokeInviteButton } from "@/features/team/components/revoke-invite-button";
 import { getTeam } from "@/features/team/queries";
 import { AccessCard } from "@/features/settings/components/settings-view";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { canManage, getActiveTenant } from "@/lib/tenant";
+import { canManage, getActiveTenant, isReadOnly } from "@/lib/tenant";
 
 export async function generateMetadata({ params }: PageProps<"/[locale]/settings/team">) {
   const t = await getTranslations({ locale: (await params).locale, namespace: "team" });
@@ -27,6 +28,7 @@ export default async function TeamPage({ params }: PageProps<"/[locale]/settings
 
   const [t, team] = await Promise.all([getTranslations(), getTeam(tenant.tenantId)]);
   const manager = canManage(tenant.role);
+  const readOnly = isReadOnly(tenant);
   // what staff may see, whether admins see money: set here, next to the people
   const access = manager
     ? (
@@ -73,7 +75,16 @@ export default async function TeamPage({ params }: PageProps<"/[locale]/settings
                     <span className="font-normal text-muted-foreground"> ({t("team.you")})</span>
                   )}
                 </span>
-                <Badge variant={m.role === "owner" ? "default" : "secondary"}>{t(`roles.${m.role}`)}</Badge>
+                {tenant.role === "owner" && m.role !== "owner" && m.userId !== user.id && !readOnly ? (
+                  <MemberControls
+                    id={m.id}
+                    name={m.fullName || t("team.noName")}
+                    role={m.role}
+                    staffName={m.staffName}
+                  />
+                ) : (
+                  <Badge variant={m.role === "owner" ? "default" : "secondary"}>{t(`roles.${m.role}`)}</Badge>
+                )}
               </li>
             ))}
           </ul>

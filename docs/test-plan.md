@@ -205,10 +205,12 @@ Plan bookings so the reminders arrive while you're awake (quiet hours 22:00–09
 
 ## Day 7 — Ending (last)
 
-- [ ] 7.1 Data & security → download everything (Excel and JSON) → files open, contain clients, bookings, services, payments
-- [ ] 7.2 "Delete business…" → banner with the date → **"keep business"** → not deleted
+- [x] 7.1 Data & security → download everything (Excel and JSON) → files open, contain clients, bookings, services, payments
+- [x] 7.2 "Delete business…" → banner with the date → **"keep business"** → not deleted
 - [ ] 7.3 (Optional) create a throwaway second business and really delete it → after 14 days it's gone. **Keep** the test salon for future tests.
-- [ ] 7.4 Remove a staff member from the team and set their profile inactive → history stays, no new online bookings for them
+- [x] 7.4 Remove a staff member from the team and set their profile inactive → history stays, no new online bookings for them
+
+> 27.11, Claude on localhost as owner. 7.1: both files download; JSON has 18 bookings, 14 clients, 9 services, 2 payments (= database). 7.2: banner "ბიზნესი წაიშლება 11 დეკემბერი 2026", booking page keeps working, "ბიზნესის დატოვება" cancels it. 7.3 skipped (optional). 7.4: "დათო ბარბერი" set inactive → gone from the booking page (all 3 branches) and the calendar; "history stays" not seen (he had no visits); removing "გიორგი ბარბერი" from the team was not possible (#66; after the fix he was removed). დათო stays inactive.
 
 ---
 
@@ -286,3 +288,7 @@ Plan bookings so the reminders arrive while you're awake (quiet hours 22:00–09
 | 61 | 6.12 | Audit log | Readable entries, sign-ins, exports | Some entries show internal names ("payroll.staff_pay.insert", "time_off.declined") and raw IDs/dates; sign-ins and report/Excel exports are not logged; role "changes" from staff to staff | 27.11 | Claude | Fixed 27.11: sign-ins and Excel downloads logged; readable names, names/money/dates in details; no-op role changes hidden |
 | 62 | 6.9 / 6.11 | Dates with "-მდე" | "9 დეკემბრამდე" | "უფასოდ 9 დეკემბერი-მდე", "… 20:52-მდე" (like #9) | 27.11 | Claude | Fixed 27.11: "… სრულდება: {date}" |
 | 63 | 6.10 | Account suspended | Clear message to owner and clients | Owner's save refused with "ამის გაკეთების უფლება არ გაქვთ" (no permission) instead of "account suspended"; the client booking page shows "გვერდი ვერ მოიძებნა" (page not found) | 27.11 | Claude | Fixed 27.11: "ანგარიში შეჩერებულია — …" on save; booking page says online booking is temporarily unavailable + call button |
+| 64 | 7.1 | Open "ყველაფრის ჩამოტვირთვა (Excel)" | A file a salon owner can read | Raw database tables: English technical column names (tenant_id, starts_at…), money in tetri (5000 = 50 ₾), times in UTC (4 h off), IDs instead of client / specialist names, a visit's services as JSON text in one cell | 27.11 | Claude | Fixed 27.11: sheets and columns in the page language, names, lari, local times |
+| 65 | 7.1 | "Everything" export (JSON / Excel) | All the business's data | Missing: service categories, staff schedules, time off, reviews, pay rules, client field names, waitlist; branches only in JSON, not in Excel | 27.11 | Claude | Fixed 27.11: all of these added (JSON and Excel); treatment notes stay out |
+| 66 | 7.4 | Remove a staff member from the team (guide 22.3 says so) | A "remove" button (and role change) | **No way to remove a team member, change a role or turn off a login** — a departing employee keeps signing in and seeing clients | 27.11 | Claude | Fixed 27.11: owner can change role and "გუნდიდან ამოღება"; გიორგი ბარბერი removed — access gone |
+| 67 | 7.4 | Staff profile, screen reader | Switches named | "ონლაინ ჯავშანი" and "აქტიური" switches have no name (like #15) | 27.11 | Claude | Fixed 27.11: every form switch named by its row |

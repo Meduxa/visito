@@ -2,6 +2,14 @@
 
 All notable changes per phase. Newest on top.
 
+## Fixes from test day 7 — ending (2026-11-27)
+
+Problems #64–#67 of `docs/test-plan.md`.
+- Team: the owner can change a member's role and remove someone from the team (with confirmation). The removed person loses access at once; history stays (RLS test `rls_team_remove`).
+- "Download everything (Excel)" is readable: sheets and columns in the page language, names instead of IDs, money in lari, times in the business's time zone, a visit's services in plain words.
+- "Download everything" now also includes categories, variants, add-ons, branch hours and services, closed days, resources, specialists' services and schedules, time off and requests, client field definitions, extra charges, reviews, waitlist, pay rules, bonuses/deductions, payouts and subscription payments (migration `20261128100000_export_everything.sql`). Treatment notes stay out.
+- Switches in forms are named for screen readers (all `SwitchRow` switches).
+
 ## Fixes from test day 6 — clients, money, account (2026-11-27)
 
 Problems #56–#63 of `docs/test-plan.md` (#57 was not a problem).

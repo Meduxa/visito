@@ -11,3 +11,5 @@ design
 .claude
 CLAUDE.md
 START-HERE-PROMPT.md
+# Supabase email templates: kept exactly as pasted into the Supabase dashboard
+supabase/templates
